@@ -18,8 +18,19 @@ namespace NBitcoin.DLC.Messages
 		[JsonConverter(typeof(NBitcoin.JsonConverters.MoneyJsonConverter))]
 		public Money? TotalCollateral { get; set; }
 		public FundingInput[]? FundingInputs { get; set; }
+		public BitcoinAddress? ChangeAddress { get; set; }
+		[JsonConverter(typeof(FeeRateJsonConverter))]
+		public FeeRate? FeeRate { get; set; }
+		public Timeouts? Timeouts { get; set; }
 		[JsonExtensionData]
 		public Dictionary<string, JToken>? AdditionalData { get; set; }
+	}
+	public class Timeouts
+	{
+		[JsonConverter(typeof(LocktimeJsonConverter))]
+		public LockTime ContractMaturity { get; set; }
+		[JsonConverter(typeof(LocktimeJsonConverter))]
+		public LockTime ContractTimeout { get; set; }
 	}
 	public class PubKeyObject
 	{
