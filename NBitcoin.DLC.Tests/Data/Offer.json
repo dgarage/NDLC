@@ -1,0 +1,30 @@
+{
+  "contractInfo": [
+    {
+      "sha256": "1bd3f7beb217b55fd40b5ea7e62dc46e6428c15abd9e532ac37604f954375526",
+      "sats": 0
+    },
+    {
+      "sha256": "cbaede9e2ad17109b71b85a23306b6d4b93e78e8e8e8d830d836974f16128ae8",
+      "sats": 200000000
+    }
+  ],
+  "oracleInfo": "bfa6638de8901e5144112fc797f9cdcc01f987c6c5c1466a769df966db6cdf22848223e032729ff09c98c72538ca19d387f6efb8d250b9a6a309ba35f2f906fd",
+  "pubKeys": {
+    "fundingKey": "025cde7c3a6381a50173c7a2ce299b7813b05982bad0db6ab9538b8f34f8886afd",
+    "payoutAddress": "bcrt1q6hjfzdyes030uxy7d24yh3m95l3wn0nax3w65t"
+  },
+  "totalCollateral": 100000000,
+  "fundingInputs": [
+    {
+      "outpoint": "e7d8c121f888631289b14989a07e90bcb8c53edf88d5d3ee978fb75b382f26d102000000",
+      "output": "c8c2eb0b00000000160014802af9a18c2e975db134c7d142744c81fad34d68"
+    }
+  ],
+  "changeAddress": "bcrt1qlygd5vc3msfl7k63ykrm2gaj0tuyr3lhp0flax",
+  "feeRate": 1000,
+  "timeouts": {
+    "contractMaturity": 706,
+    "contractTimeout": 850
+  }
+}
