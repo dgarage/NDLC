@@ -6,11 +6,42 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace NBitcoin.DLC.Secp256k1
 {
 	public static class Extensions
 	{
+		internal static byte[] TAG_BIP0340Challenge = ASCIIEncoding.ASCII.GetBytes("BIP0340/challenge");
+		public static bool TryComputeSigPoint(this ECXOnlyPubKey pubkey, ReadOnlySpan<byte> msg32, ReadOnlySpan<byte> nonce32, out ECPubKey? sigpoint)
+		{
+			if (nonce32.Length != 32)
+				throw new ArgumentException("Nonce should be 32 bytes", nameof(nonce32));
+			if (msg32.Length != 32)
+				throw new ArgumentException("Msg should be 32 bytes", nameof(msg32));
+			sigpoint = null;
+			Span<byte> buf = stackalloc byte[32];
+			Span<byte> pk_buf = stackalloc byte[32];
+			pubkey.WriteXToSpan(pk_buf);
+			/* tagged hash(r.x, pk.x, msg32) */
+			using var sha = new SHA256();
+			sha.InitializeTagged(TAG_BIP0340Challenge);
+			sha.Write(nonce32);
+			sha.Write(pk_buf);
+			sha.Write(msg32);
+			sha.GetHash(buf);
+			if (!pubkey.TryMultTweak(buf, out var pubkey_ge) || pubkey_ge is null)
+				return false;
+			if(!FE.TryCreate(nonce32, out var nonce32_fe))
+				return false;
+			if (!GE.TryCreateXQuad(nonce32_fe, out var nonce_ge))
+				return false;
+			var pubkey_gej = pubkey_ge.Q.ToGroupElementJacobian();
+			var sigpoint_gej = pubkey_gej + nonce_ge;
+			var sigpoint_ge = sigpoint_gej.ToGroupElement();
+			sigpoint = new ECPubKey(sigpoint_ge, pubkey.ctx);
+			return true;
+		}
 		public static bool SigVerify(this ECPubKey pubKey, SecpECDSAAdaptorSignature sig, ReadOnlySpan<byte> msg32, ECPubKey adaptor, SecpECDSAAdaptorProof proof)
 		{
 			if (pubKey == null)
@@ -235,7 +266,8 @@ namespace NBitcoin.DLC.Secp256k1
 		private static void secp256k1_dleq_challenge_hash(ReadOnlySpan<byte> algo16, in GE gen2, in GE r1, in GE r2, in GE p1, in GE p2, out Scalar e)
 		{
 			Span<byte> buf32 = stackalloc byte[32];
-			SHA256 sha = InitializeTagged(algo16.Slice(0, algo16_len(algo16)));
+			using SHA256 sha = new SHA256();
+			sha.InitializeTagged(algo16.Slice(0, algo16_len(algo16)));
 			sha.HashPoint(gen2);
 			sha.HashPoint(r1);
 			sha.HashPoint(r2);
@@ -256,7 +288,8 @@ namespace NBitcoin.DLC.Secp256k1
 		/* Modified bip340 nonce function */
 		static void nonce_function_dleq(ReadOnlySpan<byte> msg32, ReadOnlySpan<byte> key32, ReadOnlySpan<byte> algo16, Span<byte> nonce32)
 		{
-			var sha = InitializeTagged(algo16.Slice(0, algo16_len(algo16)));
+			using var sha = new SHA256();
+			sha.InitializeTagged(algo16.Slice(0, algo16_len(algo16)));
 			sha.Write(key32.Slice(0, 32));
 			sha.Write(msg32.Slice(0, 32));
 			sha.GetHash(nonce32);
@@ -272,20 +305,6 @@ namespace NBitcoin.DLC.Secp256k1
 				algo16_len--;
 			}
 			return algo16_len;
-		}
-
-		/* Initializes a sha256 struct and writes the 64 byte string
-		* SHA256(tag)||SHA256(tag) into it. */
-		public static SHA256 InitializeTagged(ReadOnlySpan<byte> tag)
-		{
-			Span<byte> buf = stackalloc byte[32];
-			SHA256 sha = new SHA256();
-			sha.Write(tag);
-			sha.GetHash(buf);
-			sha = new SHA256();
-			sha.Write(buf);
-			sha.Write(buf);
-			return sha;
 		}
 
 		internal static void HashPoint(this SHA256 sha, in GE p)
