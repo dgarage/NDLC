@@ -22,10 +22,10 @@ namespace NDLC
 			if (fundingOutput is null || payoutOutput is null)
 				return false;
 			var coins = psbt.Inputs.Select(o => o.GetSignableCoin()).ToList().AsReadOnly();
-			if (coins.Any(c => c is null))
+			if (coins.Any(c => c is null || c.GetHashVersion() == HashVersion.Original))
 				return false;
 			if (!psbt.TryGetEstimatedFeeRate(out var estimated) || estimated is null)
-				throw new InvalidOperationException("This should never happen");
+				return false;
 			template = new PSBTFundingTemplate(changeOutput?.ScriptPubKey, fundingOutput.Value, payoutOutput.ScriptPubKey, estimated, coins, psbt.Network);
 			return true;
 		}
