@@ -12,11 +12,19 @@ namespace NBitcoin.DLC.Secp256k1
 {
 	public static class Extensions
 	{
-		internal static byte[] TAG_BIP0340Challenge = ASCIIEncoding.ASCII.GetBytes("BIP0340/challenge");
-		public static bool TryComputeSigPoint(this ECXOnlyPubKey pubkey, ReadOnlySpan<byte> msg32, ReadOnlySpan<byte> nonce32, out ECPubKey? sigpoint)
+		public static ECPubKey ToECPubKey(this PubKey pubkey)
 		{
-			if (nonce32.Length != 32)
-				throw new ArgumentException("Nonce should be 32 bytes", nameof(nonce32));
+			Context.Instance.TryCreatePubKey(pubkey.ToBytes(), out var r);
+			if (r is null)
+				throw new InvalidOperationException("should never happen");
+			return r;
+		}
+
+		internal static byte[] TAG_BIP0340Challenge = ASCIIEncoding.ASCII.GetBytes("BIP340/challenge");
+		public static bool TryComputeSigPoint(this ECXOnlyPubKey pubkey, ReadOnlySpan<byte> msg32, SchnorrNonce rx, out ECPubKey? sigpoint)
+		{
+			if (rx == null)
+				throw new ArgumentNullException(nameof(rx));
 			if (msg32.Length != 32)
 				throw new ArgumentException("Msg should be 32 bytes", nameof(msg32));
 			sigpoint = null;
@@ -26,18 +34,17 @@ namespace NBitcoin.DLC.Secp256k1
 			/* tagged hash(r.x, pk.x, msg32) */
 			using var sha = new SHA256();
 			sha.InitializeTagged(TAG_BIP0340Challenge);
-			sha.Write(nonce32);
+			rx.fe.WriteToSpan(buf);
+			sha.Write(buf);
 			sha.Write(pk_buf);
 			sha.Write(msg32);
 			sha.GetHash(buf);
 			if (!pubkey.TryMultTweak(buf, out var pubkey_ge) || pubkey_ge is null)
 				return false;
-			if(!FE.TryCreate(nonce32, out var nonce32_fe))
-				return false;
-			if (!GE.TryCreateXQuad(nonce32_fe, out var nonce_ge))
+			if (!GE.TryCreateXQuad(rx.fe, out var rx_ge))
 				return false;
 			var pubkey_gej = pubkey_ge.Q.ToGroupElementJacobian();
-			var sigpoint_gej = pubkey_gej + nonce_ge;
+			var sigpoint_gej = pubkey_gej + rx_ge;
 			var sigpoint_ge = sigpoint_gej.ToGroupElement();
 			sigpoint = new ECPubKey(sigpoint_ge, pubkey.ctx);
 			return true;

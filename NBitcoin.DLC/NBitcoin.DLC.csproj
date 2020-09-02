@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="NBitcoin" Version="5.0.53" />
-    <PackageReference Include="NBitcoin.Secp256k1" Version="1.0.4" />
+    <PackageReference Include="NBitcoin.Secp256k1" Version="1.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 

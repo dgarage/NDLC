@@ -12,13 +12,9 @@ using System.Text;
 
 namespace NBitcoin.DLC.Messages
 {
-	public class Accept
+	public class Accept : FundingInformation
 	{
-		[JsonConverter(typeof(NBitcoin.JsonConverters.MoneyJsonConverter))]
-		public Money? TotalCollateral { get; set; }
-		public PubKeyObject? PubKeys { get; set; }
-		public FundingInput[]? FundingInputs { get; set; }
-		public BitcoinAddress? ChangeAddress { get; set; }
+		[JsonProperty(Order = 100)]
 		public CetSigs? CetSigs { get; set; }
 		[JsonExtensionData]
 		public Dictionary<string, JToken>? AdditionalData { get; set; }
