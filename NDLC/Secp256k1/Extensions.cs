@@ -50,7 +50,7 @@ namespace NDLC.Secp256k1
 			sigpoint = new ECPubKey(sigpoint_ge, pubkey.ctx);
 			return true;
 		}
-		public static bool SigVerify(this ECPubKey pubKey, SecpECDSAAdaptorSignature sig, ReadOnlySpan<byte> msg32, ECPubKey adaptor, SecpECDSAAdaptorProof proof)
+		public static bool SigVerify(this ECPubKey pubKey, SecpECDSAAdaptorSignature sig, SecpECDSAAdaptorProof proof, ReadOnlySpan<byte> msg32, ECPubKey adaptor)
 		{
 			if (pubKey == null)
 				throw new ArgumentNullException(nameof(pubKey));

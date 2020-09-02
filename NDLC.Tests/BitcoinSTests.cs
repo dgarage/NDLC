@@ -217,7 +217,7 @@ namespace NDLC.Tests
 			Assert.True(Context.Instance.TryCreatePubKey(pubkey, out var pubkeyObj));
 			Assert.True(Context.Instance.TryCreatePubKey(adaptor, out var adaptorObj));
 			Assert.True(SecpECDSAAdaptorProof.TryCreate(adaptorProof, out var adaptorProofObj));
-			return pubkeyObj.SigVerify(adaptorSigObj, msg, adaptorObj, adaptorProofObj);
+			return pubkeyObj.SigVerify(adaptorSigObj, adaptorProofObj, msg, adaptorObj);
 		}
 		private byte[] adaptorSign(byte[] seckey, byte[] adaptor, byte[] msg)
 		{

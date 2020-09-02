@@ -147,7 +147,7 @@ namespace NDLC.Messages
 
 			var fundingCoin = funding.Outputs.AsCoins().First().ToScriptCoin(GetFundingScript());
 			var msg = cet.GetSignatureHash(fundingCoin).ToBytes();
-			if (!ecPubKey.SigVerify(outcomeSig.Signature, msg, sigpoint, outcomeSig.Proof))
+			if (!ecPubKey.SigVerify(outcomeSig.Signature, outcomeSig.Proof, msg, sigpoint))
 				return false;
 
 			return true;

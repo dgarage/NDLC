@@ -127,31 +127,31 @@ namespace NDLC.Tests
 			}
 
 			///* Test adaptor_sig_verify */
-			Assert.True(pubkey.SigVerify(adaptor_sig, msg, adaptor, adaptor_proof));
+			Assert.True(pubkey.SigVerify(adaptor_sig, adaptor_proof, msg, adaptor));
 			{
 				Span<byte> adaptor_sig_tmp = stackalloc byte[65];
 				adaptor_sig.WriteToSpan(adaptor_sig_tmp);
 				rand_flip_bit(adaptor_sig_tmp);
 				if (SecpECDSAAdaptorSignature.TryCreate(adaptor_sig_tmp, out var sigg))
 				{
-					Assert.False(pubkey.SigVerify(sigg, msg, adaptor, adaptor_proof));
+					Assert.False(pubkey.SigVerify(sigg, adaptor_proof, msg, adaptor));
 				}
 			}
-			Assert.False(adaptor.SigVerify(adaptor_sig, msg, adaptor, adaptor_proof));
+			Assert.False(adaptor.SigVerify(adaptor_sig, adaptor_proof, msg, adaptor));
 			{
 				Span<byte> msg_tmp = stackalloc byte[32];
 				msg.CopyTo(msg_tmp);
 				rand_flip_bit(msg_tmp);
-				Assert.False(pubkey.SigVerify(adaptor_sig, msg_tmp, adaptor, adaptor_proof));
+				Assert.False(pubkey.SigVerify(adaptor_sig, adaptor_proof, msg_tmp, adaptor));
 			}
-			Assert.False(pubkey.SigVerify(adaptor_sig, msg, pubkey, adaptor_proof));
+			Assert.False(pubkey.SigVerify(adaptor_sig, adaptor_proof, msg, pubkey));
 			{
 				Span<byte> adaptor_proof_tmp = stackalloc byte[97];
 				adaptor_proof.WriteToSpan(adaptor_proof_tmp);
 				rand_flip_bit(adaptor_proof_tmp);
 				if (SecpECDSAAdaptorProof.TryCreate(adaptor_proof_tmp, out var proof))
 				{
-					Assert.False(pubkey.SigVerify(adaptor_sig, msg, adaptor, proof));
+					Assert.False(pubkey.SigVerify(adaptor_sig, proof, msg, adaptor));
 				}
 			}
 
