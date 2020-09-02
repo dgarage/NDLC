@@ -27,8 +27,12 @@ namespace NDLC.Messages
 		public FeeRate? FeeRate { get; set; }
 		[JsonProperty(Order = 103)]
 		public Timeouts? Timeouts { get; set; }
-		[JsonExtensionData]
-		public Dictionary<string, JToken>? AdditionalData { get; set; }
+
+		public override void FillFromTemplateFunding(PSBTFundingTemplate fundingTemplate, PubKey fundingKey)
+		{
+			FeeRate = fundingTemplate.FeeRate;
+			base.FillFromTemplateFunding(fundingTemplate, fundingKey);
+		}
 	}
 
 	public class OracleInfo

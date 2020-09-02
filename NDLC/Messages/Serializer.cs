@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NDLC.Messages.JsonConverters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -18,6 +19,7 @@ namespace NDLC.Messages
 			settings.Converters.Add(new NBitcoin.JsonConverters.BitcoinStringJsonConverter(network));
 			settings.Converters.Add(new NBitcoin.JsonConverters.OutpointJsonConverter());
 			settings.Converters.Add(new NBitcoin.JsonConverters.ScriptJsonConverter());
+			settings.Converters.Add(new PartialSignatureJsonConverter());
 		}
 	}
 }

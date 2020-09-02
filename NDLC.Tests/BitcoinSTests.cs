@@ -81,6 +81,62 @@ namespace NDLC.Tests
 		}
 
 		[Fact]
+		public void FullExchange()
+		{
+			var offerExample = Parse<Messages.Offer>("Data/Offer2.json");
+
+			var initiatorInputKey = new Key();
+			var acceptorInputKey = new Key();
+
+			var fund1 = GetFundingPSBT(initiatorInputKey, Money.Coins(0.6m));
+			var fund2 = GetFundingPSBT(acceptorInputKey, Money.Coins(0.4m));
+			var initiator = new DLCTransactionBuilder(true, null, null, null, Network.RegTest);
+			var acceptor = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
+
+			var offer = initiator.Offer(PSBTFundingTemplate.Parse(fund1), offerExample.OracleInfo, offerExample.ContractInfo, offerExample.Timeouts);
+			var accept = acceptor.Accept(offer, PSBTFundingTemplate.Parse(fund2));
+			initiator.StartSign(accept);
+			var fundPSBT = initiator.BuildFundingPSBT();
+			fundPSBT.SignWithKeys(initiatorInputKey);
+			var sign = initiator.EndSign(fundPSBT);
+
+			fundPSBT = acceptor.BuildFundingPSBT();
+			fundPSBT.SignWithKeys(acceptorInputKey);
+			var psbt = acceptor.SignFunding(sign, fundPSBT);
+			psbt = psbt.Finalize();
+			var fullyVerified = psbt.ExtractTransaction();
+			foreach (var i in fullyVerified.Inputs)
+				Assert.NotNull(i.WitScript);
+		}
+
+		[Fact]
+		public void CanCreateAccept()
+		{
+			var offer = Parse<Messages.Offer>("Data/Offer2.json");
+			var builder = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
+			var fundingInputKey = new Key();
+			PSBT fundPSBT = GetFundingPSBT(fundingInputKey, Money.Coins(0.4m));
+			Assert.True(PSBTFundingTemplate.TryParse(fundPSBT.ToBase64(), fundPSBT.Network, out var template));
+			var accept = builder.Accept(offer, template);
+
+			builder = new DLCTransactionBuilder(true, offer, accept, null, Network.RegTest);
+			Assert.True(builder.VerifyRemoteCetSigs());
+			Assert.True(builder.VerifyRemoteRefundSignature());
+		}
+
+		private static PSBT GetFundingPSBT(Key ownedCoinKey, Money collateral)
+		{
+			var c1 = new Coin(new OutPoint(RandomUtils.GetUInt256(), 0), new TxOut(Money.Coins(2.0m), ownedCoinKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)));
+			var txbuilder = Network.RegTest.CreateTransactionBuilder();
+			txbuilder.AddCoins(c1);
+			txbuilder.Send(Constants.FundingPlaceholder, collateral);
+			txbuilder.Send(new Key().ScriptPubKey, Constants.PayoutAmount);
+			txbuilder.SetChange(new Key().ScriptPubKey);
+			var fundPSBT = txbuilder.BuildPSBT(false);
+			return fundPSBT;
+		}
+
+		[Fact]
 		public void CanCheckMessages()
 		{
 			var offer = Parse<Messages.Offer>("Data/Offer.json");
@@ -97,7 +153,7 @@ namespace NDLC.Tests
 			Assert.Equal("00595165a73cc04eaab13077abbffae5edf0c371b9621fad9ea28da00026373a853bcc3ac24939d0d004e39b96469b2173aa20e429ca3bffd3ab0db7735ad6d87a012186ff2afb8c05bca05ad8acf22aecadf47f967bb81753c13c3b081fc643c8db855283e554359d1a1a870d2b016a9db6e6838f5ca1afb1508aa0c50fd9d05ac60a7b7cc2570b62426d467183baf109fb23a5fdf37f273c087c23744c6529f353", accept.CetSigs.OutcomeSigs[new uint256("1bd3f7beb217b55fd40b5ea7e62dc46e6428c15abd9e532ac37604f954375526")].ToString());
 
 			var sign = Parse<Messages.Sign>("Data/Sign.json");
-			var sig = Encoders.Hex.EncodeData(sign.FundingSigs[OutPoint.Parse("e7d8c121f888631289b14989a07e90bcb8c53edf88d5d3ee978fb75b382f26d102000000")][0].ToBytes()); ;
+			var sig = sign.FundingSigs[OutPoint.Parse("e7d8c121f888631289b14989a07e90bcb8c53edf88d5d3ee978fb75b382f26d102000000")][0].ToString(); ;
 			Assert.Equal("220202f37b2ca55f880f9d73b311a4369f2f02fbadefc037628d6eaef98ec222b8bcb046304302206589a41139774c27c242af730ae225483ba264eeec026952c6a6cd0bc8a7413c021f2289c32cfb7b4baa5873e350675133de93cfc69de50220fddafbc6f23a46e201", sig);
 
 			CanRoundTrip<Messages.Accept>("Data/Accept.json");

@@ -20,6 +20,13 @@ namespace NDLC.Secp256k1
 				throw new InvalidOperationException("should never happen");
 			return r;
 		}
+		public static ECPrivKey ToECPrivKey(this Key key)
+		{
+			Context.Instance.TryCreateECPrivKey(key.ToBytes(), out var r);
+			if (r is null)
+				throw new InvalidOperationException("should never happen");
+			return r;
+		}
 
 		internal static byte[] TAG_BIP0340Challenge = ASCIIEncoding.ASCII.GetBytes("BIP340/challenge");
 		public static bool TryComputeSigPoint(this ECXOnlyPubKey pubkey, ReadOnlySpan<byte> msg32, SchnorrNonce rx, out ECPubKey? sigpoint)

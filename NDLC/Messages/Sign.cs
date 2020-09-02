@@ -13,7 +13,7 @@ namespace NDLC.Messages
 		public CetSigs? CetSigs { get; set; }
 
 		[JsonConverter(typeof(FundingSigsJsonConverter))]
-		public Dictionary<OutPoint, Script[]>? FundingSigs { get; set; }
+		public Dictionary<OutPoint, List<PartialSignature>>? FundingSigs { get; set; }
 
 		[JsonExtensionData]
 		public Dictionary<string,JToken>? AdditionalData { get; set; }
