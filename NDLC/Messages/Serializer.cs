@@ -1,10 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using NBitcoin;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NBitcoin.DLC.Messages
+namespace NDLC.Messages
 {
 	public static class Serializer
 	{

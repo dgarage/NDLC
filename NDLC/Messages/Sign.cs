@@ -1,11 +1,12 @@
-﻿using NBitcoin.DLC.Messages.JsonConverters;
+﻿using NBitcoin;
+using NDLC.Messages.JsonConverters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NBitcoin.DLC.Messages
+namespace NDLC.Messages
 {
 	public class Sign
 	{

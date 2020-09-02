@@ -5,7 +5,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace NBitcoin.DLC.Secp256k1
+namespace NDLC.Secp256k1
 {
 	public class SecpECDSAAdaptorSignature
 	{

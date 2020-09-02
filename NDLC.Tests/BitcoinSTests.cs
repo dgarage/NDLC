@@ -1,6 +1,6 @@
 ﻿using NBitcoin.DataEncoders;
-using NBitcoin.DLC.Messages;
-using NBitcoin.DLC.Secp256k1;
+using NDLC.Messages;
+using NDLC.Secp256k1;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,8 +11,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Xunit;
+using NBitcoin;
 
-namespace NBitcoin.DLC.Tests
+namespace NDLC.Tests
 {
 	public class BitcoinSTests
 	{

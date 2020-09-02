@@ -1,4 +1,5 @@
-﻿using NBitcoin.DataEncoders;
+﻿using NBitcoin;
+using NBitcoin.DataEncoders;
 using NBitcoin.JsonConverters;
 using NBitcoin.Protocol;
 using NBitcoin.Secp256k1;
@@ -8,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace NBitcoin.DLC.Secp256k1
+namespace NDLC.Secp256k1
 {
 	public static class Extensions
 	{

@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NBitcoin.DLC\NBitcoin.DLC.csproj" />
+    <ProjectReference Include="..\NDLC\NDLC.csproj" />
   </ItemGroup>
 
   <ItemGroup>

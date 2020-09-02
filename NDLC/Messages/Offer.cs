@@ -1,6 +1,6 @@
 ﻿using NBitcoin.DataEncoders;
-using NBitcoin.DLC.Messages.JsonConverters;
-using NBitcoin.DLC.Secp256k1;
+using NDLC.Messages.JsonConverters;
+using NDLC.Secp256k1;
 using NBitcoin.Policy;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
@@ -11,8 +11,9 @@ using System.ComponentModel;
 using System.Diagnostics.Contracts;
 using System.Security.Cryptography;
 using System.Text;
+using NBitcoin;
 
-namespace NBitcoin.DLC.Messages
+namespace NDLC.Messages
 {
 	public class Offer : FundingInformation
 	{

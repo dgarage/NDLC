@@ -1,10 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using NBitcoin;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace NBitcoin.DLC.Messages.JsonConverters
+namespace NDLC.Messages.JsonConverters
 {
 	class OutcomeSigsJsonConverter : JsonConverter<Dictionary<uint256, AdaptorSignature>>
 	{

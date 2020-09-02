@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using NBitcoin.Crypto;
-using NBitcoin.DLC.Secp256k1;
-using NBitcoin.Policy;
+using NBitcoin;
+using NDLC.Secp256k1;
 
-namespace NBitcoin.DLC.Messages
+namespace NDLC.Messages
 {
 	public class DLCTransactionBuilder
 	{

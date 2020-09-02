@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NBitcoin.DLC
+namespace NDLC
 {
     class Program
     {

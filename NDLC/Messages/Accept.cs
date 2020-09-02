@@ -1,16 +1,13 @@
-﻿using NBitcoin.DataEncoders;
-using NBitcoin.DLC.Messages.JsonConverters;
-using NBitcoin.DLC.Secp256k1;
+﻿using NBitcoin;
+using NBitcoin.DataEncoders;
+using NDLC.Messages.JsonConverters;
+using NDLC.Secp256k1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 
-namespace NBitcoin.DLC.Messages
+namespace NDLC.Messages
 {
 	public class Accept : FundingInformation
 	{

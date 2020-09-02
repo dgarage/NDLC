@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace NBitcoin.DLC.Secp256k1
+namespace NDLC.Secp256k1
 {
 	internal static class Internals
 	{

@@ -7,10 +7,11 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Xunit;
 using Xunit.Abstractions;
-using NBitcoin.DLC.Secp256k1;
+using NDLC.Secp256k1;
 using System.Text;
+using NBitcoin;
 
-namespace NBitcoin.DLC.Tests
+namespace NDLC.Tests
 {
 	public class UnitTest1
 	{

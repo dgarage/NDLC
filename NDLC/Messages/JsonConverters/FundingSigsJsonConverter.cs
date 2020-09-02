@@ -1,11 +1,11 @@
-﻿using NBitcoin.DataEncoders;
+﻿using NBitcoin;
+using NBitcoin.DataEncoders;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
-namespace NBitcoin.DLC.Messages.JsonConverters
+namespace NDLC.Messages.JsonConverters
 {
 	class FundingSigsJsonConverter : JsonConverter<Dictionary<OutPoint, Script[]>>
 	{

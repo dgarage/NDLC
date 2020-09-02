@@ -1,9 +1,7 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using NBitcoin;
+using Newtonsoft.Json;
 
-namespace NBitcoin.DLC.Messages
+namespace NDLC.Messages
 {
 	public class FundingInformation
 	{
