@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using NDLC.Secp256k1;
@@ -29,7 +30,6 @@ namespace NDLC.Messages
 		Party? me;
 
 		public Transaction? FundingOverride { get; set; }
-		public Transaction? RefundingOverride { get; set; }
 
 		public DLCTransactionBuilder(bool isInitiator, Offer? offer, Accept? accept, Sign? sign, Network network)
 		{
@@ -64,8 +64,6 @@ namespace NDLC.Messages
 
 		public Transaction BuildRefund()
 		{
-			if (RefundingOverride is Transaction)
-				return RefundingOverride;
 			if (offer?.Timeouts is null || offer?.TotalCollateral is null || accept?.TotalCollateral is null)
 				throw new InvalidOperationException("We did not received enough data to create the refund");
 			var funding = BuildFunding();
@@ -132,24 +130,70 @@ namespace NDLC.Messages
 			return PayToMultiSigTemplate.Instance.GenerateScriptPubKey(2, offer.PubKeys!.FundingKey, accept.PubKeys!.FundingKey);
 		}
 
-		public bool VerifyRemoteCetSigs(uint256 outcome, Transaction funding, Transaction cet)
+		public Transaction BuildCET(uint256 outcome)
+		{
+			if (offer?.Timeouts is null || offer?.TotalCollateral is null || accept?.TotalCollateral is null)
+				throw new InvalidOperationException("We did not received enough data to create the refund");
+			var initiatorPayout = offer.ContractInfo.Where(c => c.SHA256 == outcome).Select(c => c.Sats).SingleOrDefault();
+			if (initiatorPayout is null)
+				throw new InvalidOperationException("Invalid outcome");
+
+			var funding = BuildFunding();
+			Transaction tx = network.CreateTransaction();
+			tx.Version = 2;
+			tx.LockTime = offer.Timeouts.ContractMaturity;
+			tx.Inputs.Add(new OutPoint(funding.GetHash(), 0), sequence: 0xFFFFFFFE);
+
+			var collateral = offer.TotalCollateral + accept.TotalCollateral;
+			tx.Outputs.Add(initiatorPayout, offer.PubKeys!.PayoutAddress);
+			tx.Outputs.Add(collateral - initiatorPayout, accept.PubKeys!.PayoutAddress);
+			foreach (var output in tx.Outputs.ToArray())
+			{
+				if (output.Value < Money.Satoshis(1000))
+					tx.Outputs.Remove(output);
+			}
+			return tx;
+		}
+
+		public bool VerifyRemoteCetSigs()
 		{
 			if (remote is null || offer?.ContractInfo is null)
 				throw new InvalidOperationException("We did not received enough data to verify the sigs");
 
-			var outcomeSig = remote.CetSigs.OutcomeSigs![outcome];
-			if (!offer.ContractInfo.Any(ci => ci.SHA256 == outcome))
-				return false;
+			foreach (var outcome in offer.ContractInfo.Select(i => i.SHA256))
+			{
+				var outcomeSig = remote.CetSigs.OutcomeSigs![outcome];
+				if (!offer.ContractInfo.Any(ci => ci.SHA256 == outcome))
+					return false;
 
-			if (!offer.OracleInfo!.TryComputeSigpoint(outcome, out var sigpoint) || sigpoint is null)
-				return false;
-			var ecPubKey = remote.PubKey.ToECPubKey();
+				if (!offer.OracleInfo!.TryComputeSigpoint(outcome, out var sigpoint) || sigpoint is null)
+					return false;
+				var ecPubKey = remote.PubKey.ToECPubKey();
 
-			var fundingCoin = funding.Outputs.AsCoins().First().ToScriptCoin(GetFundingScript());
-			var msg = cet.GetSignatureHash(fundingCoin).ToBytes();
-			if (!ecPubKey.SigVerify(outcomeSig.Signature, outcomeSig.Proof, msg, sigpoint))
-				return false;
+				var fundingCoin = GetFundingCoin();
+				var msg = BuildCET(outcome).GetSignatureHash(fundingCoin).ToBytes();
+				if (!ecPubKey.SigVerify(outcomeSig.Signature, outcomeSig.Proof, msg, sigpoint))
+					return false;
+			}
+			return true;
+		}
 
+		private ScriptCoin GetFundingCoin()
+		{
+			return BuildFunding().Outputs.AsCoins().First().ToScriptCoin(GetFundingScript());
+		}
+
+		public bool VerifyRemoteRefundSignature()
+		{
+			if (remote is null)
+				throw new InvalidOperationException("We did not received enough data to verify refund signature");
+			var refund = BuildRefund();
+			if (remote.CetSigs.RefundSig!.PubKey != remote.PubKey)
+				return false;
+			if (remote.CetSigs.RefundSig.Signature.SigHash != SigHash.All)
+				return false;
+			if (!remote.PubKey.Verify(refund.GetSignatureHash(GetFundingCoin()), remote.CetSigs.RefundSig.Signature.Signature))
+				return false;
 			return true;
 		}
 	}

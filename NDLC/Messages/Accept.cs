@@ -21,7 +21,8 @@ namespace NDLC.Messages
 	{
 		[JsonConverter(typeof(OutcomeSigsJsonConverter))]
 		public Dictionary<uint256, AdaptorSignature>? OutcomeSigs { get; set; }
-		public Script? RefundSig { get; set; }
+		[JsonConverter(typeof(PartialSignatureJsonConverter))]
+		public PartialSignature? RefundSig { get; set; }
 	}
 
 	public class AdaptorSignature

@@ -49,9 +49,10 @@ namespace NDLC.Tests
 			var actual = b.BuildFunding();
 			Assert.Equal(expected.ToString(), actual.ToString());
 
-			expected = Transaction.Parse("02000000000101396925a40a03dc9e3f3bd178516f7cb733d9be402e15cf956395113b30631f4f0000000000feffffff02ace0f5050000000016001495fe1aef70cfdcef530481b432db5d8f857828cbabe0f5050000000016001472ae598383df9e212fcf00d44fb201f1f453ffe704004730440220528bf3ab2d74fe8742bfe76bf4f67ae9988a92266a495ecfa56aba0873bcdf7d02205b9d46acf99a04b33558f3bb8663dedb978dad87b4be1e2b8c45f8276616e26801473044022052c80c7ea8e90eaa179739ac4614d472fab94d5900cf5cfeb72fe488dbe30ef0022033333c436b0ae360927267ed634a6bced4fd06ec67bc6990193151cc3561e77f01475221020d105b1b2d70f6ed092e0d1b5f0d373f9e977b3e1dfd65002ec7e2d48f4596c42103a001f9e4ac1b50636b97e153e6e49bb5fa7cdc7ca1cf57f56a211b3fbc3352b552ae0e494b5f", Network.Main);
-			// We cheat for now...
-			b.RefundingOverride = expected;
+			expected = Transaction.Parse("02000000000101ef43cda2f4e8fb1e254864a00b3b81f4915b9c8d060e41fe37523001ac03a08a0000000000feffffff0200879303000000001600145e8bf52af230ae61e9637ecb498a5bed8d09a59b005a62020000000016001411eb59e70fa4abe8c02699b54fb71ed3d76574fc04004830450221009942f177f872e786f6d1edd98abc78e4114bcbd886a72170190e39515841da85022001908f53671480bd2eb869dc7c34d188921a72243dce1e3108646f83948e516401483045022100e988416aba7518317c7a3e1acf051e0ef28ba7cb0473039115072a4073a2a650022028ee55f5d202f9facc230aa7f7c9fd18a75228fc80493bea9d1ae36085cec8830147522103fbae911c3acb17f06a9a544f068d925715900c69d0c58408543c09e75ba249332103f81ee1a50b2b01ce32982b2900c34f0c3a3745e98458e67ecf239086f4e8908852aec8000000", Network.Main);
+			foreach (var input in expected.Inputs)
+				input.WitScript = WitScript.Empty;
+
 			actual = b.BuildRefund();
 			Assert.Equal(expected.ToString(), actual.ToString());
 		}
@@ -65,14 +66,18 @@ namespace NDLC.Tests
 
 			var funding = Transaction.Parse("0200000000010213a31be98d8e29a08cbb3b64de59727b0a6285e2f34338a3ca576ae5250692fc0100000000ffffffffff9208b14cf747f04a7b653debb4dfedc9b4a3291985b91c872dda54b420e7110200000000ffffffff037418f605000000002200205f4c70ba1400d2efc70a2ff32f07a2d79c26d9f6c49a65bde68efc53cf12f0d5dcfb0d700000000016001486039150dbcfd4a136243a7cb4ea2b3dad24e606bbbfd17400000000160014775277f3b5fc4c32bed192ac6b3fd90b4403f1c902483045022100a9518901afbe84053644c0f08e50d45eb373616f7aa729677ecf5718f2fac8b2022032949f92beaf8d4ee8b944fa9452f1feabbc863e59b943fd5acce1aedc89feef012102a3795336df054e4fe408e0d453ff48fc8a0ec4ba7ef9234391babfa4247aef0a024730440220320baf857ca4ff420613e89930dcaa6ee423251fdcfc2108c7a029263cab5c2302201237c4b978c65ed3ed00bb763ff1d1b6f61bdaff8a29e5ca537761e089ce5265012103af3fb0e5788dbfdc478dd5e58d27001177a9a3fb19b990c883dd3ea75aec424c00000000", Network.Main);
 			var cet = Transaction.Parse("02000000000101ef43cda2f4e8fb1e254864a00b3b81f4915b9c8d060e41fe37523001ac03a08a0000000000feffffff0100e1f505000000001600145e8bf52af230ae61e9637ecb498a5bed8d09a59b04004730440220131ff77ab066d7bfa682691ca70ec9d229dc8e595c4055ddf23468fbed981bf602205c3a0d6b1bfb46da00ed8aad93498ece2d621a0eeacf7e30654be5135d773f0001483045022100efba114529a59517e7c39f6e38fb1c44bd935a8fe6ec63ab15e7a1912bc8b7aa02204a5d54d7f15adf102bb61fc9e4cf174c5a6be212f3c64b74687c6a717ae9104b0147522103fbae911c3acb17f06a9a544f068d925715900c69d0c58408543c09e75ba249332103f81ee1a50b2b01ce32982b2900c34f0c3a3745e98458e67ecf239086f4e8908852ae64000000", Network.Main);
-
-			uint256 outcome = offer.ContractInfo[0].SHA256;
-
+			foreach (var input in cet.Inputs)
+				input.WitScript = WitScript.Empty;
 			foreach (var isInitiator in new[] { true, false })
 			{
 				var b = new DLCTransactionBuilder(isInitiator, offer, accept, sign, Network.RegTest);
-				Assert.True(b.VerifyRemoteCetSigs(outcome, funding, cet));
+				b.FundingOverride = funding;
+				var actualCet = b.BuildCET(offer.ContractInfo[0].SHA256);
+				Assert.Equal(cet.ToString(), actualCet.ToString());
+				Assert.True(b.VerifyRemoteCetSigs());
+				Assert.True(b.VerifyRemoteRefundSignature());
 			}
+			
 		}
 
 		[Fact]
@@ -98,9 +103,6 @@ namespace NDLC.Tests
 			CanRoundTrip<Messages.Accept>("Data/Accept.json");
 			CanRoundTrip<Messages.Offer>("Data/Offer.json");
 			CanRoundTrip<Messages.Sign>("Data/Sign.json");
-
-
-
 		}
 
 		private void CanRoundTrip<T>(string file)

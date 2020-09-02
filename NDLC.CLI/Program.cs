@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NDLC
+namespace NDLC.CLI
 {
     class Program
     {
