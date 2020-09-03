@@ -54,6 +54,12 @@ namespace NDLC
 		public Script PayoutAddress { get; }
 		public FeeRate FeeRate { get; }
 
+		public static PSBTFundingTemplate Parse(string psbt, Network network)
+		{
+			if (!TryParse(psbt, network, out var t) || t is null)
+				throw new FormatException("Invalid PSBT Funding template");
+			return t;
+		}
 		public static PSBTFundingTemplate Parse(PSBT psbt)
 		{
 			if (psbt == null)

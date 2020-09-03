@@ -67,7 +67,7 @@ namespace NDLC.Messages
 		public bool TryComputeSigpoint(uint256 outcome, out ECPubKey? sigpoint)
 		{
 			Span<byte> bufOutcome = stackalloc byte[32];
-			outcome.ToBytes(bufOutcome, false);
+			outcome.ToBytes(bufOutcome);
 			return PubKey.TryComputeSigPoint(bufOutcome, RValue, out sigpoint);
 		}
 		public void WriteToBytes(Span<byte> out64)
