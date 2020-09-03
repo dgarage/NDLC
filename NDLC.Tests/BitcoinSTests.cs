@@ -12,11 +12,17 @@ using System.Linq;
 using System.Text;
 using Xunit;
 using NBitcoin;
+using Xunit.Abstractions;
+using NBitcoin.Logging;
 
 namespace NDLC.Tests
 {
 	public class BitcoinSTests
 	{
+		public BitcoinSTests(ITestOutputHelper testOutputHelper)
+		{
+			this.testOutputHelper = testOutputHelper;
+		}
 		JsonSerializerSettings _Settings;
 		JsonSerializerSettings Settings
 		{
@@ -30,6 +36,23 @@ namespace NDLC.Tests
 					_Settings = settings;
 				}
 				return _Settings;
+			}
+		}
+		JsonSerializerSettings _TestnetSettings;
+		private readonly ITestOutputHelper testOutputHelper;
+
+		JsonSerializerSettings TestnetSettings
+		{
+			get
+			{
+				if (_TestnetSettings is null)
+				{
+					var settings = new JsonSerializerSettings();
+					settings.Formatting = Formatting.Indented;
+					Messages.Serializer.Configure(settings, Network.TestNet);
+					_TestnetSettings = settings;
+				}
+				return _TestnetSettings;
 			}
 		}
 
@@ -95,14 +118,15 @@ namespace NDLC.Tests
 
 			var offer = initiator.Offer(PSBTFundingTemplate.Parse(fund1), offerExample.OracleInfo, offerExample.ContractInfo, offerExample.Timeouts);
 			var accept = acceptor.Accept(offer, PSBTFundingTemplate.Parse(fund2));
-			initiator.StartSign(accept);
+			initiator.VerifySign(accept);
 			var fundPSBT = initiator.BuildFundingPSBT();
 			fundPSBT.SignWithKeys(initiatorInputKey);
 			var sign = initiator.EndSign(fundPSBT);
 
+			acceptor.VerifySign(sign);
 			fundPSBT = acceptor.BuildFundingPSBT();
 			fundPSBT.SignWithKeys(acceptorInputKey);
-			var psbt = acceptor.SignFunding(sign, fundPSBT);
+			var psbt = acceptor.CombineFunding(fundPSBT);
 			psbt = psbt.Finalize();
 			var fullyVerified = psbt.ExtractTransaction();
 			foreach (var i in fullyVerified.Inputs)
@@ -171,10 +195,10 @@ namespace NDLC.Tests
 			Assert.Equal(expected.ToString(Formatting.Indented), actual.ToString(Formatting.Indented));
 		}
 
-		private T Parse<T>(string file)
+		private T Parse<T>(string file, JsonSerializerSettings settings = null)
 		{
 			var content = File.ReadAllText(file);
-			return JsonConvert.DeserializeObject<T>(content, Settings);
+			return JsonConvert.DeserializeObject<T>(content, settings ?? Settings);
 		}
 
 		[Fact]
@@ -203,6 +227,24 @@ namespace NDLC.Tests
 		private string toHex(byte[] resultArr)
 		{
 			return Encoders.Hex.EncodeData(resultArr).ToUpperInvariant();
+		}
+
+		[Fact]
+		public void ChrisTestnet()
+		{
+			var myKey = new Key(Encoders.Hex.DecodeData("659ed592d16a47f8b3eea2e3d918624963e20da29a83e097c0ffbf0ef1b3e8cc"));
+			var chrisOffer = Parse<Messages.Offer>("Data/ChrisOffer.json", TestnetSettings);
+			var builder = new DLCTransactionBuilder(false, null, null, null, Network.TestNet);
+			builder.FundingKey = myKey;
+			var template = PSBTFundingTemplate.Parse("cHNidP8BALwCAAAAAhyfislzQS3Q4xtaCVbSKztXgCbkXHvqoN0ZQPVwLtiRAQAAAAD+////0sWvPdN8zMIlXWZ5TP2LCmS2tXn0mq5Jy/H+Dr3sVXcAAAAAAP7///8DVwQAAAAAAAAWABRG14/IKu1cwguA1Zpf38w8Uo2WEvFdIAAAAAAAFgAUPDZOW4cQt7HtQ6LTckTs/EdezyIAWmICAAAAABl2qRQCVQOSzWKNBuwbxvjMoah8d4g5wIisI/EbAAABAR/6lFEBAAAAABYAFJwzhGgakahc93MQnjbvxXmq9K/hIgYDsP0UpR8Mgp0gv1V7iuQ64o/esYaR0uVt1w6vso9uL14Yo4MFf1QAAIABAACAAAAAgAEAAAACAAAAAAEBHwAtMQEAAAAAFgAUGArwzyUB0DY+N9TI0lFh2DeURigiBgK4w7vZjBER+7G0ky5uQmb6c20ESovjwPaOS7K/pfhtbxijgwV/VAAAgAEAAIAAAACAAAAAAAYAAAAAIgICzVzQn25qzI10r2VfcIJ6/wedvUpz1QO3LCSN1FIEWKoYo4MFf1QAAIABAACAAAAAgAAAAAAHAAAAACICApmHY8GtEZA8G/dKfXrqg31ArW+8kKK+5PXdMYnbMafKGKODBX9UAACAAQAAgAAAAIABAAAABAAAAAAA", Network.TestNet);
+			var accepted = builder.Accept(chrisOffer, template);
+			testOutputHelper.WriteLine(JsonConvert.SerializeObject(accepted, TestnetSettings));
+
+			var chrisSig = Parse<Messages.Sign>("Data/ChrisSign.json", TestnetSettings);
+			builder.VerifySign(chrisSig);
+			var unsigned = builder.BuildFundingPSBT();
+			testOutputHelper.WriteLine("Unsigned PSBT: " + unsigned.ToBase64());
+			//builder.SignFunding(chrisSig, null);
 		}
 
 		[Fact]

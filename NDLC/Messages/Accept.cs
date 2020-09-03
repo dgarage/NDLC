@@ -13,8 +13,8 @@ namespace NDLC.Messages
 	{
 		[JsonProperty(Order = 100)]
 		public CetSigs? CetSigs { get; set; }
-		[JsonExtensionData]
-		public Dictionary<string, JToken>? AdditionalData { get; set; }
+		[JsonProperty(Order = 101)]
+		public string? EventId { get; set; }
 	}
 
 	public class CetSigs

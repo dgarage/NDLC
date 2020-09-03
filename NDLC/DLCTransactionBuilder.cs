@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using NBitcoin;
 using NDLC.Secp256k1;
 
@@ -12,7 +13,6 @@ namespace NDLC.Messages
 		private Accept? accept;
 		private Sign? sign;
 		private readonly Network network;
-		private Key? fundingKey;
 		private PSBT? fullySignedPSBT;
 
 		class Party
@@ -91,7 +91,7 @@ namespace NDLC.Messages
 				throw new InvalidOperationException("The acceptor can't initiate an offer");
 			if (this.offer is Offer)
 				throw new InvalidOperationException("Invalid state for offerring");
-			var fundingKey = new Key();
+			var fundingKey = this.FundingKey ?? new Key();
 			Offer offer = new Offer()
 			{
 				OracleInfo = oracleInfo,
@@ -99,11 +99,14 @@ namespace NDLC.Messages
 				Timeouts = timeouts
 			};
 			offer.FillFromTemplateFunding(fundingTemplate, fundingKey.PubKey);
-			this.fundingKey = fundingKey;
+			this.FundingKey = fundingKey;
 			this.offer = offer;
 			UpdateParties();
 			return offer;
 		}
+
+
+		public Key? FundingKey { get; set; }
 
 		public Accept Accept(Offer offer,
 							PSBTFundingTemplate fundingTemplate)
@@ -115,16 +118,25 @@ namespace NDLC.Messages
 			if (fundingTemplate == null)
 				throw new ArgumentNullException(nameof(fundingTemplate));
 			this.offer = offer;
-			this.fundingKey = new Key();
+			this.FundingKey = this.FundingKey ?? new Key();
 			Accept accept = new Accept();
-			accept.FillFromTemplateFunding(fundingTemplate, fundingKey.PubKey);
+			accept.FillFromTemplateFunding(fundingTemplate, FundingKey.PubKey);
 			this.accept = accept;
 			accept.CetSigs = CreateCetSigs();
+			accept.EventId = "14965dcd10a1f0464c4c5cf7f2e9c67b2bcc6f8a971ccc647d7fec1c885f3afe";
+			//accept.EventId = CalculateEventId();
 			UpdateParties();
 			return accept;
 		}
 
-		public void StartSign(Accept accept)
+		//private string CalculateEventId()
+		//{
+		//	Span<byte> buf = stackalloc byte[64 + 4 + 8];
+		//	offer.OracleInfo.WriteToBytes(buf);
+		//	offer.Timeouts.WriteToBytes(buf);
+		//}
+
+		public void VerifySign(Accept accept)
 		{
 			if (!isInitiator)
 				throw new InvalidOperationException("The acceptor can't sign");
@@ -166,22 +178,29 @@ namespace NDLC.Messages
 				throw new InvalidOperationException("Invalid remote refund signature");
 		}
 
-		public PSBT SignFunding(Sign sign, PSBT signedFunding)
+		public void VerifySign(Sign sign)
+		{
+			if (sign == null)
+				throw new ArgumentNullException(nameof(sign));
+			if (accept is null || this.sign is Sign)
+				throw new InvalidOperationException("Invalid state for signing funding");
+			this.sign = sign;
+			this.UpdateParties();
+			AssertRemoteSigs();
+		}
+		public PSBT CombineFunding(PSBT signedFunding)
 		{
 			if (sign == null)
 				throw new ArgumentNullException(nameof(sign));
 			if (signedFunding == null)
 				throw new ArgumentNullException(nameof(signedFunding));
-			if (accept is null || this.sign is Sign)
+			if (this.sign is null)
 				throw new InvalidOperationException("Invalid state for signing funding");
-			this.sign = sign;
 			var partiallySigned = BuildFundingPSBT();
 			var fullySigned = partiallySigned.Combine(signedFunding);
 			fullySigned.AssertSanity();
 			// This check if sigs are good!
 			AssertSegwit(fullySigned.Clone().Finalize().ExtractTransaction());
-			this.UpdateParties();
-			AssertRemoteSigs();
 			this.fullySignedPSBT = fullySigned;
 			return fullySigned;
 		}
@@ -199,16 +218,16 @@ namespace NDLC.Messages
 
 		private CetSigs CreateCetSigs()
 		{
-			if (fundingKey is null)
+			if (FundingKey is null)
 				throw new InvalidOperationException("Invalid state for creating CetSigs");
 			var refund = BuildRefund();
-			var signature = refund.SignInput(fundingKey, GetFundingCoin());
+			var signature = refund.SignInput(FundingKey, GetFundingCoin());
 			var cetSig = new CetSigs()
 			{
 				OutcomeSigs = offer!.ContractInfo
-							  .Select(o => (o.SHA256, SignCET(fundingKey, o.SHA256)))
+							  .Select(o => (o.SHA256, SignCET(FundingKey, o.SHA256)))
 							  .ToDictionary(kv => kv.SHA256, kv => kv.Item2),
-				RefundSig = new PartialSignature(fundingKey.PubKey, signature)
+				RefundSig = new PartialSignature(FundingKey.PubKey, signature)
 			};
 			return cetSig;
 		}
