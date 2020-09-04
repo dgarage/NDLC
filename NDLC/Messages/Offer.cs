@@ -12,6 +12,7 @@ using System.Diagnostics.Contracts;
 using System.Security.Cryptography;
 using System.Text;
 using NBitcoin;
+using NBitcoin.Crypto;
 
 namespace NDLC.Messages
 {
@@ -37,6 +38,14 @@ namespace NDLC.Messages
 
 	public class OracleInfo
 	{
+		public static OracleInfo Parse(string str)
+		{
+			if (str == null)
+				throw new ArgumentNullException(nameof(str));
+			if (!TryParse(str, out var t))
+				throw new FormatException("Invalid oracleInfo");
+			return t;
+		}
 		public static bool TryParse(string str, out OracleInfo? oracleInfo)
 		{
 			oracleInfo = null;
@@ -67,7 +76,7 @@ namespace NDLC.Messages
 		public bool TryComputeSigpoint(uint256 outcome, out ECPubKey? sigpoint)
 		{
 			Span<byte> bufOutcome = stackalloc byte[32];
-			outcome.ToBytes(bufOutcome);
+			outcome.ToBytes(bufOutcome, false);
 			return PubKey.TryComputeSigPoint(bufOutcome, RValue, out sigpoint);
 		}
 		public void WriteToBytes(Span<byte> out64)
@@ -114,5 +123,19 @@ namespace NDLC.Messages
 		public uint256 SHA256 { get; set; } = uint256.Zero;
 		[JsonConverter(typeof(NBitcoin.JsonConverters.MoneyJsonConverter))]
 		public Money Sats { get; set; } = Money.Zero;
+
+		public static ContractInfo[] CreateContract(params (string outcomeString, Money payout)[] outcomes)
+		{
+			List<ContractInfo> info = new List<ContractInfo>();
+			foreach (var outcome in outcomes)
+			{
+				info.Add(new ContractInfo()
+				{
+					SHA256 = new uint256(Hashes.SHA256(Encoding.UTF8.GetBytes(outcome.outcomeString)), false),
+					Sats = outcome.payout
+				});
+			}
+			return info.ToArray();
+		}
 	}
 }

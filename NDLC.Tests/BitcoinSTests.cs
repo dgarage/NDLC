@@ -134,6 +134,57 @@ namespace NDLC.Tests
 		}
 
 		[Fact]
+		public void CheckCalculateProperHash()
+		{
+			var ci = ContractInfo.CreateContract(("Trump", Money.Coins(1.0m)));
+			var jArray = JArray.Parse(JsonConvert.SerializeObject(ci, Settings));
+			var aa = jArray[0]["sha256"].Value<string>();
+			Assert.Equal("56249f725ea0650368f09d857958628ead35a12361fe0023ddba9f062f79daa2", aa);
+		}
+		[Fact]
+		public void FullExchange2()
+		{
+			var initiatorInputKey = new Key();
+			var acceptorInputKey = new Key();
+
+			var fund1 = GetFundingPSBT(initiatorInputKey, Money.Coins(0.6m));
+			var fund2 = GetFundingPSBT(acceptorInputKey, Money.Coins(0.4m));
+			var initiator = new DLCTransactionBuilder(true, null, null, null, Network.RegTest);
+			var acceptor = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
+
+			var oracleInfo = OracleInfo.Parse("156c7d1c7922f0aa1168d9e21ac77ea88bbbe05e24e70a08bbe0519778f2e5daea3a68d8749b81682513b0479418d289d17e24d4820df2ce979f1a56a63ca525");
+			var offer = initiator.Offer(PSBTFundingTemplate.Parse(fund1), oracleInfo,
+				ContractInfo.CreateContract(
+				("Republicans_win", Money.Coins(1.0m)),
+				("Democrats_win", Money.Coins(0m)),
+				("other", Money.Coins(0.6m))), new Timeouts()
+				{
+					ContractMaturity = 100,
+					ContractTimeout = 200
+				});
+			var accept = acceptor.Accept(offer, PSBTFundingTemplate.Parse(fund2));
+			initiator.VerifySign(accept);
+			var fundPSBT = initiator.BuildFundingPSBT();
+			fundPSBT.SignWithKeys(initiatorInputKey);
+			var sign = initiator.EndSign(fundPSBT);
+
+			acceptor.VerifySign(sign);
+			fundPSBT = acceptor.BuildFundingPSBT();
+			fundPSBT.SignWithKeys(acceptorInputKey);
+			var psbt = acceptor.CombineFunding(fundPSBT);
+			psbt = psbt.Finalize();
+			var fullyVerified = psbt.ExtractTransaction();
+			foreach (var i in fullyVerified.Inputs)
+				Assert.NotNull(i.WitScript);
+
+			var cet = initiator.BuildCET(offer.ContractInfo[0].SHA256);
+			var keyBytes = Encoders.Hex.DecodeData("39eabd151030f4f2d518fb8a8d00f679aa9e034c66263032a1245a04cfbc592b");
+			//Array.Reverse(keyBytes);
+			var oracleSecret = new Key(keyBytes);
+			initiator.BuildSignedCET(oracleSecret);
+		}
+
+		[Fact]
 		public void CanCreateAccept()
 		{
 			var offer = Parse<Messages.Offer>("Data/Offer2.json");
@@ -155,6 +206,7 @@ namespace NDLC.Tests
 			txbuilder.AddCoins(c1);
 			txbuilder.Send(Constants.FundingPlaceholder, collateral);
 			txbuilder.Send(new Key().ScriptPubKey, Constants.PayoutAmount);
+			txbuilder.SendEstimatedFees(new FeeRate(1.0m));
 			txbuilder.SetChange(new Key().ScriptPubKey);
 			var fundPSBT = txbuilder.BuildPSBT(false);
 			return fundPSBT;

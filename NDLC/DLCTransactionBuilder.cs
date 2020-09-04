@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using NBitcoin;
+using NBitcoin.DataEncoders;
 using NDLC.Secp256k1;
 
 namespace NDLC.Messages
@@ -85,6 +87,10 @@ namespace NDLC.Messages
 			return tx;
 		}
 
+		
+
+
+		public Key? FundingKey { get; set; }
 		public Offer Offer(PSBTFundingTemplate fundingTemplate, OracleInfo oracleInfo, ContractInfo[] contractInfo, Timeouts timeouts)
 		{
 			if (!isInitiator)
@@ -104,10 +110,6 @@ namespace NDLC.Messages
 			UpdateParties();
 			return offer;
 		}
-
-
-		public Key? FundingKey { get; set; }
-
 		public Accept Accept(Offer offer,
 							PSBTFundingTemplate fundingTemplate)
 		{
@@ -323,6 +325,29 @@ namespace NDLC.Messages
 						//- offer.FeeRate!.GetFee((r + 7) / 8)
 						, accept.ChangeAddress);
 			return tx;
+		}
+
+		public Transaction BuildSignedCET(Key oracleSecret)
+		{
+			foreach (var outcome in offer.ContractInfo)
+			{
+				if (!offer.OracleInfo.TryComputeSigpoint(outcome.SHA256, out var sigPoint) || sigPoint is null)
+					continue;
+				if (oracleSecret.PubKey.ToECPubKey() != sigPoint)
+					continue;
+				var cet = BuildCET(outcome.SHA256);
+				var encryptedSig = remote.CetSigs.OutcomeSigs[outcome.SHA256];
+				var ecdsaSig = encryptedSig.Signature.AdaptECDSA(oracleSecret.ToECPrivKey());
+				var builder = network.CreateTransactionBuilder();
+				builder.AddCoins(GetFundingCoin());
+				builder.AddKnownSignature(remote.PubKey, new TransactionSignature(ecdsaSig.ToDER(), SigHash.All), GetFundingCoin().Outpoint);
+				builder.AddKeys(this.FundingKey);
+				builder.SignTransactionInPlace(cet);
+				if (!builder.Verify(cet, out var err))
+					throw new InvalidOperationException("This CET is not fully signed");
+				return cet;
+			}
+			throw new InvalidOperationException("This oracle key is not valid");
 		}
 
 		private Script GetFundingScript()
