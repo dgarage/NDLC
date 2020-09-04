@@ -73,11 +73,9 @@ namespace NDLC.Messages
 		public SchnorrNonce RValue { get; }
 		public ECXOnlyPubKey PubKey { get; }
 
-		public bool TryComputeSigpoint(uint256 outcome, out ECPubKey? sigpoint)
+		public bool TryComputeSigpoint(DLCOutcome outcome, out ECPubKey? sigpoint)
 		{
-			Span<byte> bufOutcome = stackalloc byte[32];
-			outcome.ToBytes(bufOutcome, false);
-			return PubKey.TryComputeSigPoint(bufOutcome, RValue, out sigpoint);
+			return PubKey.TryComputeSigPoint(outcome.Hash, RValue, out sigpoint);
 		}
 		public void WriteToBytes(Span<byte> out64)
 		{
@@ -119,20 +117,20 @@ namespace NDLC.Messages
 	public class ContractInfo
 	{
 		[JsonProperty("sha256")]
-		[JsonConverter(typeof(NBitcoin.JsonConverters.UInt256JsonConverter))]
-		public uint256 SHA256 { get; set; } = uint256.Zero;
+		[JsonConverter(typeof(DLCOutcomeJsonConverter))]
+		public DLCOutcome? Outcome { get; set; }
 		[JsonConverter(typeof(NBitcoin.JsonConverters.MoneyJsonConverter))]
-		public Money Sats { get; set; } = Money.Zero;
+		public Money? Sats { get; set; }
 
-		public static ContractInfo[] CreateContract(params (string outcomeString, Money payout)[] outcomes)
+		public static ContractInfo[] CreateContract(params (DLCOutcome outcome, Money payout)[] rewards)
 		{
 			List<ContractInfo> info = new List<ContractInfo>();
-			foreach (var outcome in outcomes)
+			foreach (var r in rewards)
 			{
 				info.Add(new ContractInfo()
 				{
-					SHA256 = new uint256(Hashes.SHA256(Encoding.UTF8.GetBytes(outcome.outcomeString)), false),
-					Sats = outcome.payout
+					Outcome = r.outcome,
+					Sats = r.payout
 				});
 			}
 			return info.ToArray();

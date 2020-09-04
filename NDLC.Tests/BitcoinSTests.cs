@@ -95,7 +95,7 @@ namespace NDLC.Tests
 			{
 				var b = new DLCTransactionBuilder(isInitiator, offer, accept, sign, Network.RegTest);
 				b.FundingOverride = funding;
-				var actualCet = b.BuildCET(offer.ContractInfo[0].SHA256);
+				var actualCet = b.BuildCET(offer.ContractInfo[0].Outcome);
 				Assert.Equal(cet.ToString(), actualCet.ToString());
 				Assert.True(b.VerifyRemoteCetSigs());
 				Assert.True(b.VerifyRemoteRefundSignature());
@@ -126,11 +126,13 @@ namespace NDLC.Tests
 			acceptor.VerifySign(sign);
 			fundPSBT = acceptor.BuildFundingPSBT();
 			fundPSBT.SignWithKeys(acceptorInputKey);
-			var psbt = acceptor.CombineFunding(fundPSBT);
-			psbt = psbt.Finalize();
-			var fullyVerified = psbt.ExtractTransaction();
+			fundPSBT = acceptor.CombineFunding(fundPSBT);
+			fundPSBT = fundPSBT.Finalize();
+			var fullyVerified = fundPSBT.ExtractTransaction();
 			foreach (var i in fullyVerified.Inputs)
 				Assert.NotNull(i.WitScript);
+			if (fundPSBT.TryGetEstimatedFeeRate(out var estimated))
+				Assert.True(estimated > new FeeRate(1.0m), "Fee Rate of the funding PSBT are too low");
 		}
 
 		[Fact]
@@ -177,7 +179,7 @@ namespace NDLC.Tests
 			foreach (var i in fullyVerified.Inputs)
 				Assert.NotNull(i.WitScript);
 
-			var cet = initiator.BuildCET(offer.ContractInfo[0].SHA256);
+			var cet = initiator.BuildCET(offer.ContractInfo[0].Outcome);
 			var keyBytes = Encoders.Hex.DecodeData("39eabd151030f4f2d518fb8a8d00f679aa9e034c66263032a1245a04cfbc592b");
 			//Array.Reverse(keyBytes);
 			var oracleSecret = new Key(keyBytes);
@@ -216,17 +218,17 @@ namespace NDLC.Tests
 		public void CanCheckMessages()
 		{
 			var offer = Parse<Messages.Offer>("Data/Offer.json");
-			Assert.Equal("cbaede9e2ad17109b71b85a23306b6d4b93e78e8e8e8d830d836974f16128ae8", offer.ContractInfo[1].SHA256.ToString());
+			Assert.Equal("cbaede9e2ad17109b71b85a23306b6d4b93e78e8e8e8d830d836974f16128ae8", offer.ContractInfo[1].Outcome.ToString());
 			Assert.Equal(200000000L, offer.ContractInfo[1].Sats.Satoshi);
 			Assert.Equal(100000000L, offer.TotalCollateral.Satoshi);
 
 			var accept = Parse<Messages.Accept>("Data/Accept.json");
 			Assert.Equal(100000000L, accept.TotalCollateral.Satoshi);
 			Assert.Equal(2, accept.CetSigs.OutcomeSigs.Count);
-			Assert.Equal("00595165a73cc04eaab13077abbffae5edf0c371b9621fad9ea28da00026373a853bcc3ac24939d0d004e39b96469b2173aa20e429ca3bffd3ab0db7735ad6d87a012186ff2afb8c05bca05ad8acf22aecadf47f967bb81753c13c3b081fc643c8db855283e554359d1a1a870d2b016a9db6e6838f5ca1afb1508aa0c50fd9d05ac60a7b7cc2570b62426d467183baf109fb23a5fdf37f273c087c23744c6529f353", accept.CetSigs.OutcomeSigs[new uint256("1bd3f7beb217b55fd40b5ea7e62dc46e6428c15abd9e532ac37604f954375526")].ToString());
+			Assert.Equal("00595165a73cc04eaab13077abbffae5edf0c371b9621fad9ea28da00026373a853bcc3ac24939d0d004e39b96469b2173aa20e429ca3bffd3ab0db7735ad6d87a012186ff2afb8c05bca05ad8acf22aecadf47f967bb81753c13c3b081fc643c8db855283e554359d1a1a870d2b016a9db6e6838f5ca1afb1508aa0c50fd9d05ac60a7b7cc2570b62426d467183baf109fb23a5fdf37f273c087c23744c6529f353", accept.CetSigs.OutcomeSigs[new DLCOutcome(Encoders.Hex.DecodeData("1bd3f7beb217b55fd40b5ea7e62dc46e6428c15abd9e532ac37604f954375526"))].ToString());
 			var str = JsonConvert.SerializeObject(accept, Settings);
 			accept = JsonConvert.DeserializeObject<Accept>(str, Settings);
-			Assert.Equal("00595165a73cc04eaab13077abbffae5edf0c371b9621fad9ea28da00026373a853bcc3ac24939d0d004e39b96469b2173aa20e429ca3bffd3ab0db7735ad6d87a012186ff2afb8c05bca05ad8acf22aecadf47f967bb81753c13c3b081fc643c8db855283e554359d1a1a870d2b016a9db6e6838f5ca1afb1508aa0c50fd9d05ac60a7b7cc2570b62426d467183baf109fb23a5fdf37f273c087c23744c6529f353", accept.CetSigs.OutcomeSigs[new uint256("1bd3f7beb217b55fd40b5ea7e62dc46e6428c15abd9e532ac37604f954375526")].ToString());
+			Assert.Equal("00595165a73cc04eaab13077abbffae5edf0c371b9621fad9ea28da00026373a853bcc3ac24939d0d004e39b96469b2173aa20e429ca3bffd3ab0db7735ad6d87a012186ff2afb8c05bca05ad8acf22aecadf47f967bb81753c13c3b081fc643c8db855283e554359d1a1a870d2b016a9db6e6838f5ca1afb1508aa0c50fd9d05ac60a7b7cc2570b62426d467183baf109fb23a5fdf37f273c087c23744c6529f353", accept.CetSigs.OutcomeSigs[new DLCOutcome(Encoders.Hex.DecodeData("1bd3f7beb217b55fd40b5ea7e62dc46e6428c15abd9e532ac37604f954375526"))].ToString());
 
 			var sign = Parse<Messages.Sign>("Data/Sign.json");
 			var sig = sign.FundingSigs[OutPoint.Parse("e7d8c121f888631289b14989a07e90bcb8c53edf88d5d3ee978fb75b382f26d102000000")][0].ToString(); ;
