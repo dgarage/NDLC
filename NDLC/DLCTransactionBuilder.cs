@@ -338,30 +338,11 @@ namespace NDLC.Messages
 			}
 			foreach (var input in tx.Inputs)
 				input.Sequence = 0xffffffff;
-			var total_change_length = 0;
-			if (Offerer.Change is Script)
-			{
-				total_change_length += new TxOut(Money.Zero, Offerer.Change).GetSerializedSize();
-			}
-			if (Acceptor.Change is Script)
-			{
-				total_change_length += new TxOut(Money.Zero, Acceptor.Change).GetSerializedSize();
-			}
-			var weight = 286 + 4 * total_change_length + 272 * tx.Inputs.Count;
-
-			var total_output_length = total_change_length + 8;
-			var max_future_weight = 500 + 4 * total_output_length;
-
-			tx.Outputs.Add(Offerer.Collateral + Acceptor.Collateral
-						   + FeeRate.GetFee(max_future_weight / 4), p2wsh);
-			var vBytePerUser = Math.DivRem(max_future_weight + weight, 8, out var r);
-
+			tx.Outputs.Add(Offerer.Collateral + Acceptor.Collateral, p2wsh);
 			var totalInput = Offerer.FundingCoins.Select(s => s.Amount).Sum();
 			if (Offerer.Change is Script change)
 			{
-				tx.Outputs.Add(totalInput
-							- Offerer.Collateral
-							- FeeRate.GetFee(vBytePerUser), change);
+				tx.Outputs.Add(totalInput - Offerer.Collateral, change);
 			}
 
 			totalInput = Acceptor.FundingCoins.Select(s => s.Amount).Sum();
@@ -369,11 +350,17 @@ namespace NDLC.Messages
 			if (Acceptor.Change is Script change2)
 			{
 				tx.Outputs.Add(totalInput
-							- Acceptor.Collateral
-							- FeeRate.GetFee(vBytePerUser)
-							//- offer.FeeRate!.GetFee((r + 7) / 8)
-							, change2);
+							- Acceptor.Collateral, change2);
 			}
+
+			TransactionBuilder builder = network.CreateTransactionBuilder();
+			builder.AddCoins(Offerer.FundingCoins);
+			builder.AddCoins(Acceptor.FundingCoins);
+			var estimated = builder.EstimateSize(tx, true);
+			var expectedFee = FeeRate.GetFee(estimated);
+			var parts = expectedFee.Split(2).ToArray();
+			tx.Outputs[0].Value -= parts[0];
+			tx.Outputs[1].Value -= parts[1];
 			return tx;
 		}
 
