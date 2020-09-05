@@ -353,14 +353,16 @@ namespace NDLC.Messages
 							- Acceptor.Collateral, change2);
 			}
 
-			TransactionBuilder builder = network.CreateTransactionBuilder();
-			builder.AddCoins(Offerer.FundingCoins);
-			builder.AddCoins(Acceptor.FundingCoins);
-			var estimated = builder.EstimateSize(tx, true);
-			var expectedFee = FeeRate.GetFee(estimated);
+			var expectedFee = FeeRate.GetFee(700);
 			var parts = expectedFee.Split(2).ToArray();
-			tx.Outputs[0].Value -= parts[0];
-			tx.Outputs[1].Value -= parts[1];
+			tx.Outputs[1].Value -= parts[0];
+			tx.Outputs[2].Value -= parts[0];
+
+			var futureFee = FeeRate.GetFee(169);
+			parts = futureFee.Split(2).ToArray();
+			tx.Outputs[1].Value -= parts[0];
+			tx.Outputs[2].Value -= parts[0];
+			tx.Outputs[0].Value += futureFee;
 			return tx;
 		}
 

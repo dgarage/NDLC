@@ -58,50 +58,37 @@ namespace NDLC.Tests
 		}
 
 		[Fact]
-		public void CanCreateFunding()
-		{
-			var offer = Parse<Messages.Offer>("Data/Offer2.json");
-			var accept = Parse<Messages.Accept>("Data/Accept2.json");
-
-			var b = new DLCTransactionBuilder(true, offer, accept, null, Network.RegTest);
-
-			var expected = Transaction.Parse("0200000000010213a31be98d8e29a08cbb3b64de59727b0a6285e2f34338a3ca576ae5250692fc0100000000ffffffffff9208b14cf747f04a7b653debb4dfedc9b4a3291985b91c872dda54b420e7110200000000ffffffff037418f605000000002200205f4c70ba1400d2efc70a2ff32f07a2d79c26d9f6c49a65bde68efc53cf12f0d5dcfb0d700000000016001486039150dbcfd4a136243a7cb4ea2b3dad24e606bbbfd17400000000160014775277f3b5fc4c32bed192ac6b3fd90b4403f1c902483045022100a9518901afbe84053644c0f08e50d45eb373616f7aa729677ecf5718f2fac8b2022032949f92beaf8d4ee8b944fa9452f1feabbc863e59b943fd5acce1aedc89feef012102a3795336df054e4fe408e0d453ff48fc8a0ec4ba7ef9234391babfa4247aef0a024730440220320baf857ca4ff420613e89930dcaa6ee423251fdcfc2108c7a029263cab5c2302201237c4b978c65ed3ed00bb763ff1d1b6f61bdaff8a29e5ca537761e089ce5265012103af3fb0e5788dbfdc478dd5e58d27001177a9a3fb19b990c883dd3ea75aec424c00000000", Network.Main);
-			foreach (var input in expected.Inputs)
-				input.WitScript = WitScript.Empty;
-			// We cheat for now...
-			b.FundingOverride = expected;
-			var actual = b.BuildFunding();
-			Assert.Equal(expected.ToString(), actual.ToString());
-
-			expected = Transaction.Parse("02000000000101ef43cda2f4e8fb1e254864a00b3b81f4915b9c8d060e41fe37523001ac03a08a0000000000feffffff0200879303000000001600145e8bf52af230ae61e9637ecb498a5bed8d09a59b005a62020000000016001411eb59e70fa4abe8c02699b54fb71ed3d76574fc04004830450221009942f177f872e786f6d1edd98abc78e4114bcbd886a72170190e39515841da85022001908f53671480bd2eb869dc7c34d188921a72243dce1e3108646f83948e516401483045022100e988416aba7518317c7a3e1acf051e0ef28ba7cb0473039115072a4073a2a650022028ee55f5d202f9facc230aa7f7c9fd18a75228fc80493bea9d1ae36085cec8830147522103fbae911c3acb17f06a9a544f068d925715900c69d0c58408543c09e75ba249332103f81ee1a50b2b01ce32982b2900c34f0c3a3745e98458e67ecf239086f4e8908852aec8000000", Network.Main);
-			foreach (var input in expected.Inputs)
-				input.WitScript = WitScript.Empty;
-
-			actual = b.BuildRefund();
-			Assert.Equal(expected.ToString(), actual.ToString());
-		}
-
-		[Fact]
 		public void CanValidateCETSigs()
 		{
 			var offer = Parse<Messages.Offer>("Data/Offer2.json");
 			var accept = Parse<Messages.Accept>("Data/Accept2.json");
 			var sign = Parse<Messages.Sign>("Data/Sign2.json");
 
-			var funding = Transaction.Parse("0200000000010213a31be98d8e29a08cbb3b64de59727b0a6285e2f34338a3ca576ae5250692fc0100000000ffffffffff9208b14cf747f04a7b653debb4dfedc9b4a3291985b91c872dda54b420e7110200000000ffffffff037418f605000000002200205f4c70ba1400d2efc70a2ff32f07a2d79c26d9f6c49a65bde68efc53cf12f0d5dcfb0d700000000016001486039150dbcfd4a136243a7cb4ea2b3dad24e606bbbfd17400000000160014775277f3b5fc4c32bed192ac6b3fd90b4403f1c902483045022100a9518901afbe84053644c0f08e50d45eb373616f7aa729677ecf5718f2fac8b2022032949f92beaf8d4ee8b944fa9452f1feabbc863e59b943fd5acce1aedc89feef012102a3795336df054e4fe408e0d453ff48fc8a0ec4ba7ef9234391babfa4247aef0a024730440220320baf857ca4ff420613e89930dcaa6ee423251fdcfc2108c7a029263cab5c2302201237c4b978c65ed3ed00bb763ff1d1b6f61bdaff8a29e5ca537761e089ce5265012103af3fb0e5788dbfdc478dd5e58d27001177a9a3fb19b990c883dd3ea75aec424c00000000", Network.Main);
-			var cet = Transaction.Parse("02000000000101ef43cda2f4e8fb1e254864a00b3b81f4915b9c8d060e41fe37523001ac03a08a0000000000feffffff0100e1f505000000001600145e8bf52af230ae61e9637ecb498a5bed8d09a59b04004730440220131ff77ab066d7bfa682691ca70ec9d229dc8e595c4055ddf23468fbed981bf602205c3a0d6b1bfb46da00ed8aad93498ece2d621a0eeacf7e30654be5135d773f0001483045022100efba114529a59517e7c39f6e38fb1c44bd935a8fe6ec63ab15e7a1912bc8b7aa02204a5d54d7f15adf102bb61fc9e4cf174c5a6be212f3c64b74687c6a717ae9104b0147522103fbae911c3acb17f06a9a544f068d925715900c69d0c58408543c09e75ba249332103f81ee1a50b2b01ce32982b2900c34f0c3a3745e98458e67ecf239086f4e8908852ae64000000", Network.Main);
-			foreach (var input in cet.Inputs)
-				input.WitScript = WitScript.Empty;
+			var funding = Transaction.Parse("02000000000102118df2c93e3be1f05af4fe16ba82eab135ba624bb96db5b218222ad7f99f1c400000000000ffffffff9ff82cc6f2509b2bc9f0d56fa37bea855d40b74cd2633e75ca343469508e892d0000000000ffffffff0372dc010000000000220020a9dbe7e77d7f966d4b8ab36d576e19f4c392caf039ea5e53a0078d771a3e92eefb2a042a01000000160014ec8d64ed4742016d12deac1106577f94747f09f41b5afa2f01000000160014c22a6d286c108ad458ba60e00576859a78ae8de002473044022071e5e088ba8e4434ab044350448479561ad8179bf2a88789a9459215bcf610c80220128535940b083dca52791f373b6474dd24f3a9096c039411943ffcff6fb293a801210333dea605a7d2c223de68c1189bd5e171cb94bd35712122eff08a9cdbed5dca8d02473044022059d6a3ae8cee036998065d2139459a029c4d925f952a860434910b12f9e9a3a002205871d75c28b8486caa90a6d44c3ae59eeb98bbbc90990f5b510466178eb80d9c01210310f8a8f195fe3167af0db8c6bb208e9a8ac075c99276a0150c1d374d0d13d26a00000000", Network.Main);
+			var cet = Transaction.Parse("020000000001016b3ea350dfa327d9c4c030fc3e2e49c04aae28d6020f1624202c57bf620dddbc0000000000feffffff01a08601000000000016001404bea358f0a1c3bdabe6148fd2ea44838110ef830400483045022100c3d1901ae606851946edaaa007cc5ed3ba05a1a812e76d8e4f5a3b034fe11dd4022063d51c44bc8a78ee752e735e3c84be2329e0eb15022db552a1181eaf1edb7dff0147304402205f5ba5027909abef13c61bc604eb2deaf223549213c6c7c9456d972ae1badf800220348bf4918b01bea8ee69d104a60254ad23159654a8f8b31e43da1fc53603c2390147522102d63fec4b8a6705a34b32e5476a5a07c20774fe2abcf88eeea320c9714bc3010e21038b22637639db00f3dd5d8c46644b61954a01362bc92a87eb136bd6ba80c1f12852ae64000000", Network.Main);
+			RemoveSigs(cet);
+			RemoveSigs(funding);
 			foreach (var isInitiator in new[] { true, false })
 			{
 				var b = new DLCTransactionBuilder(isInitiator, offer, accept, sign, Network.RegTest);
 				b.FundingOverride = funding;
-				var actualCet = b.BuildCET(offer.ContractInfo[0].Outcome);
+				var actualCet = b.BuildCET(offer.ContractInfo[1].Outcome);
 				Assert.Equal(cet.ToString(), actualCet.ToString());
 				Assert.True(b.VerifyRemoteCetSigs());
 				Assert.True(b.VerifyRemoteRefundSignature());
+
+				b.FundingOverride = null;
+				var actualFunding = b.BuildFunding();
+				RemoveSigs(actualFunding);
+				Assert.Equal(funding.ToString(), actualFunding.ToString());
 			}
-			
+
+		}
+
+		private static void RemoveSigs(Transaction cet)
+		{
+			foreach (var input in cet.Inputs)
+				input.WitScript = WitScript.Empty;
 		}
 
 		[Fact]
