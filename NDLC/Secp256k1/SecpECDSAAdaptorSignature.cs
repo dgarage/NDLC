@@ -18,6 +18,13 @@ namespace NDLC.Secp256k1
 			this.sp = sp;
 		}
 
+		public Scalar GetRAsScalar()
+		{
+			Span<byte> buf = stackalloc byte[65];
+			WriteToSpan(buf);
+			return new Scalar(buf.Slice(1), out _);
+		}
+
 		public static bool TryCreate(ReadOnlySpan<byte> input65, out SecpECDSAAdaptorSignature? sig)
 		{
 			if (!Internals.secp256k1_dleq_deserialize_point(input65, out var r))
@@ -60,10 +67,12 @@ namespace NDLC.Secp256k1
 			sp.WriteToSpan(output65.Slice(33));
 		}
 
-		public ECPrivKey ExtractSecret(SecpECDSASignature sig, ECPubKey adaptor)
+		public bool TryExtractSecret(SecpECDSASignature sig, ECPubKey adaptor, out ECPrivKey secret)
 		{
-			var (r, s) = sig;
-			var adaptor_secret = s.Inverse();
+			secret = null;
+			if (this.GetRAsScalar() != sig.r)
+				return false;
+			var adaptor_secret = sig.s.Inverse();
 			adaptor_secret = adaptor_secret * sp;
 
 			/* Deal with ECDSA malleability */
@@ -74,8 +83,8 @@ namespace NDLC.Secp256k1
 			{
 				adaptor_secret = adaptor_secret.Negate();
 			}
-			s = default;
-			return adaptor.ctx.CreateECPrivKey(adaptor_secret);
+			secret = adaptor.ctx.CreateECPrivKey(adaptor_secret);
+			return true;
 		}
 	}
 }

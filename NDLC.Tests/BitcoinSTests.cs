@@ -182,7 +182,6 @@ namespace NDLC.Tests
 
 			var cet = initiator.BuildCET(offer.ContractInfo[0].Outcome);
 			var keyBytes = Encoders.Hex.DecodeData("39eabd151030f4f2d518fb8a8d00f679aa9e034c66263032a1245a04cfbc592b");
-			//Array.Reverse(keyBytes);
 			var oracleSecret = new Key(keyBytes);
 			initiator.BuildSignedCET(oracleSecret);
 		}
@@ -424,7 +423,7 @@ namespace NDLC.Tests
 			Assert.True(SecpECDSAAdaptorSignature.TryCreate(adaptorSig, out var adaptorSigObj));
 			Assert.True(SecpECDSASignature.TryCreateFromDer(sig, out var sigObj));
 			Assert.True(Context.Instance.TryCreatePubKey(adaptor, out var pubkey));
-			var secret = adaptorSigObj.ExtractSecret(sigObj, pubkey);
+			Assert.True(adaptorSigObj.TryExtractSecret(sigObj, pubkey, out var secret));
 			var result = new byte[32];
 			secret.WriteToSpan(result);
 			return result;

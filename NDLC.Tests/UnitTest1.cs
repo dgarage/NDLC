@@ -160,7 +160,7 @@ namespace NDLC.Tests
 			Assert.True(pubkey.SigVerify(sig, msg));
 			{
 				/* Test adaptor_extract_secret */
-				var adaptor_secret2 = adaptor_sig.ExtractSecret(sig, adaptor);
+				Assert.True(adaptor_sig.TryExtractSecret(sig, adaptor, out var adaptor_secret2));
 				Assert.Equal(adaptor_secret, adaptor_secret2);
 			}
 		}
