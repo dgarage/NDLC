@@ -29,10 +29,10 @@ namespace NDLC.Messages
 		[JsonProperty(Order = 103)]
 		public Timeouts? Timeouts { get; set; }
 
-		public override void FillFromTemplateFunding(PSBTFundingTemplate fundingTemplate, PubKey fundingKey)
+		public override void FillFromTemplateFunding(PSBTFundingTemplate fundingTemplate, PubKey fundingKey, Network network)
 		{
 			FeeRate = fundingTemplate.FeeRate;
-			base.FillFromTemplateFunding(fundingTemplate, fundingKey);
+			base.FillFromTemplateFunding(fundingTemplate, fundingKey, network);
 		}
 	}
 

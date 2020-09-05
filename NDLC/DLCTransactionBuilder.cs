@@ -190,7 +190,7 @@ namespace NDLC.Messages
 				ContractInfo = contractInfo,
 				Timeouts = timeouts
 			};
-			offer.FillFromTemplateFunding(fundingTemplate, fundingKey.PubKey);
+			offer.FillFromTemplateFunding(fundingTemplate, fundingKey.PubKey, network);
 			this.FundingKey = fundingKey;
 			this.OracleInfo = oracleInfo;
 			FillStateFrom(offer);
@@ -211,7 +211,7 @@ namespace NDLC.Messages
 			this.FillStateFrom(offer);
 			this.FundingKey = this.FundingKey ?? new Key();
 			Accept accept = new Accept();
-			accept.FillFromTemplateFunding(fundingTemplate, FundingKey.PubKey);
+			accept.FillFromTemplateFunding(fundingTemplate, FundingKey.PubKey, network);
 			FillStateFrom(accept);
 
 			var offerer = new FundingParty(

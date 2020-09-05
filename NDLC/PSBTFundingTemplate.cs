@@ -26,7 +26,7 @@ namespace NDLC
 				return false;
 			if (!psbt.TryGetEstimatedFeeRate(out var estimated) || estimated is null)
 				return false;
-			template = new PSBTFundingTemplate(changeOutput?.ScriptPubKey, fundingOutput.Value, payoutOutput.ScriptPubKey, estimated, coins, psbt.Network);
+			template = new PSBTFundingTemplate(changeOutput?.ScriptPubKey, fundingOutput.Value, payoutOutput.ScriptPubKey, estimated, coins);
 			return true;
 		}
 		public static bool TryParse(string psbt, Network network, out PSBTFundingTemplate? template)
@@ -38,16 +38,14 @@ namespace NDLC
 				return false;
 			return TryParse(psbtObj, out template);
 		}
-		public PSBTFundingTemplate(Script? change, Money collateral, Script payoutAddress, FeeRate feeRate, IReadOnlyCollection<Coin> fundingCoins, Network network)
+		public PSBTFundingTemplate(Script? change, Money collateral, Script payoutAddress, FeeRate feeRate, IReadOnlyCollection<Coin> fundingCoins)
 		{
 			Change = change ?? throw new ArgumentNullException(nameof(change));
 			Collateral = collateral ?? throw new ArgumentNullException(nameof(collateral));
 			PayoutAddress = payoutAddress ?? throw new ArgumentNullException(nameof(payoutAddress));
 			FeeRate = feeRate ?? throw new ArgumentNullException(nameof(feeRate));
 			FundingCoins = fundingCoins ?? throw new ArgumentNullException(nameof(fundingCoins));
-			Network = network ?? throw new ArgumentNullException(nameof(network));
 		}
-		public Network Network { get; }
 		public IReadOnlyCollection<Coin> FundingCoins { get; }
 		public Script? Change { get; }
 		public Money Collateral { get; }

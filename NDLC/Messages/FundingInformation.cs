@@ -69,7 +69,7 @@ namespace NDLC.Messages
 		public FundingInput[]? FundingInputs { get; set; }
 		public BitcoinAddress? ChangeAddress { get; set; }
 
-		public virtual void FillFromTemplateFunding(PSBTFundingTemplate fundingTemplate, PubKey fundingKey)
+		public virtual void FillFromTemplateFunding(PSBTFundingTemplate fundingTemplate, PubKey fundingKey, Network network)
 		{
 			FundingInputs = fundingTemplate.FundingCoins
 								.Select(input => new FundingInput()
@@ -78,10 +78,10 @@ namespace NDLC.Messages
 									Output = input.TxOut
 								}).ToArray();
 
-			ChangeAddress = fundingTemplate.Change?.GetDestinationAddress(fundingTemplate.Network) ?? throw new InvalidOperationException("No change address output found");
+			ChangeAddress = fundingTemplate.Change?.GetDestinationAddress(network) ?? throw new InvalidOperationException("No change address output found");
 			PubKeys = new PubKeyObject()
 			{
-				PayoutAddress = fundingTemplate.PayoutAddress.GetDestinationAddress(fundingTemplate.Network) ?? throw new InvalidOperationException("No payout address output found"),
+				PayoutAddress = fundingTemplate.PayoutAddress.GetDestinationAddress(network) ?? throw new InvalidOperationException("No payout address output found"),
 				FundingKey = fundingKey
 			};
 			TotalCollateral = fundingTemplate.Collateral;
