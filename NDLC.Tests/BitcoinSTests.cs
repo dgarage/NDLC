@@ -14,6 +14,7 @@ using Xunit;
 using NBitcoin;
 using Xunit.Abstractions;
 using NBitcoin.Logging;
+using Xunit.Sdk;
 
 namespace NDLC.Tests
 {
@@ -23,8 +24,8 @@ namespace NDLC.Tests
 		{
 			this.testOutputHelper = testOutputHelper;
 		}
-		JsonSerializerSettings _Settings;
-		JsonSerializerSettings Settings
+		static JsonSerializerSettings _Settings;
+		static JsonSerializerSettings Settings
 		{
 			get
 			{
@@ -38,10 +39,10 @@ namespace NDLC.Tests
 				return _Settings;
 			}
 		}
-		JsonSerializerSettings _TestnetSettings;
+		static JsonSerializerSettings _TestnetSettings;
 		private readonly ITestOutputHelper testOutputHelper;
 
-		JsonSerializerSettings TestnetSettings
+		static JsonSerializerSettings TestnetSettings
 		{
 			get
 			{
@@ -249,7 +250,7 @@ namespace NDLC.Tests
 			Assert.Equal(expected.ToString(Formatting.Indented), actual.ToString(Formatting.Indented));
 		}
 
-		private T Parse<T>(string file, JsonSerializerSettings settings = null)
+		private static T Parse<T>(string file, JsonSerializerSettings settings = null)
 		{
 			var content = File.ReadAllText(file);
 			return JsonConvert.DeserializeObject<T>(content, settings ?? Settings);
@@ -283,29 +284,85 @@ namespace NDLC.Tests
 			return Encoders.Hex.EncodeData(resultArr).ToUpperInvariant();
 		}
 
+		class AcceptorTest
+		{
+			public static AcceptorTest Open(string folder, Network network)
+			{
+				var settings = network == Network.RegTest ? Settings : TestnetSettings;
+				AcceptorTest t = new AcceptorTest();
+				var fundingOverride = Path.Combine(folder, "FundingOverride.hex");
+				if (File.Exists(fundingOverride))
+				{
+					t.FundingOverride = Transaction.Parse(File.ReadAllText(fundingOverride), network);
+				}
+				t.Offer = Parse<Offer>(Path.Combine(folder, "Offer.json"), settings);
+				t.Sign = Parse<Sign>(Path.Combine(folder, "Sign.json"), settings);
+
+				var attestation = Path.Combine(folder, "OracleAttestation.hex");
+				if (File.Exists(attestation))
+				{
+					t.OracleAttestation = new Key(Encoders.Hex.DecodeData(File.ReadAllText(attestation)));
+				}
+				t.Builder = new DLCTransactionBuilder(false, null, null, null, network);
+				t.FundingTemplate = PSBTFundingTemplate.Parse(File.ReadAllText(Path.Combine(folder, "FundingTemplate.psbt")), network);
+				return t;
+			}
+			public Transaction FundingOverride { get; set; }
+			public Offer Offer { get; set; }
+			public Sign Sign { get; set; }
+			public Key OracleAttestation { get; set; }
+
+			public DLCTransactionBuilder Builder { get; set; }
+			/// <summary>
+			/// Funding templates are PSBT built with the following format:
+			/// * 1 output sending to "collateral" BTC to "1DLCFundingAddressxxxxxxxxy2BvHew" (mfjHVJzmSkDvwk7UNSrLntBHpxZfskpVko for testnet)
+			/// * 1 output sending 0.00001111 to "payout address" 
+			/// * 1 output which is the change address
+			/// </summary>
+			public PSBTFundingTemplate FundingTemplate { get; set; }
+		}
+
 		[Fact]
-		public void ChrisTestnet()
+		public void AcceptorTestVectors()
+		{
+			RunAcceptorTest("Data/Acceptor-Chris", Network.TestNet);
+		}
+		void RunAcceptorTest(string acceptorFolder, Network network)
 		{
 			var myKey = new Key(Encoders.Hex.DecodeData("659ed592d16a47f8b3eea2e3d918624963e20da29a83e097c0ffbf0ef1b3e8cc"));
-			var chrisOffer = Parse<Messages.Offer>("Data/ChrisOffer.json", TestnetSettings);
-			var builder = new DLCTransactionBuilder(false, null, null, null, Network.TestNet);
-			builder.FundingKey = myKey;
-			var template = PSBTFundingTemplate.Parse("cHNidP8BALwCAAAAAhyfislzQS3Q4xtaCVbSKztXgCbkXHvqoN0ZQPVwLtiRAQAAAAD+////0sWvPdN8zMIlXWZ5TP2LCmS2tXn0mq5Jy/H+Dr3sVXcAAAAAAP7///8DVwQAAAAAAAAWABRG14/IKu1cwguA1Zpf38w8Uo2WEvFdIAAAAAAAFgAUPDZOW4cQt7HtQ6LTckTs/EdezyIAWmICAAAAABl2qRQCVQOSzWKNBuwbxvjMoah8d4g5wIisI/EbAAABAR/6lFEBAAAAABYAFJwzhGgakahc93MQnjbvxXmq9K/hIgYDsP0UpR8Mgp0gv1V7iuQ64o/esYaR0uVt1w6vso9uL14Yo4MFf1QAAIABAACAAAAAgAEAAAACAAAAAAEBHwAtMQEAAAAAFgAUGArwzyUB0DY+N9TI0lFh2DeURigiBgK4w7vZjBER+7G0ky5uQmb6c20ESovjwPaOS7K/pfhtbxijgwV/VAAAgAEAAIAAAACAAAAAAAYAAAAAIgICzVzQn25qzI10r2VfcIJ6/wedvUpz1QO3LCSN1FIEWKoYo4MFf1QAAIABAACAAAAAgAAAAAAHAAAAACICApmHY8GtEZA8G/dKfXrqg31ArW+8kKK+5PXdMYnbMafKGKODBX9UAACAAQAAgAAAAIABAAAABAAAAAAA", Network.TestNet);
+			var data = AcceptorTest.Open(acceptorFolder, network);
+			data.Builder.FundingKey = myKey;
 
-			var expectedTx = Transaction.Parse("0200000003965f737e78f1c568a93f13f62fc66df90e9b52d6b4761acce0a9e4da9f5e74f10000000000ffffffff1c9f8ac973412dd0e31b5a0956d22b3b578026e45c7beaa0dd1940f5702ed8910100000000ffffffffd2c5af3dd37cccc2255d66794cfd8b0a64b6b579f49aae49cbf1fe0ebdec55770000000000ffffffff03ad476302000000002200209761291b540f7376571772fc28d2c3fc86154f292e8c97f1e1bb62298e44baeb7a97000000000000160014e287f0d04af12561d635cd6108ecc6ddae20d61d34632000000000001600143c364e5b8710b7b1ed43a2d37244ecfc475ecf2200000000", Network.Main);
-			builder.FundingOverride = expectedTx;
-			var accepted = builder.Accept(chrisOffer, template);
+			if (data.FundingOverride != null)
+			{
+				testOutputHelper.WriteLine("Using funding override");
+				data.Builder.FundingOverride = data.FundingOverride;
+			}
+			else
+			{
+				testOutputHelper.WriteLine("----Expected funding ----");
+				testOutputHelper.WriteLine(data.Builder.BuildFunding().ToHex());
+				testOutputHelper.WriteLine("--------------------");
+			}
+			var accepted = data.Builder.Accept(data.Offer, data.FundingTemplate);
+			testOutputHelper.WriteLine("---Accept message---");
 			testOutputHelper.WriteLine(JsonConvert.SerializeObject(accepted, TestnetSettings));
+			testOutputHelper.WriteLine("--------------------");
 
-			var chrisSig = Parse<Messages.Sign>("Data/ChrisSign.json", TestnetSettings);
-			builder.VerifySign(chrisSig);
-			var unsigned = builder.BuildFundingPSBT();
-			testOutputHelper.WriteLine("Unsigned PSBT: " + unsigned.ToBase64());
-			var signed = PSBT.Parse("cHNidP8BAO4CAAAAA5Zfc3548cVoqT8T9i/GbfkOm1LWtHYazOCp5NqfXnTxAAAAAAD/////HJ+KyXNBLdDjG1oJVtIrO1eAJuRce+qg3RlA9XAu2JEBAAAAAP/////Sxa8903zMwiVdZnlM/YsKZLa1efSarknL8f4OvexVdwAAAAAA/////wOtR2MCAAAAACIAIJdhKRtUD3N2Vxdy/CjSw/yGFU8pLoyX8eG7YimORLrrepcAAAAAAAAWABTih/DQSvElYdY1zWEI7MbdriDWHTRjIAAAAAAAFgAUPDZOW4cQt7HtQ6LTckTs/EdezyIAAAAATwEENYfPA3NlbDOAAAAA6de/XA2Ojdyl4NsZk1UewUxRfDk34GSlHQRexlHdpzEC994DNS9/5TGbkX9Mp15yhtgEMMqdR10vkgSRsZFaYB0Qo4MFf1QAAIABAACAAAAAgAABAR+ghgEAAAAAABYAFD5+e6LxthATYyx75WAhDHEKgtB3IgIDSGCK42HFoapn0xupvX7kXU4IXIPfwum3bwdVG5Cco4FHMEQCIAeDPmkNtbWvjZpl9aiA9PUmTI+7kaxhe1p0xvSTzLsSAiAscDjEVH0B+WA0h6wsbrjO3DiakulF+62sue5uqZPNHAEAAQEf+pRRAQAAAAAWABScM4RoGpGoXPdzEJ4278V5qvSv4SICA7D9FKUfDIKdIL9Ve4rkOuKP3rGGkdLlbdcOr7KPbi9eRzBEAiAMVmG6ucwMPj+rjQqA0LRK50Hba3p2epPY/hoTn/dXxQIgZiENRAmuhtxukt4AV+U9RaTmxx0SsWAzVS/87Phr+y8BIgYDsP0UpR8Mgp0gv1V7iuQ64o/esYaR0uVt1w6vso9uL14Yo4MFf1QAAIABAACAAAAAgAEAAAACAAAAAAEBHwAtMQEAAAAAFgAUGArwzyUB0DY+N9TI0lFh2DeURigiAgK4w7vZjBER+7G0ky5uQmb6c20ESovjwPaOS7K/pfhtb0cwRAIgcPcLDAPkWqyYYtV++2X9i9LQ1czRjlS59ue+omYwW8ECIDHBpo0HUGYL8AafkkbJp04jSTY4L0I/9EfQY+ty0poUASIGArjDu9mMERH7sbSTLm5CZvpzbQRKi+PA9o5Lsr+l+G1vGKODBX9UAACAAQAAgAAAAIAAAAAABgAAAAAAACICApmHY8GtEZA8G/dKfXrqg31ArW+8kKK+5PXdMYnbMafKGKODBX9UAACAAQAAgAAAAIABAAAABAAAAAA=", Network.TestNet);
-			var outcomeSigned = builder.BuildSignedCET(new Key(Encoders.Hex.DecodeData("39eabd151030f4f2d518fb8a8d00f679aa9e034c66263032a1245a04cfbc592b")));
+			data.Builder.VerifySign(data.Sign);
+			var unsigned = data.Builder.BuildFundingPSBT();
+			testOutputHelper.WriteLine("---Unsigned funding PSBT---");
+			testOutputHelper.WriteLine(unsigned.ToBase64());
+			testOutputHelper.WriteLine("--------------------");
 
-			testOutputHelper.WriteLine("Outcome signed: " + outcomeSigned.ToHex());
-			//builder.SignFunding(chrisSig, null);
+			if (data.OracleAttestation != null)
+			{
+				var outcomeSigned = data.Builder.BuildSignedCET(data.OracleAttestation);
+
+				testOutputHelper.WriteLine("---Signed CET---");
+				testOutputHelper.WriteLine(outcomeSigned.ToHex());
+				testOutputHelper.WriteLine("--------------------");
+			}
 		}
 
 		[Fact]
