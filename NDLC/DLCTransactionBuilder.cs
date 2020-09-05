@@ -241,7 +241,7 @@ namespace NDLC.Messages
 		//	offer.Timeouts.WriteToBytes(buf);
 		//}
 
-		public void VerifySign(Accept accept)
+		public void Sign1(Accept accept)
 		{
 			if (!isInitiator)
 				throw new InvalidOperationException("The acceptor can't sign");
@@ -267,7 +267,7 @@ namespace NDLC.Messages
 			OffererChange = null;
 			AssertRemoteSigs();
 		}
-		public Sign EndSign(PSBT signedFunding)
+		public Sign Sign2(PSBT signedFunding)
 		{
 			if (Funding is null)
 				throw new InvalidOperationException("Invalid state");
@@ -298,7 +298,7 @@ namespace NDLC.Messages
 				throw new InvalidOperationException("Invalid remote refund signature");
 		}
 
-		public void VerifySign(Sign sign)
+		public void Finalize1(Sign sign)
 		{
 			if (sign == null)
 				throw new ArgumentNullException(nameof(sign));
@@ -309,7 +309,7 @@ namespace NDLC.Messages
 			AddFundingSigs(Remote, Funding.PSBT);
 		}
 
-		public PSBT CombineFunding(PSBT signedFunding)
+		public Transaction Finalize(PSBT signedFunding)
 		{
 			if (signedFunding == null)
 				throw new ArgumentNullException(nameof(signedFunding));
@@ -318,8 +318,10 @@ namespace NDLC.Messages
 			Funding.PSBT = Funding.PSBT.Combine(signedFunding);
 			Funding.PSBT.AssertSanity();
 			// This check if sigs are good!
-			AssertSegwit(Funding.PSBT.Clone().Finalize().ExtractTransaction());
-			return Funding.PSBT;
+			Funding.PSBT = Funding.PSBT.Finalize();
+			var tx = Funding.PSBT.ExtractTransaction();
+			AssertSegwit(tx);
+			return tx;
 		}
 
 		private void AssertSegwit(Transaction transaction)

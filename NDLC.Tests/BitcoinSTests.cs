@@ -107,19 +107,18 @@ namespace NDLC.Tests
 
 			var offer = initiator.Offer(PSBTFundingTemplate.Parse(fund1), offerExample.OracleInfo, offerExample.ContractInfo, offerExample.Timeouts);
 			var accept = acceptor.Accept(offer, PSBTFundingTemplate.Parse(fund2));
-			initiator.VerifySign(accept);
+			initiator.Sign1(accept);
 			var fundPSBT = initiator.GetFundingPSBT();
 			fundPSBT.SignWithKeys(initiatorInputKey);
-			var sign = initiator.EndSign(fundPSBT);
+			var sign = initiator.Sign2(fundPSBT);
 
-			acceptor.VerifySign(sign);
+			acceptor.Finalize1(sign);
 			fundPSBT = acceptor.GetFundingPSBT();
 			fundPSBT.SignWithKeys(acceptorInputKey);
-			fundPSBT = acceptor.CombineFunding(fundPSBT);
-			fundPSBT = fundPSBT.Finalize();
-			var fullyVerified = fundPSBT.ExtractTransaction();
+			var fullyVerified = acceptor.Finalize(fundPSBT);
 			foreach (var i in fullyVerified.Inputs)
 				Assert.NotNull(i.WitScript);
+			fundPSBT = acceptor.GetFundingPSBT();
 			if (fundPSBT.TryGetEstimatedFeeRate(out var estimated))
 				Assert.True(estimated > new FeeRate(1.0m), "Fee Rate of the funding PSBT are too low");
 		}
@@ -154,17 +153,15 @@ namespace NDLC.Tests
 					ContractTimeout = 200
 				});
 			var accept = acceptor.Accept(offer, PSBTFundingTemplate.Parse(fund2));
-			initiator.VerifySign(accept);
+			initiator.Sign1(accept);
 			var fundPSBT = initiator.GetFundingPSBT();
 			fundPSBT.SignWithKeys(initiatorInputKey);
-			var sign = initiator.EndSign(fundPSBT);
+			var sign = initiator.Sign2(fundPSBT);
 
-			acceptor.VerifySign(sign);
+			acceptor.Finalize1(sign);
 			fundPSBT = acceptor.GetFundingPSBT();
 			fundPSBT.SignWithKeys(acceptorInputKey);
-			var psbt = acceptor.CombineFunding(fundPSBT);
-			psbt = psbt.Finalize();
-			var fullyVerified = psbt.ExtractTransaction();
+			var fullyVerified = acceptor.Finalize(fundPSBT);
 			foreach (var i in fullyVerified.Inputs)
 				Assert.NotNull(i.WitScript);
 
@@ -185,7 +182,7 @@ namespace NDLC.Tests
 			var accept = builder.Accept(offer, template);
 
 			builder = new DLCTransactionBuilder(true, offer, null, null, Network.RegTest);
-			builder.VerifySign(accept);
+			builder.Sign1(accept);
 		}
 
 		private static PSBT GetFundingPSBT(Key ownedCoinKey, Money collateral)
@@ -337,7 +334,7 @@ namespace NDLC.Tests
 				testOutputHelper.WriteLine("--------------------");
 			}
 
-			data.Builder.VerifySign(data.Sign);
+			data.Builder.Finalize1(data.Sign);
 			var unsigned = data.Builder.GetFundingPSBT();
 			testOutputHelper.WriteLine("---Unsigned funding PSBT---");
 			testOutputHelper.WriteLine(unsigned.ToBase64());
