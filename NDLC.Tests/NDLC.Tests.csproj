@@ -24,6 +24,18 @@
     <None Update="Data\Accept2.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Data\Acceptor-Chris2\FundingTemplate.psbt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\Acceptor-Chris2\Offer.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\Acceptor-Chris2\OracleAttestation.hex">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\Acceptor-Chris2\Sign.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Data\Acceptor-Chris\FundingTemplate.psbt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

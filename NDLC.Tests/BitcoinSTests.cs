@@ -68,17 +68,18 @@ namespace NDLC.Tests
 			var cet = Transaction.Parse("020000000001016b3ea350dfa327d9c4c030fc3e2e49c04aae28d6020f1624202c57bf620dddbc0000000000feffffff01a08601000000000016001404bea358f0a1c3bdabe6148fd2ea44838110ef830400483045022100c3d1901ae606851946edaaa007cc5ed3ba05a1a812e76d8e4f5a3b034fe11dd4022063d51c44bc8a78ee752e735e3c84be2329e0eb15022db552a1181eaf1edb7dff0147304402205f5ba5027909abef13c61bc604eb2deaf223549213c6c7c9456d972ae1badf800220348bf4918b01bea8ee69d104a60254ad23159654a8f8b31e43da1fc53603c2390147522102d63fec4b8a6705a34b32e5476a5a07c20774fe2abcf88eeea320c9714bc3010e21038b22637639db00f3dd5d8c46644b61954a01362bc92a87eb136bd6ba80c1f12852ae64000000", Network.Main);
 			RemoveSigs(cet);
 			RemoveSigs(funding);
+
+			
 			foreach (var isInitiator in new[] { true, false })
 			{
-				var b = new DLCTransactionBuilder(isInitiator, offer, accept, sign, Network.RegTest);
-				b.FundingOverride = funding;
+				var b = new DLCTransactionBuilder(isInitiator, offer, accept, sign, funding, Network.RegTest);
 				var actualCet = b.BuildCET(offer.ContractInfo[1].Outcome);
 				Assert.Equal(cet.ToString(), actualCet.ToString());
 				Assert.True(b.VerifyRemoteCetSigs());
 				Assert.True(b.VerifyRemoteRefundSignature());
 
-				b.FundingOverride = null;
-				var actualFunding = b.BuildFunding();
+				b = new DLCTransactionBuilder(isInitiator, offer, accept, sign, Network.RegTest);
+				var actualFunding = b.GetFundingTransaction();
 				RemoveSigs(actualFunding);
 				Assert.Equal(funding.ToString(), actualFunding.ToString());
 			}
@@ -107,12 +108,12 @@ namespace NDLC.Tests
 			var offer = initiator.Offer(PSBTFundingTemplate.Parse(fund1), offerExample.OracleInfo, offerExample.ContractInfo, offerExample.Timeouts);
 			var accept = acceptor.Accept(offer, PSBTFundingTemplate.Parse(fund2));
 			initiator.VerifySign(accept);
-			var fundPSBT = initiator.BuildFundingPSBT();
+			var fundPSBT = initiator.GetFundingPSBT();
 			fundPSBT.SignWithKeys(initiatorInputKey);
 			var sign = initiator.EndSign(fundPSBT);
 
 			acceptor.VerifySign(sign);
-			fundPSBT = acceptor.BuildFundingPSBT();
+			fundPSBT = acceptor.GetFundingPSBT();
 			fundPSBT.SignWithKeys(acceptorInputKey);
 			fundPSBT = acceptor.CombineFunding(fundPSBT);
 			fundPSBT = fundPSBT.Finalize();
@@ -154,12 +155,12 @@ namespace NDLC.Tests
 				});
 			var accept = acceptor.Accept(offer, PSBTFundingTemplate.Parse(fund2));
 			initiator.VerifySign(accept);
-			var fundPSBT = initiator.BuildFundingPSBT();
+			var fundPSBT = initiator.GetFundingPSBT();
 			fundPSBT.SignWithKeys(initiatorInputKey);
 			var sign = initiator.EndSign(fundPSBT);
 
 			acceptor.VerifySign(sign);
-			fundPSBT = acceptor.BuildFundingPSBT();
+			fundPSBT = acceptor.GetFundingPSBT();
 			fundPSBT.SignWithKeys(acceptorInputKey);
 			var psbt = acceptor.CombineFunding(fundPSBT);
 			psbt = psbt.Finalize();
@@ -183,9 +184,8 @@ namespace NDLC.Tests
 			Assert.True(PSBTFundingTemplate.TryParse(fundPSBT.ToBase64(), fundPSBT.Network, out var template));
 			var accept = builder.Accept(offer, template);
 
-			builder = new DLCTransactionBuilder(true, offer, accept, null, Network.RegTest);
-			Assert.True(builder.VerifyRemoteCetSigs());
-			Assert.True(builder.VerifyRemoteRefundSignature());
+			builder = new DLCTransactionBuilder(true, offer, null, null, Network.RegTest);
+			builder.VerifySign(accept);
 		}
 
 		private static PSBT GetFundingPSBT(Key ownedCoinKey, Money collateral)
@@ -312,6 +312,7 @@ namespace NDLC.Tests
 		public void AcceptorTestVectors()
 		{
 			RunAcceptorTest("Data/Acceptor-Chris", Network.TestNet);
+			//RunAcceptorTest("Data/Acceptor-Chris2", Network.TestNet);
 		}
 		void RunAcceptorTest(string acceptorFolder, Network network)
 		{
@@ -324,19 +325,20 @@ namespace NDLC.Tests
 				testOutputHelper.WriteLine("Using funding override");
 				data.Builder.FundingOverride = data.FundingOverride;
 			}
-			else
-			{
-				testOutputHelper.WriteLine("----Expected funding ----");
-				testOutputHelper.WriteLine(data.Builder.BuildFunding().ToHex());
-				testOutputHelper.WriteLine("--------------------");
-			}
+
 			var accepted = data.Builder.Accept(data.Offer, data.FundingTemplate);
 			testOutputHelper.WriteLine("---Accept message---");
 			testOutputHelper.WriteLine(JsonConvert.SerializeObject(accepted, TestnetSettings));
 			testOutputHelper.WriteLine("--------------------");
+			if (data.FundingOverride == null)
+			{
+				testOutputHelper.WriteLine("----Expected funding ----");
+				testOutputHelper.WriteLine(data.Builder.GetFundingTransaction().ToHex());
+				testOutputHelper.WriteLine("--------------------");
+			}
 
 			data.Builder.VerifySign(data.Sign);
-			var unsigned = data.Builder.BuildFundingPSBT();
+			var unsigned = data.Builder.GetFundingPSBT();
 			testOutputHelper.WriteLine("---Unsigned funding PSBT---");
 			testOutputHelper.WriteLine(unsigned.ToBase64());
 			testOutputHelper.WriteLine("--------------------");

@@ -42,7 +42,7 @@ namespace NDLC.Messages
 		{
 			if (str == null)
 				throw new ArgumentNullException(nameof(str));
-			if (!TryParse(str, out var t))
+			if (!TryParse(str, out var t) || t is null)
 				throw new FormatException("Invalid oracleInfo");
 			return t;
 		}

@@ -67,7 +67,7 @@ namespace NDLC.Secp256k1
 			sp.WriteToSpan(output65.Slice(33));
 		}
 
-		public bool TryExtractSecret(SecpECDSASignature sig, ECPubKey adaptor, out ECPrivKey secret)
+		public bool TryExtractSecret(SecpECDSASignature sig, ECPubKey adaptor, out ECPrivKey? secret)
 		{
 			secret = null;
 			if (this.GetRAsScalar() != sig.r)
