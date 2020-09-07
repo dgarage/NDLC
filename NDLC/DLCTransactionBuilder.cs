@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Xml;
@@ -227,19 +228,30 @@ namespace NDLC.Messages
 				);
 			Funding = new FundingParameters(offerer, acceptor, offer.FeeRate, FundingOverride).Build(network);
 			accept.CetSigs = CreateCetSigs();
-			accept.EventId = "14965dcd10a1f0464c4c5cf7f2e9c67b2bcc6f8a971ccc647d7fec1c885f3afe";
-			//accept.EventId = CalculateEventId();
+			accept.EventId = CalculateEventId();
 			return accept;
 		}
 
 
 
-		//private string CalculateEventId()
-		//{
-		//	Span<byte> buf = stackalloc byte[64 + 4 + 8];
-		//	offer.OracleInfo.WriteToBytes(buf);
-		//	offer.Timeouts.WriteToBytes(buf);
-		//}
+		private string CalculateEventId()
+		{
+			if (OracleInfo is null || OffererRewards is null || Timeouts is null)
+				throw new InvalidOperationException("Invalid state");
+			MemoryStream hashBytes = new MemoryStream();
+			Span<byte> buf = stackalloc byte[64];
+			OracleInfo.WriteToBytes(buf);
+			hashBytes.Write(buf);
+			Utils.ToBytes(Timeouts.ContractMaturity.Value, true, buf);
+			Utils.ToBytes(Timeouts.ContractTimeout.Value, true, buf.Slice(4));
+			hashBytes.Write(buf.Slice(0, 8));
+			foreach (var outcome in OffererRewards)
+			{
+				hashBytes.Write(outcome.Key.Hash);
+				hashBytes.Write(Utils.ToBytes((ulong)outcome.Value.Satoshi, true));
+			}
+			return Encoders.Hex.EncodeData(Hashes.SHA256(hashBytes.ToArray()));
+		}
 
 		public void Sign1(Accept accept)
 		{
