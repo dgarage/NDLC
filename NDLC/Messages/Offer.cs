@@ -34,6 +34,8 @@ namespace NDLC.Messages
 			FeeRate = fundingTemplate.FeeRate;
 			base.FillFromTemplateFunding(fundingTemplate, fundingKey, network);
 		}
+		[JsonProperty(Order = 104, DefaultValueHandling = DefaultValueHandling.Ignore)]
+		public string? EventId { get; set; }
 	}
 
 	public class OracleInfo

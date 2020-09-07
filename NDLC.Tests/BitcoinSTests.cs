@@ -171,16 +171,16 @@ namespace NDLC.Tests
 			initiator.BuildSignedCET(oracleSecret);
 		}
 
-		//[Fact]
-		//public void CanCalculateEventId()
-		//{
-		//	var offer = Parse<Messages.Offer>("Data/Offer2.json");
-		//	var accept = Parse<Messages.Accept>("Data/Accept2.json");
-		//	PSBT fundPSBT = GetFundingPSBT(new Key(), Money.Coins(0.4m));
-		//	var builder = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
-		//	var accept2 = builder.Accept(offer, PSBTFundingTemplate.Parse(fundPSBT));
-		//	Assert.Equal(accept.EventId, accept2.EventId);
-		//}
+		[Fact]
+		public void CanCalculateEventId()
+		{
+			var offer = Parse<Messages.Offer>("Data/Offer2.json");
+			var accept = Parse<Messages.Accept>("Data/Accept2.json");
+			PSBT fundPSBT = GetFundingPSBT(new Key(), Money.Coins(0.4m));
+			var builder = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
+			var accept2 = builder.Accept(offer, PSBTFundingTemplate.Parse(fundPSBT));
+			Assert.Equal(accept.EventId, accept2.EventId);
+		}
 
 		[Fact]
 		public void CanCreateAccept()

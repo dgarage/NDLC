@@ -65,6 +65,7 @@ namespace NDLC.Messages
 		FeeRate? FeeRate;
 		Timeouts? Timeouts;
 		Dictionary<DLCOutcome, Money>? OffererRewards;
+		List<(DLCOutcome Outcome, Money Value)>? OffererRewardsList;
 		public FundingPSBT? Funding;
 
 		public Transaction? FundingOverride { get; set; }
@@ -113,14 +114,16 @@ namespace NDLC.Messages
 			OracleInfo = offer.OracleInfo;
 			Timeouts = offer.Timeouts;
 			Offerer ??= new Party();
+			OffererRewards = new Dictionary<DLCOutcome, Money>();
+			OffererRewardsList = new List<(DLCOutcome Outcomes, Money Value)>();
 			if (offer.ContractInfo is ContractInfo[] ci)
 			{
 				foreach (var i in ci)
 				{
 					if (i.Outcome is DLCOutcome && i.Sats is Money)
 					{
-						OffererRewards ??= new Dictionary<DLCOutcome, Money>();
 						OffererRewards.Add(i.Outcome, i.Sats);
+						OffererRewardsList.Add((i.Outcome, i.Sats));
 					}
 				}
 			}
@@ -228,29 +231,8 @@ namespace NDLC.Messages
 				);
 			Funding = new FundingParameters(offerer, acceptor, offer.FeeRate, FundingOverride).Build(network);
 			accept.CetSigs = CreateCetSigs();
-			accept.EventId = CalculateEventId();
+			accept.EventId = offer.EventId;
 			return accept;
-		}
-
-
-
-		private string CalculateEventId()
-		{
-			if (OracleInfo is null || OffererRewards is null || Timeouts is null)
-				throw new InvalidOperationException("Invalid state");
-			MemoryStream hashBytes = new MemoryStream();
-			Span<byte> buf = stackalloc byte[64];
-			OracleInfo.WriteToBytes(buf);
-			hashBytes.Write(buf);
-			Utils.ToBytes(Timeouts.ContractMaturity.Value, true, buf);
-			Utils.ToBytes(Timeouts.ContractTimeout.Value, true, buf.Slice(4));
-			hashBytes.Write(buf.Slice(0, 8));
-			foreach (var outcome in OffererRewards)
-			{
-				hashBytes.Write(outcome.Key.Hash);
-				hashBytes.Write(Utils.ToBytes((ulong)outcome.Value.Satoshi, true));
-			}
-			return Encoders.Hex.EncodeData(Hashes.SHA256(hashBytes.ToArray()));
 		}
 
 		public void Sign1(Accept accept)
