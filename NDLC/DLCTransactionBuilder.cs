@@ -24,7 +24,6 @@ namespace NDLC.Messages
 			public ECDSASignature? RefundSig;
 			public Dictionary<DLCOutcome, AdaptorSignature>? OutcomeSigs;
 			public Script? Payout;
-			public Dictionary<OutPoint, List<PartialSignature>>? FundingSigs;
 		}
 
 		Party? Acceptor
@@ -158,7 +157,6 @@ namespace NDLC.Messages
 			Offerer ??= new Party();
 			Offerer.OutcomeSigs = sign.CetSigs?.OutcomeSigs;
 			Offerer.RefundSig = sign.CetSigs?.RefundSig?.Signature.Signature;
-			Offerer.FundingSigs = sign.FundingSigs;
 		}
 
 		bool isInitiator;
@@ -300,7 +298,17 @@ namespace NDLC.Messages
 				throw new InvalidOperationException("Invalid state");
 			FillStateFrom(sign);
 			AssertRemoteSigs();
-			AddFundingSigs(Remote, Funding.PSBT);
+			if (sign.FundingSigs is Dictionary<OutPoint, List<PartialSignature>> sigs1)
+			{
+				foreach (var kv in sigs1)
+				{
+					var input = Funding.PSBT.Inputs.FindIndexedInput(kv.Key);
+					foreach (var sig in kv.Value)
+					{
+						input.PartialSigs.Add(sig.PubKey, sig.Signature);
+					}
+				}
+			}
 		}
 
 		public Transaction Finalize(PSBT signedFunding)
@@ -356,21 +364,6 @@ namespace NDLC.Messages
 			if (!key.ToECPrivKey().TrySignAdaptor(hash.ToBytes(), sigpoint, out var sig, out var proof) || sig  is null || proof is null)
 				throw new InvalidOperationException("TrySignAdaptor failed");
 			return new AdaptorSignature(sig, proof);
-		}
-
-		private void AddFundingSigs(Party? party, PSBT psbt)
-		{
-			if (party?.FundingSigs is Dictionary<OutPoint, List<PartialSignature>> sigs1)
-			{
-				foreach (var kv in sigs1)
-				{
-					var input = psbt.Inputs.FindIndexedInput(kv.Key);
-					foreach (var sig in kv.Value)
-					{
-						input.PartialSigs.Add(sig.PubKey, sig.Signature);
-					}
-				}
-			}
 		}
 
 		public Transaction BuildSignedCET(Key oracleSecret)
