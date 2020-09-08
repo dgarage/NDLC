@@ -1,5 +1,4 @@
 {
-
   "contractInfo": [
     {
       "sha256": "74cee5d1545b6926816a8e857a4bedb279b3e97d72885a80fbc1cf37a0d10256",
@@ -16,21 +15,20 @@
   ],
   "oracleInfo": "156c7d1c7922f0aa1168d9e21ac77ea88bbbe05e24e70a08bbe0519778f2e5daea3a68d8749b81682513b0479418d289d17e24d4820df2ce979f1a56a63ca525",
   "pubKeys": {
-    "fundingKey": "03b0cf58eac2fecd14f99f6448baf6fd98c342a544fab268dcccd441fff84d6fb1",
-    "payoutAddress": "tb1q5dzqdevpx5995kjllsjuqwmzw5zujl687zamxe"
+    "fundingKey": "02a11ec5394f1620f2b25d51f1d211d3a89c9305dc804aec07b028b013fb6443ef",
+    "payoutAddress": "tb1qgnn8h3gqnq0pxskp7g62jhxqsp4858ezk23vvk"
   },
   "totalCollateral": 60000,
   "fundingInputs": [
     {
-      "outpoint": "965f737e78f1c568a93f13f62fc66df90e9b52d6b4761acce0a9e4da9f5e74f100000000",
-      "output": "a0860100000000001600143e7e7ba2f1b61013632c7be560210c710a82d077"
+      "outpoint": "544ed58e03731ea7c325ed2481c8c8a75b52ae799605214bd0ea7baed2d0861d01000000",
+      "output": "80f0fa0200000000160014ca63f91324940e8925869a9437ac69a4590f49a9"
     }
   ],
-  "changeAddress": "tb1qu2rlp5z27yjkr434e4ss3mxxmkhzp4samnzv5g",
+  "changeAddress": "tb1qt065wec4hc0e0m2wn7rp50y9pjlxzzwmzalv6h",
   "feeRate": 5,
   "timeouts": {
     "contractMaturity": 0,
     "contractTimeout": 1
-  },
-  "eventId": "183ab209172aba1b263a94760e426d8fce6b7363caf9fa7da3c843312ec4a66e"
-}
+  }
+} 
