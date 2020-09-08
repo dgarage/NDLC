@@ -22,7 +22,7 @@ namespace NDLC.Messages
 			public PubKey? FundPubKey;
 			public Money? Collateral;
 			public ECDSASignature? RefundSig;
-			public Dictionary<DLCOutcome, AdaptorSignature>? OutcomeSigs;
+			public Dictionary<DLCOutcome, SecpECDSAAdaptorSignature>? OutcomeSigs;
 			public Script? Payout;
 		}
 
@@ -144,7 +144,7 @@ namespace NDLC.Messages
 				return;
 			Acceptor ??= new Party();
 			Acceptor.FundPubKey = accept.PubKeys?.FundingKey;
-			Acceptor.OutcomeSigs = accept.CetSigs?.OutcomeSigs;
+			Acceptor.OutcomeSigs = accept.CetSigs?.OutcomeSigs.ToDictionary(kv => kv.Key, kv => kv.Value.Signature);
 			Acceptor.RefundSig = accept.CetSigs?.RefundSig?.Signature.Signature;
 			Acceptor.Collateral = accept.TotalCollateral;
 			Acceptor.Payout = accept.PubKeys?.PayoutAddress?.ScriptPubKey;
@@ -155,7 +155,7 @@ namespace NDLC.Messages
 			if (sign is null)
 				return;
 			Offerer ??= new Party();
-			Offerer.OutcomeSigs = sign.CetSigs?.OutcomeSigs;
+			Offerer.OutcomeSigs = sign.CetSigs?.OutcomeSigs.ToDictionary(kv => kv.Key, kv => kv.Value.Signature);
 			Offerer.RefundSig = sign.CetSigs?.RefundSig?.Signature.Signature;
 		}
 
@@ -242,6 +242,8 @@ namespace NDLC.Messages
 				throw new InvalidOperationException("The accept message is missing some information");
 			if (Offerer?.Collateral is null || Offerer?.FundPubKey is null || FeeRate is null)
 				throw new InvalidOperationException("Invalid state");
+			if (accept?.CetSigs?.OutcomeSigs is null)
+				throw new InvalidOperationException("Outcome sigs missing");
 			FillStateFrom(accept);
 			var acceptor = new FundingParty(
 			accept.TotalCollateral,
@@ -255,9 +257,9 @@ namespace NDLC.Messages
 				Offerer.FundPubKey
 				);
 			Funding = new FundingParameters(offerer, acceptor, FeeRate, FundingOverride).Build(network);
+			AssertRemoteSigs(accept.CetSigs.OutcomeSigs);
 			OffererCoins = null;
 			OffererChange = null;
-			AssertRemoteSigs();
 		}
 		public Sign Sign2(PSBT signedFunding)
 		{
@@ -282,9 +284,9 @@ namespace NDLC.Messages
 			return sign;
 		}
 
-		private void AssertRemoteSigs()
+		private void AssertRemoteSigs(Dictionary<DLCOutcome, AdaptorSignature> cetSigs)
 		{
-			if (!VerifyRemoteCetSigs())
+			if (!VerifyRemoteCetSigs(cetSigs))
 				throw new InvalidOperationException("Invalid remote CET");
 			if (!VerifyRemoteRefundSignature())
 				throw new InvalidOperationException("Invalid remote refund signature");
@@ -296,8 +298,10 @@ namespace NDLC.Messages
 				throw new ArgumentNullException(nameof(sign));
 			if (Funding is null)
 				throw new InvalidOperationException("Invalid state");
+			if (sign?.CetSigs?.OutcomeSigs is null)
+				throw new InvalidOperationException("Outcome sigs missing");
 			FillStateFrom(sign);
-			AssertRemoteSigs();
+			AssertRemoteSigs(sign.CetSigs.OutcomeSigs);
 			if (sign.FundingSigs is Dictionary<OutPoint, List<PartialSignature>> sigs1)
 			{
 				foreach (var kv in sigs1)
@@ -384,7 +388,7 @@ namespace NDLC.Messages
 				var cet = BuildCET(outcome);
 				if (!Remote.OutcomeSigs.TryGetValue(outcome, out var encryptedSig))
 					continue;
-				var ecdsaSig = encryptedSig.Signature.AdaptECDSA(oracleSecret.ToECPrivKey());
+				var ecdsaSig = encryptedSig.AdaptECDSA(oracleSecret.ToECPrivKey());
 				var builder = network.CreateTransactionBuilder();
 				builder.AddCoins(Funding.FundingCoin);
 				builder.AddKnownSignature(Remote.FundPubKey, new TransactionSignature(ecdsaSig.ToDER(), SigHash.All), Funding.FundingCoin.Outpoint);
@@ -432,14 +436,14 @@ namespace NDLC.Messages
 			return tx;
 		}
 
-		public bool VerifyRemoteCetSigs()
+		public bool VerifyRemoteCetSigs(Dictionary<DLCOutcome, AdaptorSignature> cetSigs)
 		{
-			if (Remote?.FundPubKey is null || Remote?.OutcomeSigs is null || OracleInfo is null || Funding is null)
+			if (Remote?.FundPubKey is null || OracleInfo is null || Funding is null)
 				throw new InvalidOperationException("We did not received enough data to verify the sigs");
 
 			foreach (var outcome in OffererRewards.Select(o => o.Key))
 			{
-				if (!Remote.OutcomeSigs.TryGetValue(outcome, out var outcomeSig))
+				if (!cetSigs.TryGetValue(outcome, out var outcomeSig))
 					return false;
 
 				if (!OracleInfo.TryComputeSigpoint(outcome, out var sigpoint) || sigpoint is null)

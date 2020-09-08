@@ -75,7 +75,7 @@ namespace NDLC.Tests
 				var b = new DLCTransactionBuilder(isInitiator, offer, accept, sign, funding, Network.RegTest);
 				var actualCet = b.BuildCET(offer.ContractInfo[1].Outcome);
 				Assert.Equal(cet.ToString(), actualCet.ToString());
-				Assert.True(b.VerifyRemoteCetSigs());
+				Assert.True(b.VerifyRemoteCetSigs(isInitiator ? accept.CetSigs.OutcomeSigs : sign.CetSigs.OutcomeSigs));
 				Assert.True(b.VerifyRemoteRefundSignature());
 
 				b = new DLCTransactionBuilder(isInitiator, offer, accept, sign, Network.RegTest);
