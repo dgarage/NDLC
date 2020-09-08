@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NDLC.CLI\NDLC.CLI.csproj" />
     <ProjectReference Include="..\NDLC\NDLC.csproj" />
   </ItemGroup>
 
