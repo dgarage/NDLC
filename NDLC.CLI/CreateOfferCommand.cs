@@ -30,7 +30,7 @@ namespace NDLC.CLI
 			};
 		  	var ci = GetOutcomes(context.ParseResult.ValueForOption<string[]>("outcome"));
 			var offer = builder.Offer(template, new OracleInfo(oraclePubKey, schnorrNonce), ci, timeouts);
-			context.Console.Out.Write(JsonConvert.SerializeObject(offer, JsonSerializerSettings));
+			WriteObject(context, offer);
 		}
 
 		private ContractInfo[] GetOutcomes(string[]? outcomes)

@@ -31,6 +31,11 @@ namespace NDLC.CLI
 			}
 		}
 
+		protected void WriteObject<T>(InvocationContext context, T obj)
+		{
+			context.Console.Out.Write(JsonConvert.SerializeObject(obj, JsonSerializerSettings));
+		}
+
 		protected abstract Task InvokeAsyncBase(InvocationContext context);
 
 		private NetworkType GetNetworkType(string networkType)
