@@ -113,24 +113,12 @@ namespace NDLC.Messages
 	}
 	public class ContractInfo
 	{
-		[JsonProperty("sha256")]
-		[JsonConverter(typeof(DLCOutcomeJsonConverter))]
-		public DLCOutcome? Outcome { get; set; }
-		[JsonConverter(typeof(NBitcoin.JsonConverters.MoneyJsonConverter))]
-		public Money? Sats { get; set; }
-
-		public static ContractInfo[] CreateContract(params (DLCOutcome outcome, Money payout)[] rewards)
+		public ContractInfo(DLCOutcome outcome, Money payout)
 		{
-			List<ContractInfo> info = new List<ContractInfo>();
-			foreach (var r in rewards)
-			{
-				info.Add(new ContractInfo()
-				{
-					Outcome = r.outcome,
-					Sats = r.payout
-				});
-			}
-			return info.ToArray();
+			Payout = payout;
+			Outcome = outcome;
 		}
+		public DLCOutcome Outcome { get; }
+		public Money Payout { get; }
 	}
 }

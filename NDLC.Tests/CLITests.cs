@@ -38,14 +38,22 @@ namespace NDLC.Tests
 				"--expiration", "1000"
 			});
 			var offer = Tester.GetResult<Offer>();
-			Assert.Equal(Money.Satoshis(10000), offer.ContractInfo[0].Sats);
-			Assert.Equal(Money.Coins(0.2m), offer.ContractInfo[2].Sats);
+			Assert.Equal(Money.Satoshis(10000), offer.ContractInfo[0].Payout);
+			Assert.Equal(Money.Coins(0.2m), offer.ContractInfo[2].Payout);
 			Assert.Equal("tb1q8smyuku8zzmmrm2r5tfhy38vl3r4anezy6ftse", offer.ChangeAddress.ToString());
+
+			var offerStr = Tester.GetLastOutput();
 			await Tester.AssertInvokeSuccess(new string[]
 			{
 				"--network", "testnet",
 				"offer", "review",
-				Tester.GetLastOutput()
+				offerStr
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--network", "testnet",
+				"offer", "review", "-h",
+				offerStr
 			});
 		}
 	}

@@ -32,8 +32,7 @@ namespace NDLC.Messages.JsonConverters
 		{
 			if (value is Money)
 			{
-				JObject.FromObject(new BTCSats(value))
-					.WriteTo(writer);
+				serializer.Serialize(writer, new BTCSats(value));
 			}
 		}
 	}

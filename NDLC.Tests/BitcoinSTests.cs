@@ -126,10 +126,12 @@ namespace NDLC.Tests
 		[Fact]
 		public void CheckCalculateProperHash()
 		{
-			var ci = ContractInfo.CreateContract(("Trump", Money.Coins(1.0m)));
-			var jArray = JArray.Parse(JsonConvert.SerializeObject(ci, Settings));
-			var aa = jArray[0]["sha256"].Value<string>();
+			var ci = new ContractInfo("Trump", Money.Coins(1.0m));
+			var jobj = JObject.Parse(JsonConvert.SerializeObject(ci, Settings));
+			var aa = jobj["sha256"].Value<string>();
 			Assert.Equal("56249f725ea0650368f09d857958628ead35a12361fe0023ddba9f062f79daa2", aa);
+			aa = jobj["outcome"].Value<string>();
+			Assert.Equal("Trump", aa);
 		}
 		[Fact]
 		public void FullExchange2()
@@ -144,10 +146,10 @@ namespace NDLC.Tests
 
 			var oracleInfo = OracleInfo.Parse("156c7d1c7922f0aa1168d9e21ac77ea88bbbe05e24e70a08bbe0519778f2e5daea3a68d8749b81682513b0479418d289d17e24d4820df2ce979f1a56a63ca525");
 			var offer = initiator.Offer(PSBTFundingTemplate.Parse(fund1), oracleInfo,
-				ContractInfo.CreateContract(
-				("Republicans_win", Money.Coins(1.0m)),
-				("Democrats_win", Money.Coins(0m)),
-				("other", Money.Coins(0.6m))), new Timeouts()
+				new[] {
+				new ContractInfo("Republicans_win", Money.Coins(1.0m)),
+				new ContractInfo("Democrats_win", Money.Coins(0m)),
+				new ContractInfo("other", Money.Coins(0.6m)) }, new Timeouts()
 				{
 					ContractMaturity = 100,
 					ContractTimeout = 200
@@ -214,7 +216,7 @@ namespace NDLC.Tests
 		{
 			var offer = Parse<Messages.Offer>("Data/Offer.json");
 			Assert.Equal("cbaede9e2ad17109b71b85a23306b6d4b93e78e8e8e8d830d836974f16128ae8", offer.ContractInfo[1].Outcome.ToString());
-			Assert.Equal(200000000L, offer.ContractInfo[1].Sats.Satoshi);
+			Assert.Equal(200000000L, offer.ContractInfo[1].Payout.Satoshi);
 			Assert.Equal(100000000L, offer.TotalCollateral.Satoshi);
 
 			var accept = Parse<Messages.Accept>("Data/Accept.json");

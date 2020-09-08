@@ -59,11 +59,7 @@ namespace NDLC.CLI
 				}
 				if (rewardMoney < Money.Zero)
 					throw new CommandException(optionName, "Invalid outcome, the reward can't be negative");
-				ci[i] = new ContractInfo()
-				{
-					Outcome = new DLCOutcome(outcome),
-					Sats = rewardMoney
-				};
+				ci[i] = new ContractInfo(outcome, rewardMoney);
 			}
 			return ci;
 		}

@@ -120,10 +120,10 @@ namespace NDLC.Messages
 			{
 				foreach (var i in ci)
 				{
-					if (i.Outcome is DLCOutcome && i.Sats is Money)
+					if (i.Outcome is DLCOutcome && i.Payout is Money)
 					{
-						OffererRewards.Add(i.Outcome, i.Sats);
-						OffererRewardsList.Add((i.Outcome, i.Sats));
+						OffererRewards.Add(i.Outcome, i.Payout);
+						OffererRewardsList.Add((i.Outcome, i.Payout));
 					}
 				}
 			}

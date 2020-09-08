@@ -14,11 +14,19 @@ namespace NDLC
 	{
 		public OfferReview(Offer offer)
 		{
+			if (offer?.OracleInfo is null)
+				throw new ArgumentException("OracleInfo is missing", nameof(offer));
+			if (offer.ContractInfo is null)
+				throw new ArgumentException("ContractInfo is missing", nameof(offer));
+			if (offer.ContractInfo.Length is 0)
+				throw new ArgumentException("ContractInfo is empty", nameof(offer));
+			if (offer.TotalCollateral is null)
+				throw new ArgumentException("TotalCollateral is missing", nameof(offer));
 			OraclePubKey = Encoders.Hex.EncodeData(offer.OracleInfo.PubKey.ToBytes());
 			Nonce = offer.OracleInfo.RValue.ToString();
 			OffererPnL = new List<ProfitAndLoss>();
 			AcceptorPnL = new List<ProfitAndLoss>();
-			AcceptorCollateral = offer.ContractInfo.Select(o => o.Sats - offer.TotalCollateral).Max();
+			AcceptorCollateral = offer.ContractInfo.Select(o => o.Payout - offer.TotalCollateral).Max();
 			AcceptorCollateral = Money.Max(Money.Zero, AcceptorCollateral);
 			foreach (var ci in offer.ContractInfo)
 			{
@@ -45,7 +53,7 @@ namespace NDLC
 		}
 		public ProfitAndLoss(Money collateral, ContractInfo ci)
 		{
-			Value = ci.Sats - collateral;
+			Value = ci.Payout - collateral;
 			IsHash = ci.Outcome.OutcomeString is null;
 			Outcome = ci.Outcome.ToString();
 		}

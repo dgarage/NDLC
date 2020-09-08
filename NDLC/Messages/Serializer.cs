@@ -21,6 +21,7 @@ namespace NDLC.Messages
 			settings.Converters.Add(new NBitcoin.JsonConverters.ScriptJsonConverter());
 			settings.Converters.Add(new PartialSignatureJsonConverter());
 			settings.Converters.Add(new DLCOutcomeJsonConverter());
+			settings.Converters.Add(new ContractInfoJsonConverter());
 		}
 	}
 }

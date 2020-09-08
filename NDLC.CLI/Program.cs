@@ -80,6 +80,7 @@ namespace NDLC.CLI
 
 			Command reviewOffer = new Command("review", "Review an offer");
 			offer.Add(reviewOffer);
+			reviewOffer.AddOption(new Option<bool>(new[] { "-h", "--human" }, "Show the offer in a human readable way"));
 			reviewOffer.AddArgument(new Argument<string>("offer", "The JSON offer to review") { Arity = ArgumentArity.ExactlyOne });
 			reviewOffer.Handler = new ReviewOfferCommand();
 			return root;
