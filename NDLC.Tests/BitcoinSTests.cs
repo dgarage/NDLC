@@ -320,7 +320,7 @@ namespace NDLC.Tests
 		public void AcceptorTestVectors()
 		{
 			RunAcceptorTest("Data/Acceptor-Chris", Network.TestNet);
-			//RunAcceptorTest("Data/Acceptor-Chris2", Network.TestNet);
+			RunAcceptorTest("Data/Acceptor-Chris2", Network.TestNet);
 		}
 		void RunAcceptorTest(string acceptorFolder, Network network)
 		{
@@ -347,7 +347,7 @@ namespace NDLC.Tests
 
 			data.Builder.Finalize1(data.Sign);
 			var unsigned = data.Builder.GetFundingPSBT();
-			testOutputHelper.WriteLine("---Unsigned funding PSBT---");
+			testOutputHelper.WriteLine("---Partially signed funding PSBT---");
 			testOutputHelper.WriteLine(unsigned.ToBase64());
 			testOutputHelper.WriteLine("--------------------");
 

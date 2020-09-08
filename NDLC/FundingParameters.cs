@@ -71,13 +71,13 @@ namespace NDLC
 
 				var expectedFee = FeeRate.GetFee(700);
 				var parts = expectedFee.Split(2).ToArray();
-				tx.Outputs[1].Value -= parts[0];
-				tx.Outputs[2].Value -= parts[0];
+				tx.Outputs[1].Value -= parts[1];
+				tx.Outputs[2].Value -= parts[1];
 
 				var futureFee = FeeRate.GetFee(169);
 				parts = futureFee.Split(2).ToArray();
-				tx.Outputs[1].Value -= parts[0];
-				tx.Outputs[2].Value -= parts[0];
+				tx.Outputs[1].Value -= parts[1];
+				tx.Outputs[2].Value -= parts[1];
 				tx.Outputs[0].Value += futureFee;
 			}
 			else

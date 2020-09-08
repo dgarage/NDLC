@@ -99,11 +99,6 @@ namespace NDLC.Messages
 		public LockTime ContractMaturity { get; set; }
 		[JsonConverter(typeof(LocktimeJsonConverter))]
 		public LockTime ContractTimeout { get; set; }
-
-		public void WriteToBytes(Span<byte> out8)
-		{
-			throw new NotImplementedException();
-		}
 	}
 	public class PubKeyObject
 	{
