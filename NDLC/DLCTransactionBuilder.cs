@@ -9,6 +9,7 @@ using System.Xml;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
+using NBitcoin.Secp256k1;
 using NDLC.Messages.JsonConverters;
 using NDLC.Secp256k1;
 using Newtonsoft.Json;
@@ -65,11 +66,8 @@ namespace NDLC.Messages
 		{
 			if (offer is null)
 				return;
-			if (s.IsInitiator)
-			{
-				s.OffererChange = offer.ChangeAddress?.ScriptPubKey;
-				s.OffererCoins = GetCoins(offer);
-			}
+			s.OffererCoins = GetCoins(offer);
+			s.OffererChange = offer.ChangeAddress?.ScriptPubKey;
 			s.OracleInfo = offer.OracleInfo;
 			s.Timeouts = offer.Timeouts;
 			s.Offerer ??= new Party();
@@ -131,6 +129,66 @@ namespace NDLC.Messages
 			return tx;
 		}
 
+		public Money Offer(
+			ECXOnlyPubKey oraclePubKey,
+			SchnorrNonce eventNonce,
+			DiscretePayoffs offererPayoffs,
+			Timeouts timeouts)
+		{
+			using var tx = StartTransaction();
+			if (!s.IsInitiator)
+				throw new InvalidOperationException("The acceptor can't initiate an offer");
+			s.OracleInfo = new OracleInfo(oraclePubKey, eventNonce);
+			s.Timeouts = timeouts;
+			s.OffererPayoffs = offererPayoffs;
+			s.Offerer = new Party();
+			s.Offerer.Collateral = offererPayoffs.CalculateCollateral();
+			tx.Commit();
+			return s.Offerer.Collateral;
+		}
+
+		(Coin[] Coins, BitcoinAddress PayoutAddress, BitcoinAddress? ChangeAddress) 
+			ExtractFundingInformation(PSBT psbt, Money expectedCollateral)
+		{
+			var payoutAddress = psbt.Outputs.Where(o => o.Value == expectedCollateral).Select(c => c.ScriptPubKey).FirstOrDefault();
+			if (payoutAddress is null)
+				throw new InvalidOperationException("The PSBT should have an output paying the exact collateral");
+			var changeAddress = psbt.Outputs.Where(o => o.Value != expectedCollateral).Select(c => c.ScriptPubKey).FirstOrDefault();
+			var inputs = psbt.Inputs.Select(i => i.GetCoin())
+						.ToArray();
+			return (inputs, payoutAddress.GetDestinationAddress(network), changeAddress?.GetDestinationAddress(network));
+		}
+		public Offer FundOffer(PSBT psbt)
+		{
+			if (!s.IsInitiator)
+				throw new InvalidOperationException("The acceptor can't initiate an offer");
+			if (s.OracleInfo is null || s.OffererPayoffs is null || s.Timeouts is null)
+				throw new InvalidOperationException("Invalid state");
+			using var tx = StartTransaction();
+			var collateral = s.OffererPayoffs.CalculateCollateral();
+			var fundingKey = GetOrCreateFundingKey();
+			var fundingInfo = ExtractFundingInformation(psbt, collateral);
+
+			Offer offer = new Offer()
+			{
+				OracleInfo = s.OracleInfo,
+				TotalCollateral = s.OffererPayoffs.CalculateCollateral(),
+				ContractInfo = s.OffererPayoffs.ToContractInfo(),
+				Timeouts = s.Timeouts,
+				PubKeys = new PubKeyObject()
+				{
+					FundingKey = fundingKey.PubKey,
+					PayoutAddress = fundingInfo.PayoutAddress
+				},
+				ChangeAddress = fundingInfo.ChangeAddress,
+				FeeRate = psbt.GetEstimatedFeeRate(),
+				FundingInputs = fundingInfo.Coins.Select(c => new FundingInput(c)).ToArray()
+			};
+			FillStateFrom(offer);
+			tx.Commit();
+			return offer;
+		}
+
 		public Offer Offer(PSBTFundingTemplate fundingTemplate, OracleInfo oracleInfo, DiscretePayoffs offererPnLs, Timeouts timeouts)
 		{
 			using var tx = StartTransaction();
@@ -160,6 +218,58 @@ namespace NDLC.Messages
 			return k;
 		}
 
+		public DiscretePayoffs Accept(Offer offer)
+		{
+			using var tx = StartTransaction();
+			if (s.IsInitiator)
+				throw new InvalidOperationException("The initiator can't accept");
+			this.FillStateFrom(offer);
+			if (s.OffererPayoffs is null)
+				throw new InvalidOperationException("The offer should contains contractInfo");
+			tx.Commit();
+			return s.OffererPayoffs.Inverse();
+		}
+
+		public Accept FundAccept(PSBT psbt)
+		{
+			if (s.IsInitiator)
+				throw new InvalidOperationException("The initiator can't accept");
+			if (s.OffererPayoffs is null ||
+				s.Offerer?.Collateral is null ||
+				s.Offerer?.FundPubKey is null ||
+				s.FeeRate is null)
+				throw new InvalidOperationException("Invalid state");
+			using var tx = StartTransaction();
+			var fundKey = GetOrCreateFundingKey();
+			var collateral = s.OffererPayoffs.Inverse().CalculateCollateral();
+			var fundingInfo = ExtractFundingInformation(psbt, collateral);
+
+			Accept accept = new Accept()
+			{
+				TotalCollateral = collateral,
+				ChangeAddress = fundingInfo.ChangeAddress,
+				PubKeys = new PubKeyObject()
+				{
+					FundingKey = fundKey.PubKey,
+					PayoutAddress = fundingInfo.PayoutAddress
+				},
+				FundingInputs = fundingInfo.Coins.Select(c => new FundingInput(c)).ToArray()
+			};
+			FillStateFrom(accept);
+			s.Funding = new FundingParameters(
+				new FundingParty(s.Offerer.Collateral,
+				s.OffererCoins,
+				s.OffererChange,
+				s.Offerer.FundPubKey),
+				new FundingParty(collateral,
+				fundingInfo.Coins,
+				fundingInfo.ChangeAddress?.ScriptPubKey,
+				fundKey.PubKey), s.FeeRate, FundingOverride).Build(network);
+			accept.CetSigs = CreateCetSigs();
+			tx.Commit();
+			return accept;
+		}
+
 		public Accept Accept(Offer offer,
 							PSBTFundingTemplate fundingTemplate)
 		{
@@ -180,7 +290,7 @@ namespace NDLC.Messages
 
 			var offerer = new FundingParty(
 				offer.TotalCollateral,
-				offer.FundingInputs.Select(c => new Coin(c.Outpoint, c.Output)).ToArray(),
+				offer.FundingInputs.Select(c => c.AsCoin()).ToArray(),
 				offer.ChangeAddress?.ScriptPubKey,
 				offer.PubKeys.FundingKey);
 			var acceptor = new FundingParty(
@@ -346,7 +456,7 @@ namespace NDLC.Messages
 			var hash = cet.GetSignatureHash(s.Funding.FundCoin);
 			if (!s.OracleInfo.TryComputeSigpoint(outcome, out var sigpoint) || sigpoint is null)
 				throw new InvalidOperationException("TryComputeSigpoint failed");
-			if (!key.ToECPrivKey().TrySignAdaptor(hash.ToBytes(), sigpoint, out var sig, out var proof) || sig  is null || proof is null)
+			if (!key.ToECPrivKey().TrySignAdaptor(hash.ToBytes(), sigpoint, out var sig, out var proof) || sig is null || proof is null)
 				throw new InvalidOperationException("TrySignAdaptor failed");
 			return new AdaptorSignature(sig, proof);
 		}

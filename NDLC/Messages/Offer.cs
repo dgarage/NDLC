@@ -114,9 +114,24 @@ namespace NDLC.Messages
 	}
 	public class FundingInput
 	{
+		public FundingInput()
+		{
+
+		}
+		public FundingInput(Coin c)
+		{
+			Outpoint = c.Outpoint;
+			Output = c.TxOut;
+		}
 		[JsonConverter(typeof(NBitcoin.JsonConverters.OutpointJsonConverter))]
 		public OutPoint Outpoint { get; set; } = OutPoint.Zero;
 		public TxOut Output { get; set; } = new TxOut();
+		public Coin AsCoin()
+		{
+			if (Outpoint is null || Output is null)
+				throw new InvalidOperationException("Funding input is missing some information");
+			return new Coin(Outpoint, Output);
+		}
 	}
 	public class ContractInfo
 	{

@@ -99,15 +99,17 @@ namespace NDLC.Tests
 
 			var initiatorInputKey = new Key();
 			var acceptorInputKey = new Key();
-
-			var fund1 = GetFundingPSBT(initiatorInputKey, Money.Coins(0.6m));
-			var fund2 = GetFundingPSBT(acceptorInputKey, Money.Coins(0.4m));
 			var initiator = new DLCTransactionBuilder(true, null, null, null, Network.RegTest);
-			initiator.AllowUnexpectedCollateral = true;
+			var requiredFund = initiator.Offer(offerExample.OracleInfo.PubKey,
+								  offerExample.OracleInfo.RValue,
+								  DiscretePayoffs.CreateFromContractInfo(offerExample.ContractInfo, offerExample.TotalCollateral),
+								  offerExample.Timeouts);
+			var fund1 = GetFundingPSBT(initiatorInputKey, requiredFund);
+			var offer = initiator.FundOffer(fund1);
 			var acceptor = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
-
-			var offer = initiator.Offer(PSBTFundingTemplate.Parse(fund1), offerExample.OracleInfo, offerExample.ToDiscretePayoffs(), offerExample.Timeouts);
-			var accept = acceptor.Accept(offer, PSBTFundingTemplate.Parse(fund2));
+			var acceptorPayoff = acceptor.Accept(offer);
+			var fund2 = GetFundingPSBT(acceptorInputKey, acceptorPayoff.CalculateCollateral());
+			var accept = acceptor.FundAccept(fund2);
 			initiator.Sign1(accept);
 			var fundPSBT = initiator.GetFundingPSBT();
 			fundPSBT.SignWithKeys(initiatorInputKey);
@@ -159,14 +161,12 @@ namespace NDLC.Tests
 			var initiatorInputKey = new Key();
 			var acceptorInputKey = new Key();
 
-			var fund1 = GetFundingPSBT(initiatorInputKey, Money.Coins(0.6m));
-			var fund2 = GetFundingPSBT(acceptorInputKey, Money.Coins(0.4m));
+			
 			var initiator = new DLCTransactionBuilder(true, null, null, null, Network.RegTest);
-			initiator.AllowUnexpectedCollateral = true;
 			var acceptor = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 
 			var oracleInfo = OracleInfo.Parse("156c7d1c7922f0aa1168d9e21ac77ea88bbbe05e24e70a08bbe0519778f2e5daea3a68d8749b81682513b0479418d289d17e24d4820df2ce979f1a56a63ca525");
-			var offer = initiator.Offer(PSBTFundingTemplate.Parse(fund1), oracleInfo,
+			var requiredCollateral = initiator.Offer(oracleInfo.PubKey, oracleInfo.RValue,
 				new DiscretePayoffs() {
 				new DiscretePayoff("Republicans_win", Money.Coins(0.4m)),
 				new DiscretePayoff("Democrats_win", -Money.Coins(0.6m)),
@@ -175,7 +175,12 @@ namespace NDLC.Tests
 					ContractMaturity = 100,
 					ContractTimeout = 200
 				});
-			var accept = acceptor.Accept(offer, PSBTFundingTemplate.Parse(fund2));
+			var fund1 = GetFundingPSBT(acceptorInputKey, requiredCollateral);
+			var offer = initiator.FundOffer(fund1);
+
+			var payoff = acceptor.Accept(offer);
+			var fund2 = GetFundingPSBT(initiatorInputKey, payoff.CalculateCollateral());
+			var accept = acceptor.FundAccept(fund2);
 			initiator.Sign1(accept);
 			var fundPSBT = initiator.GetFundingPSBT();
 			fundPSBT.SignWithKeys(initiatorInputKey);
@@ -203,9 +208,11 @@ namespace NDLC.Tests
 		{
 			var offer = Parse<Messages.Offer>("Data/Offer2.json");
 			var accept = Parse<Messages.Accept>("Data/Accept2.json");
-			PSBT fundPSBT = GetFundingPSBT(new Key(), Money.Coins(0.4m));
+			
 			var builder = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
-			var accept2 = builder.Accept(offer, PSBTFundingTemplate.Parse(fundPSBT));
+			var payoff = builder.Accept(offer);
+			PSBT fundPSBT = GetFundingPSBT(new Key(), payoff.CalculateCollateral());
+			var accept2 = builder.FundAccept(fundPSBT);
 			Assert.Equal(accept.EventId, accept2.EventId);
 		}
 
@@ -215,22 +222,20 @@ namespace NDLC.Tests
 			var offer = Parse<Messages.Offer>("Data/Offer2.json");
 			var builder = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 			var fundingInputKey = new Key();
-			PSBT fundPSBT = GetFundingPSBT(fundingInputKey, Money.Coins(0.4m));
-			Assert.True(PSBTFundingTemplate.TryParse(fundPSBT.ToBase64(), fundPSBT.Network, out var template));
-			var accept = builder.Accept(offer, template);
+
+			var payoffs = builder.Accept(offer);
+			PSBT fundPSBT = GetFundingPSBT(fundingInputKey, payoffs.CalculateCollateral());
+			var accept = builder.FundAccept(fundPSBT);
 
 			builder = new DLCTransactionBuilder(true, offer, null, null, Network.RegTest);
-			builder.AllowUnexpectedCollateral = true;
 			builder.Sign1(accept);
 		}
-
 		private static PSBT GetFundingPSBT(Key ownedCoinKey, Money collateral)
 		{
 			var c1 = new Coin(new OutPoint(RandomUtils.GetUInt256(), 0), new TxOut(Money.Coins(2.0m), ownedCoinKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit)));
 			var txbuilder = Network.RegTest.CreateTransactionBuilder();
 			txbuilder.AddCoins(c1);
-			txbuilder.Send(Constants.FundingPlaceholder, collateral);
-			txbuilder.Send(new Key().ScriptPubKey, Constants.PayoutAmount);
+			txbuilder.Send(new Key().ScriptPubKey, collateral);
 			txbuilder.SendEstimatedFees(new FeeRate(1.0m));
 			txbuilder.SetChange(new Key().ScriptPubKey);
 			var fundPSBT = txbuilder.BuildPSBT(false);
