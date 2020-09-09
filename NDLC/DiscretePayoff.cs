@@ -5,12 +5,26 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace NDLC
 {
 	public class DiscretePayoffs : IEnumerable<DiscretePayoff>, IList<DiscretePayoff>
 	{
+		public static DiscretePayoffs CreateFromContractInfo(ContractInfo[] contractInfos, Money collateral)
+		{
+			var payoffs = new DiscretePayoffs();
+			foreach (var i in contractInfos)
+			{
+				if (i.Outcome is DLCOutcome && i.Payout is Money)
+				{
+					payoffs.Add(i.Outcome, i.Payout - collateral);
+				}
+			}
+			return payoffs;
+		}
+
 		List<DiscretePayoff> _Outcomes = new List<DiscretePayoff>();
 		Dictionary<DLCOutcome, Money> _Rewards = new Dictionary<DLCOutcome, Money>();
 		public Money CalculateCollateral()

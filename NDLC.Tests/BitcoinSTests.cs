@@ -125,6 +125,25 @@ namespace NDLC.Tests
 		}
 
 		[Fact]
+		public void CanConvertContractInfoToPayoff()
+		{
+			var payoffs = new DiscretePayoffs();
+			payoffs.Add(new DLCOutcome("a"), Money.Coins(5.0m));
+			payoffs.Add(new DLCOutcome("b"), Money.Coins(-5.0m));
+			payoffs.Add(new DLCOutcome("c"), Money.Coins(-2.0m));
+			Assert.Equal(Money.Coins(5.0m), payoffs.CalculateCollateral());
+			var ci = payoffs.ToContractInfo();
+			Assert.Equal(Money.Coins(10.0m), ci[0].Payout);
+			Assert.Equal(Money.Coins(0m), ci[1].Payout);
+			Assert.Equal(Money.Coins(3.0m), ci[2].Payout);
+
+			payoffs = DiscretePayoffs.CreateFromContractInfo(ci, Money.Coins(5.0m));
+			Assert.Equal(Money.Coins(5.0m), payoffs[0].Reward);
+			Assert.Equal(Money.Coins(-5.0m), payoffs[1].Reward);
+			Assert.Equal(Money.Coins(-2.0m), payoffs[2].Reward);
+		}
+
+		[Fact]
 		public void CheckCalculateProperHash()
 		{
 			var ci = new ContractInfo("Trump", Money.Coins(1.0m));

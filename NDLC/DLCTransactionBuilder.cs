@@ -65,8 +65,6 @@ namespace NDLC.Messages
 		{
 			if (offer is null)
 				return;
-			if (offer.TotalCollateral is null)
-				throw new InvalidOperationException("Offer's collateral required");
 			if (s.IsInitiator)
 			{
 				s.OffererChange = offer.ChangeAddress?.ScriptPubKey;
@@ -75,18 +73,13 @@ namespace NDLC.Messages
 			s.OracleInfo = offer.OracleInfo;
 			s.Timeouts = offer.Timeouts;
 			s.Offerer ??= new Party();
-			s.OffererPayoffs = new DiscretePayoffs();
-			if (offer.ContractInfo is ContractInfo[] ci)
-			{
-				foreach (var i in ci)
-				{
-					if (i.Outcome is DLCOutcome && i.Payout is Money)
-					{
-						s.OffererPayoffs.Add(i.Outcome, i.Payout - offer.TotalCollateral);
-					}
-				}
-			}
 
+			if (offer.ContractInfo is ContractInfo[] c &&
+				c.Length > 0 &&
+				offer.TotalCollateral is Money)
+			{
+				s.OffererPayoffs = DiscretePayoffs.CreateFromContractInfo(offer.ContractInfo, offer.TotalCollateral);
+			}
 			s.Offerer.Collateral = offer.TotalCollateral;
 			s.Offerer.FundPubKey = offer.PubKeys?.FundingKey;
 			s.Offerer.PayoutDestination = offer.PubKeys?.PayoutAddress?.ScriptPubKey;
