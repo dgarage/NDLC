@@ -27,6 +27,9 @@ namespace NDLC.Secp256k1
 
 		public static bool TryCreate(ReadOnlySpan<byte> input65, out SecpECDSAAdaptorSignature? sig)
 		{
+			sig = null;
+			if (input65.Length != 65)
+				return false;
 			if (!Internals.secp256k1_dleq_deserialize_point(input65, out var r))
 			{
 				sig = default;

@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.Secp256k1;
 using NDLC.Messages.JsonConverters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -18,10 +19,17 @@ namespace NDLC.Messages
 			settings.Converters.Add(new NBitcoin.JsonConverters.BitcoinSerializableJsonConverter(network));
 			settings.Converters.Add(new NBitcoin.JsonConverters.BitcoinStringJsonConverter(network));
 			settings.Converters.Add(new NBitcoin.JsonConverters.OutpointJsonConverter());
+			settings.Converters.Add(new NBitcoin.JsonConverters.MoneyJsonConverter());
+			settings.Converters.Add(new NBitcoin.JsonConverters.PSBTJsonConverter(network));
+			settings.Converters.Add(new NBitcoin.JsonConverters.FeeRateJsonConverter());
 			settings.Converters.Add(new NBitcoin.JsonConverters.ScriptJsonConverter());
+			settings.Converters.Add(new NBitcoin.JsonConverters.SignatureJsonConverter());
 			settings.Converters.Add(new PartialSignatureJsonConverter());
-			settings.Converters.Add(new DLCOutcomeJsonConverter());
+			settings.Converters.Add(new ECXOnlyPubKeyJsonConverter());
+			settings.Converters.Add(new OracleInfoJsonConverter());
 			settings.Converters.Add(new ContractInfoJsonConverter());
+			settings.Converters.Add(new SecpECDSAAdaptorSignatureJsonConverter());
+			settings.Converters.Add(new CoinJsonConverter());
 		}
 	}
 }

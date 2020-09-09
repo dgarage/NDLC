@@ -103,9 +103,10 @@ namespace NDLC.Tests
 			var fund1 = GetFundingPSBT(initiatorInputKey, Money.Coins(0.6m));
 			var fund2 = GetFundingPSBT(acceptorInputKey, Money.Coins(0.4m));
 			var initiator = new DLCTransactionBuilder(true, null, null, null, Network.RegTest);
+			initiator.AllowUnexpectedCollateral = true;
 			var acceptor = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 
-			var offer = initiator.Offer(PSBTFundingTemplate.Parse(fund1), offerExample.OracleInfo, offerExample.ContractInfo, offerExample.Timeouts);
+			var offer = initiator.Offer(PSBTFundingTemplate.Parse(fund1), offerExample.OracleInfo, offerExample.CalculatePnL(), offerExample.Timeouts);
 			var accept = acceptor.Accept(offer, PSBTFundingTemplate.Parse(fund2));
 			initiator.Sign1(accept);
 			var fundPSBT = initiator.GetFundingPSBT();
@@ -142,14 +143,15 @@ namespace NDLC.Tests
 			var fund1 = GetFundingPSBT(initiatorInputKey, Money.Coins(0.6m));
 			var fund2 = GetFundingPSBT(acceptorInputKey, Money.Coins(0.4m));
 			var initiator = new DLCTransactionBuilder(true, null, null, null, Network.RegTest);
+			initiator.AllowUnexpectedCollateral = true;
 			var acceptor = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 
 			var oracleInfo = OracleInfo.Parse("156c7d1c7922f0aa1168d9e21ac77ea88bbbe05e24e70a08bbe0519778f2e5daea3a68d8749b81682513b0479418d289d17e24d4820df2ce979f1a56a63ca525");
 			var offer = initiator.Offer(PSBTFundingTemplate.Parse(fund1), oracleInfo,
-				new[] {
-				new ContractInfo("Republicans_win", Money.Coins(1.0m)),
-				new ContractInfo("Democrats_win", Money.Coins(0m)),
-				new ContractInfo("other", Money.Coins(0.6m)) }, new Timeouts()
+				new PnLOutcomes() {
+				new PnLOutcome("Republicans_win", Money.Coins(0.4m)),
+				new PnLOutcome("Democrats_win", -Money.Coins(0.6m)),
+				new PnLOutcome("other", Money.Zero) }, new Timeouts()
 				{
 					ContractMaturity = 100,
 					ContractTimeout = 200
@@ -171,6 +173,10 @@ namespace NDLC.Tests
 			var keyBytes = Encoders.Hex.DecodeData("39eabd151030f4f2d518fb8a8d00f679aa9e034c66263032a1245a04cfbc592b");
 			var oracleSecret = new Key(keyBytes);
 			initiator.BuildSignedCET(oracleSecret);
+
+			this.testOutputHelper.WriteLine("----Final state------");
+			testOutputHelper.WriteLine(JObject.Parse(initiator.ExportState()).ToString(Formatting.Indented));
+			this.testOutputHelper.WriteLine("---------------------");
 		}
 
 		[Fact]
@@ -195,6 +201,7 @@ namespace NDLC.Tests
 			var accept = builder.Accept(offer, template);
 
 			builder = new DLCTransactionBuilder(true, offer, null, null, Network.RegTest);
+			builder.AllowUnexpectedCollateral = true;
 			builder.Sign1(accept);
 		}
 

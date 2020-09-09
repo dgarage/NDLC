@@ -28,13 +28,14 @@ namespace NDLC
 			Nonce = offer.OracleInfo.RValue.ToString();
 			OffererPnL = new List<ProfitAndLoss>();
 			AcceptorPnL = new List<ProfitAndLoss>();
-			AcceptorCollateral = offer.ContractInfo.Select(o => o.Payout - offer.TotalCollateral).Max();
-			AcceptorCollateral = Money.Max(Money.Zero, AcceptorCollateral);
-			foreach (var ci in offer.ContractInfo)
+
+			var offererPnL = offer.CalculatePnL();
+			var acceptorPnL = offererPnL.Inverse();
+			AcceptorCollateral = acceptorPnL.CalculateCollateral();
+			for (int i = 0; i < offererPnL.Count; i++)
 			{
-				var offerer = new ProfitAndLoss(offer.TotalCollateral, ci);
-				OffererPnL.Add(offerer);
-				AcceptorPnL.Add(new ProfitAndLoss(AcceptorCollateral, offerer));
+				OffererPnL.Add(new ProfitAndLoss(offererPnL[i]));
+				AcceptorPnL.Add(new ProfitAndLoss(acceptorPnL[i]));
 			}
 			Timeouts = offer.Timeouts;
 		}
@@ -48,21 +49,21 @@ namespace NDLC
 	}
 	public class ProfitAndLoss
 	{
-		public ProfitAndLoss(Money acceptorCollateral, ProfitAndLoss offererPNL)
+		public ProfitAndLoss(PnLOutcome pnl)
 		{
-			Value = acceptorCollateral - offererPNL.Value;
-			IsHash = offererPNL.IsHash;
-			Outcome = offererPNL.Outcome;
+			Reward = pnl.Reward;
+			IsHash = pnl.Outcome.OutcomeString is null;
+			Outcome = pnl.Outcome.ToString();
 		}
 		public ProfitAndLoss(Money collateral, ContractInfo ci)
 		{
-			Value = ci.Payout - collateral;
+			Reward = ci.Payout - collateral;
 			IsHash = ci.Outcome.OutcomeString is null;
 			Outcome = ci.Outcome.ToString();
 		}
 		public string Outcome { get; set; }
 		public bool IsHash { get; set; }
 		[JsonConverter(typeof(BTCSatsJsonConverter))]
-		public Money Value { get; set; }
+		public Money Reward { get; set; }
 	}
 }

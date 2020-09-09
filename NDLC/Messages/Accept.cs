@@ -33,7 +33,7 @@ namespace NDLC.Messages
 				throw new ArgumentNullException(nameof(str));
 			var bytes = Encoders.Hex.DecodeData(str);
 			if (bytes.Length == 65 + 97 &&
-				SecpECDSAAdaptorSignature.TryCreate(bytes, out var sig) &&
+				SecpECDSAAdaptorSignature.TryCreate(bytes.AsSpan().Slice(0, 65), out var sig) &&
 				SecpECDSAAdaptorProof.TryCreate(bytes.AsSpan().Slice(65), out var proof) &&
 				sig is SecpECDSAAdaptorSignature && proof is SecpECDSAAdaptorProof)
 			{

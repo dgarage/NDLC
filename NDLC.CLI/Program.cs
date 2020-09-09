@@ -57,12 +57,6 @@ namespace NDLC.CLI
 				Description = "The outcomes of the contract (one or multiple)",
 				IsRequired = true
 			});
-			createOffer.Add(new Option<string>("--funding")
-			{
-				Argument = new Argument<string>(),
-				Description = "The funding PSBT template",
-				IsRequired = true
-			});
 			createOffer.Add(new Option<string>("--maturity")
 			{
 				Argument = new Argument<string>(),

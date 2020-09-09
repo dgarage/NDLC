@@ -19,7 +19,6 @@ namespace NDLC.CLI
 
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
-			PSBTFundingTemplate template = GetPSBTTemplate(context.ParseResult.ValueForOption<string>("funding"));
 			ECXOnlyPubKey oraclePubKey = GetOraclePubKey(context.ParseResult.ValueForOption<string>("oraclepubkey"));
 			SchnorrNonce schnorrNonce = GetSchnorrNonce(context.ParseResult.ValueForOption<string>("nonce"));
 			DLCTransactionBuilder builder = new DLCTransactionBuilder(true, null, null, null, Network);
@@ -29,16 +28,16 @@ namespace NDLC.CLI
 				ContractTimeout = GetLockTime(context, "expiration") ?? throw new CommandOptionRequiredException("expiration")
 			};
 		  	var ci = GetOutcomes(context.ParseResult.ValueForOption<string[]>("outcome"));
-			var offer = builder.Offer(template, new OracleInfo(oraclePubKey, schnorrNonce), ci, timeouts);
-			WriteObject(context, offer);
+			//var offer = builder.Offer(template, new OracleInfo(oraclePubKey, schnorrNonce), ci, timeouts);
+			//WriteObject(context, offer);
 		}
 
-		private ContractInfo[] GetOutcomes(string[]? outcomes)
+		private PnLOutcomes GetOutcomes(string[]? outcomes)
 		{
 			string optionName = "outcome";
 			if (outcomes is null || outcomes.Length is 0)
 				throw new CommandOptionRequiredException(optionName);
-			ContractInfo[] ci = new ContractInfo[outcomes.Length];
+			PnLOutcomes pnl = new PnLOutcomes();
 			for (int i = 0; i < outcomes.Length; i++)
 			{
 				var separator = outcomes[i].LastIndexOf(':');
@@ -57,11 +56,9 @@ namespace NDLC.CLI
 				{
 					rewardMoney = Money.Satoshis(long.Parse(reward.Substring(0, satsSeparator)));
 				}
-				if (rewardMoney < Money.Zero)
-					throw new CommandException(optionName, "Invalid outcome, the reward can't be negative");
-				ci[i] = new ContractInfo(outcome, rewardMoney);
+				pnl.Add(new PnLOutcome(outcome, rewardMoney));
 			}
-			return ci;
+			return pnl;
 		}
 
 		LockTime? GetLockTime(InvocationContext ctx, string optionName)
@@ -103,16 +100,6 @@ namespace NDLC.CLI
 			{
 				throw new CommandException(optionName, "Invalid pubkey");
 			}
-		}
-
-		private PSBTFundingTemplate GetPSBTTemplate(string? psbt)
-		{
-			var optionName = "funding";
-			if (psbt is null)
-				throw new CommandOptionRequiredException(optionName);
-			if (!PSBTFundingTemplate.TryParse(psbt, Network, out var o) || o is null)
-				throw new CommandException(optionName, "Invalid funding PSBT");
-			return o;
 		}
 	}
 }

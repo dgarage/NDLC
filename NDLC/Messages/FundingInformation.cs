@@ -86,6 +86,18 @@ namespace NDLC.Messages
 			};
 			TotalCollateral = fundingTemplate.Collateral;
 		}
+
+		public PnLOutcomes CalculatePnL(ContractInfo[] contractInfo)
+		{
+			if (contractInfo is null || contractInfo.Length is 0)
+				throw new ArgumentException("contractInfo is required", nameof(contractInfo));
+			PnLOutcomes pnls = new PnLOutcomes();
+			foreach (var ci in contractInfo)
+			{
+				pnls.Add(new PnLOutcome(ci.Outcome, ci.Payout - TotalCollateral));
+			}
+			return pnls;
+		}
 	}
 
 }
