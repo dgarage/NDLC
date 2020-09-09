@@ -16,7 +16,7 @@ namespace NDLC
 			public PubKey? FundPubKey { get; set; } 
 			public Money? Collateral { get; set; }
 			public ECDSASignature? RefundSig { get; set; }
-			public Dictionary<DLCOutcome, SecpECDSAAdaptorSignature>? OutcomeSigs;
+			public Dictionary<DiscreteOutcome, SecpECDSAAdaptorSignature>? OutcomeSigs;
 			public Script? PayoutDestination;
 		}
 		public bool IsInitiator { get; set; }

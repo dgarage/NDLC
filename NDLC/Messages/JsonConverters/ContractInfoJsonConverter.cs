@@ -28,8 +28,8 @@ namespace NDLC.Messages.JsonConverters
 			if (cd?.Sats is null || (cd?.Outcome is null && cd?.SHA256 is null))
 				throw new JsonObjectException("Invalid contract info (missing fields)", reader);
 
-			DLCOutcome outcome = cd.Outcome is string ? new DLCOutcome(cd.Outcome)
-													  : new DLCOutcome(Encoders.Hex.DecodeData(cd.SHA256));
+			DiscreteOutcome outcome = cd.Outcome is string ? new DiscreteOutcome(cd.Outcome)
+													  : new DiscreteOutcome(Encoders.Hex.DecodeData(cd.SHA256));
 			if (cd.Outcome is string && cd.SHA256 is string)
 			{
 				if (outcome.Hash.AsSpan().SequenceCompareTo(Encoders.Hex.DecodeData(cd.SHA256)) != 0)

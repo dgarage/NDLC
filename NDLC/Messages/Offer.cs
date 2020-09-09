@@ -82,7 +82,7 @@ namespace NDLC.Messages
 		public SchnorrNonce RValue { get; }
 		public ECXOnlyPubKey PubKey { get; }
 
-		public bool TryComputeSigpoint(DLCOutcome outcome, out ECPubKey? sigpoint)
+		public bool TryComputeSigpoint(DiscreteOutcome outcome, out ECPubKey? sigpoint)
 		{
 			return PubKey.TryComputeSigPoint(outcome.Hash, RValue, out sigpoint);
 		}
@@ -120,12 +120,12 @@ namespace NDLC.Messages
 	}
 	public class ContractInfo
 	{
-		public ContractInfo(DLCOutcome outcome, Money payout)
+		public ContractInfo(DiscreteOutcome outcome, Money payout)
 		{
 			Payout = payout;
 			Outcome = outcome;
 		}
-		public DLCOutcome Outcome { get; }
+		public DiscreteOutcome Outcome { get; }
 		public Money Payout { get; }
 	}
 }

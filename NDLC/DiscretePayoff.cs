@@ -17,7 +17,7 @@ namespace NDLC
 			var payoffs = new DiscretePayoffs();
 			foreach (var i in contractInfos)
 			{
-				if (i.Outcome is DLCOutcome && i.Payout is Money)
+				if (i.Outcome is DiscreteOutcome && i.Payout is Money)
 				{
 					payoffs.Add(i.Outcome, i.Payout - collateral);
 				}
@@ -26,7 +26,7 @@ namespace NDLC
 		}
 
 		List<DiscretePayoff> _Outcomes = new List<DiscretePayoff>();
-		Dictionary<DLCOutcome, Money> _Rewards = new Dictionary<DLCOutcome, Money>();
+		Dictionary<DiscreteOutcome, Money> _Rewards = new Dictionary<DiscreteOutcome, Money>();
 		public Money CalculateCollateral()
 		{
 			Money collateral = Money.Zero;
@@ -37,7 +37,7 @@ namespace NDLC
 			return collateral;
 		}
 
-		public void Add(DLCOutcome outcome, Money reward)
+		public void Add(DiscreteOutcome outcome, Money reward)
 		{
 			this.Add(new DiscretePayoff(outcome, reward));
 		}
@@ -77,7 +77,7 @@ namespace NDLC
 			return GetEnumerator();
 		}
 
-		public bool TryGetValue(DLCOutcome outcome, out Money payout)
+		public bool TryGetValue(DiscreteOutcome outcome, out Money payout)
 		{
 			return _Rewards.TryGetValue(outcome, out payout);
 		}
@@ -130,12 +130,12 @@ namespace NDLC
 	}
 	public class DiscretePayoff
 	{
-		public DiscretePayoff(DLCOutcome outcome, Money reward)
+		public DiscretePayoff(DiscreteOutcome outcome, Money reward)
 		{
 			Reward = reward;
 			Outcome = outcome;
 		}
 		public Money Reward { get; }
-		public DLCOutcome Outcome { get; }
+		public DiscreteOutcome Outcome { get; }
 	}
 }

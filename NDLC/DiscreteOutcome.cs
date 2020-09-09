@@ -7,9 +7,9 @@ using System.Text;
 
 namespace NDLC
 {
-	public class DLCOutcome
+	public class DiscreteOutcome
 	{
-		public DLCOutcome(byte[] hash32)
+		public DiscreteOutcome(byte[] hash32)
 		{
 			if (hash32 == null)
 				throw new ArgumentNullException(nameof(hash32));
@@ -17,7 +17,7 @@ namespace NDLC
 				throw new ArgumentNullException("sha256 should be 32 bytes", nameof(hash32));
 			Hash = hash32;
 		}
-		public DLCOutcome(string outcomeString)
+		public DiscreteOutcome(string outcomeString)
 		{
 			if (outcomeString == null)
 				throw new ArgumentNullException(nameof(outcomeString));
@@ -25,21 +25,21 @@ namespace NDLC
 			Hash = Hashes.SHA256(Encoding.UTF8.GetBytes(outcomeString));
 		}
 
-		public static bool TryParse(string str, out DLCOutcome? outcome)
+		public static bool TryParse(string str, out DiscreteOutcome? outcome)
 		{
 			outcome = null;
 			if (str == null)
 				throw new ArgumentNullException(nameof(str));
 			if (str.StartsWith("MSG:"))
 			{
-				outcome = new DLCOutcome(str.Substring(4));
+				outcome = new DiscreteOutcome(str.Substring(4));
 				return true;
 			}
 			else if (str.StartsWith("SHA256:"))
 			{
 				try
 				{
-					outcome = new DLCOutcome(Encoders.Hex.DecodeData(str.Substring(7)));
+					outcome = new DiscreteOutcome(Encoders.Hex.DecodeData(str.Substring(7)));
 					return true;
 				}
 				catch 
@@ -58,12 +58,12 @@ namespace NDLC
 
 		public override bool Equals(object obj)
 		{
-			DLCOutcome? item = obj as DLCOutcome;
+			DiscreteOutcome? item = obj as DiscreteOutcome;
 			if (item is null)
 				return false;
 			return Hash.AsSpan().SequenceCompareTo(item.Hash) == 0;
 		}
-		public static bool operator ==(DLCOutcome a, DLCOutcome b)
+		public static bool operator ==(DiscreteOutcome a, DiscreteOutcome b)
 		{
 			if (System.Object.ReferenceEquals(a, b))
 				return true;
@@ -72,7 +72,7 @@ namespace NDLC
 			return a.Hash.AsSpan().SequenceCompareTo(b.Hash) == 0;
 		}
 
-		public static bool operator !=(DLCOutcome a, DLCOutcome b)
+		public static bool operator !=(DiscreteOutcome a, DiscreteOutcome b)
 		{
 			return !(a == b);
 		}
@@ -83,9 +83,9 @@ namespace NDLC
 			return HashCode.Combine(longArray[0], longArray[1], longArray[2], longArray[3]);
 		}
 
-		public static implicit operator DLCOutcome(string outcomeString)
+		public static implicit operator DiscreteOutcome(string outcomeString)
 		{
-			return new DLCOutcome(outcomeString);
+			return new DiscreteOutcome(outcomeString);
 		}
 		public override string ToString()
 		{

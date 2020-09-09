@@ -20,7 +20,7 @@ namespace NDLC.Messages
 	public class CetSigs
 	{
 		[JsonConverter(typeof(OutcomeSigsJsonConverter))]
-		public Dictionary<DLCOutcome, AdaptorSignature>? OutcomeSigs { get; set; }
+		public Dictionary<DiscreteOutcome, AdaptorSignature>? OutcomeSigs { get; set; }
 		[JsonConverter(typeof(PartialSignatureJsonConverter))]
 		public PartialSignature? RefundSig { get; set; }
 	}

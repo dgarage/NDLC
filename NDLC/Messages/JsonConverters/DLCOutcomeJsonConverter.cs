@@ -6,20 +6,20 @@ using System.Text;
 
 namespace NDLC.Messages.JsonConverters
 {
-	public class DLCOutcomeJsonConverter : JsonConverter<DLCOutcome>
+	public class DLCOutcomeJsonConverter : JsonConverter<DiscreteOutcome>
 	{
-		public override DLCOutcome ReadJson(JsonReader reader, Type objectType, [AllowNull] DLCOutcome existingValue, bool hasExistingValue, JsonSerializer serializer)
+		public override DiscreteOutcome ReadJson(JsonReader reader, Type objectType, [AllowNull] DiscreteOutcome existingValue, bool hasExistingValue, JsonSerializer serializer)
 		{
 			if (reader.TokenType != JsonToken.String)
 				throw new FormatException("Expected string for dlc outcome");
-			if (!DLCOutcome.TryParse((string)reader.Value!, out var o) || o is null)
+			if (!DiscreteOutcome.TryParse((string)reader.Value!, out var o) || o is null)
 				throw new FormatException("Invalid dlc outcome");
 			return o;
 		}
 
-		public override void WriteJson(JsonWriter writer, [AllowNull] DLCOutcome value, JsonSerializer serializer)
+		public override void WriteJson(JsonWriter writer, [AllowNull] DiscreteOutcome value, JsonSerializer serializer)
 		{
-			if (value is DLCOutcome)
+			if (value is DiscreteOutcome)
 			{
 				writer.WriteValue(value.ToString());
 			}

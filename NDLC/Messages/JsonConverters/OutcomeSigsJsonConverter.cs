@@ -9,12 +9,12 @@ using System.Text;
 
 namespace NDLC.Messages.JsonConverters
 {
-	class OutcomeSigsJsonConverter : JsonConverter<Dictionary<DLCOutcome, AdaptorSignature>>
+	class OutcomeSigsJsonConverter : JsonConverter<Dictionary<DiscreteOutcome, AdaptorSignature>>
 	{
-		public override Dictionary<DLCOutcome, AdaptorSignature> ReadJson(JsonReader reader, Type objectType, [AllowNull] Dictionary<DLCOutcome, AdaptorSignature> existingValue, bool hasExistingValue, JsonSerializer serializer)
+		public override Dictionary<DiscreteOutcome, AdaptorSignature> ReadJson(JsonReader reader, Type objectType, [AllowNull] Dictionary<DiscreteOutcome, AdaptorSignature> existingValue, bool hasExistingValue, JsonSerializer serializer)
 		{
 			Expect(reader, JsonToken.StartArray);
-			var result = new Dictionary<DLCOutcome, AdaptorSignature>();
+			var result = new Dictionary<DiscreteOutcome, AdaptorSignature>();
 			reader.Read();
 			while (reader.TokenType != JsonToken.EndArray)
 			{
@@ -24,7 +24,7 @@ namespace NDLC.Messages.JsonConverters
 				var bytes = Encoders.Hex.DecodeData((string)reader.Value!);
 				if (bytes.Length != 32)
 					throw new JsonObjectException("Unexpected token while parsing outcome sigs", reader);
-				var h = new DLCOutcome(bytes);
+				var h = new DiscreteOutcome(bytes);
 				reader.Read();
 				Expect(reader, JsonToken.String);
 				if (!AdaptorSignature.TryParse((string)reader.Value!, out var sig) || sig is null)
@@ -43,9 +43,9 @@ namespace NDLC.Messages.JsonConverters
 				throw new FormatException("Unexpected token while parsing outcome sigs");
 		}
 
-		public override void WriteJson(JsonWriter writer, [AllowNull] Dictionary<DLCOutcome, AdaptorSignature> value, JsonSerializer serializer)
+		public override void WriteJson(JsonWriter writer, [AllowNull] Dictionary<DiscreteOutcome, AdaptorSignature> value, JsonSerializer serializer)
 		{
-			if (value is Dictionary<DLCOutcome, AdaptorSignature>)
+			if (value is Dictionary<DiscreteOutcome, AdaptorSignature>)
 			{
 				writer.WriteStartArray();
 				foreach (var kv in value)

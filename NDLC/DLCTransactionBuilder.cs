@@ -254,7 +254,7 @@ namespace NDLC.Messages
 			return sign;
 		}
 
-		private void AssertRemoteSigs(Dictionary<DLCOutcome, AdaptorSignature> cetSigs)
+		private void AssertRemoteSigs(Dictionary<DiscreteOutcome, AdaptorSignature> cetSigs)
 		{
 			if (!VerifyRemoteCetSigs(cetSigs))
 				throw new InvalidOperationException("Invalid remote CET");
@@ -331,7 +331,7 @@ namespace NDLC.Messages
 			return cetSig;
 		}
 
-		private AdaptorSignature SignCET(Key key, DLCOutcome outcome)
+		private AdaptorSignature SignCET(Key key, DiscreteOutcome outcome)
 		{
 			if (s.OracleInfo is null || s.Funding is null)
 				throw new InvalidOperationException("Invalid state for signing CET");
@@ -382,7 +382,7 @@ namespace NDLC.Messages
 			return PayToMultiSigTemplate.Instance.GenerateScriptPubKey(2, s.Offerer.FundPubKey, s.Acceptor.FundPubKey);
 		}
 
-		public Transaction BuildCET(DLCOutcome outcome)
+		public Transaction BuildCET(DiscreteOutcome outcome)
 		{
 			if (s.Timeouts is null ||
 				s.Offerer?.Collateral is null ||
@@ -410,7 +410,7 @@ namespace NDLC.Messages
 			return tx;
 		}
 
-		public bool VerifyRemoteCetSigs(Dictionary<DLCOutcome, AdaptorSignature> cetSigs)
+		public bool VerifyRemoteCetSigs(Dictionary<DiscreteOutcome, AdaptorSignature> cetSigs)
 		{
 			if (s.Remote?.FundPubKey is null || s.OracleInfo is null || s.Funding is null)
 				throw new InvalidOperationException("We did not received enough data to verify the sigs");
