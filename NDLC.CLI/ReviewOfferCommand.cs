@@ -33,6 +33,8 @@ namespace NDLC.CLI
 					context.Console.Out.WriteLine($"Accepter PnL:");
 					PrintPnL(context, review.AcceptorPnL);
 					context.Console.Out.WriteLine($"Expected Acceptor Collateral: {review.AcceptorCollateral.ToString(false, false)}");
+					context.Console.Out.Write($"You will be able to broadcast the contract transactions " + ToString(review.Timeouts.ContractMaturity));
+					context.Console.Out.Write($"If the oracle disappears, you can be refunded " + ToString(review.Timeouts.ContractTimeout));
 				}
 				else
 				{
@@ -44,6 +46,18 @@ namespace NDLC.CLI
 				throw new CommandException("offer", $"Invalid offer ({ex.Message})");
 			}
 			return Task.CompletedTask;
+		}
+
+		private string ToString(LockTime locktime)
+		{
+			if (locktime.IsHeightLock)
+			{
+				return $"at block {locktime.Height}";
+			}
+			else
+			{
+				return $"the {locktime.Date:f}";
+			}
 		}
 
 		private static void PrintPnL(InvocationContext context, IEnumerable<ProfitAndLoss> pnl)

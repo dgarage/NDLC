@@ -22,6 +22,8 @@ namespace NDLC
 				throw new ArgumentException("ContractInfo is empty", nameof(offer));
 			if (offer.TotalCollateral is null)
 				throw new ArgumentException("TotalCollateral is missing", nameof(offer));
+			if (offer.Timeouts is null)
+				throw new ArgumentException("Timeout is missing", nameof(offer));
 			OraclePubKey = Encoders.Hex.EncodeData(offer.OracleInfo.PubKey.ToBytes());
 			Nonce = offer.OracleInfo.RValue.ToString();
 			OffererPnL = new List<ProfitAndLoss>();
@@ -34,6 +36,7 @@ namespace NDLC
 				OffererPnL.Add(offerer);
 				AcceptorPnL.Add(new ProfitAndLoss(AcceptorCollateral, offerer));
 			}
+			Timeouts = offer.Timeouts;
 		}
 		public string OraclePubKey { get; set; }
 		public string Nonce { get; set; }
@@ -41,7 +44,7 @@ namespace NDLC
 		public Money AcceptorCollateral { get; set; }
 		public List<ProfitAndLoss> OffererPnL { get; set; }
 		public List<ProfitAndLoss> AcceptorPnL { get; set; }
-
+		public Timeouts Timeouts { get; set; }
 	}
 	public class ProfitAndLoss
 	{
