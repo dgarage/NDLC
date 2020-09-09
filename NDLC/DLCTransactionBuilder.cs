@@ -136,7 +136,7 @@ namespace NDLC.Messages
 			using var tx = StartTransaction();
 			if (!s.IsInitiator)
 				throw new InvalidOperationException("The acceptor can't initiate an offer");
-			var fundingKey = s.FundKey ?? new Key();
+			var fundingKey = GetOrCreateFundingKey();
 			Offer offer = new Offer()
 			{
 				OracleInfo = oracleInfo,
@@ -145,11 +145,19 @@ namespace NDLC.Messages
 				Timeouts = timeouts
 			};
 			offer.FillFromTemplateFunding(fundingTemplate, fundingKey.PubKey, network);
-			s.FundKey = fundingKey;
 			this.s.OracleInfo = oracleInfo;
 			FillStateFrom(offer);
 			tx.Commit();
 			return offer;
+		}
+
+		private Key GetOrCreateFundingKey()
+		{
+			if (s.FundKey is Key k)
+				return k;
+			k = new Key();
+			UseFundKey(k);
+			return k;
 		}
 
 		public Accept Accept(Offer offer,
@@ -165,9 +173,9 @@ namespace NDLC.Messages
 				offer.FeeRate is null)
 				throw new InvalidOperationException("Offer is missing some informations");
 			this.FillStateFrom(offer);
-			s.FundKey = s.FundKey ?? new Key();
+			var fundKey = GetOrCreateFundingKey();
 			Accept accept = new Accept();
-			accept.FillFromTemplateFunding(fundingTemplate, s.FundKey.PubKey, network);
+			accept.FillFromTemplateFunding(fundingTemplate, fundKey.PubKey, network);
 			FillStateFrom(accept);
 
 			var offerer = new FundingParty(
@@ -179,7 +187,7 @@ namespace NDLC.Messages
 				fundingTemplate.Collateral,
 				fundingTemplate.FundingCoins.ToArray(),
 				fundingTemplate.Change,
-				s.FundKey.PubKey
+				fundKey.PubKey
 				);
 			s.Funding = new FundingParameters(offerer, acceptor, offer.FeeRate, FundingOverride).Build(network);
 			accept.CetSigs = CreateCetSigs();

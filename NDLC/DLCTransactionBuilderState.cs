@@ -33,9 +33,9 @@ namespace NDLC
 			set
 			{
 				if (IsInitiator)
-					Remote = value;
+					Acceptor = value;
 				else
-					Us = value;
+					Offerer = value;
 			}
 		}
 		[JsonIgnore]
@@ -48,9 +48,9 @@ namespace NDLC
 			set
 			{
 				if (IsInitiator)
-					Us = value;
+					Offerer = value;
 				else
-					Remote = value;
+					Acceptor = value;
 			}
 		}
 		public Key? FundKey { get; set; }
