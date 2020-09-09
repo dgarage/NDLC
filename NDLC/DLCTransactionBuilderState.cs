@@ -17,7 +17,7 @@ namespace NDLC
 			public Money? Collateral { get; set; }
 			public ECDSASignature? RefundSig { get; set; }
 			public Dictionary<DLCOutcome, SecpECDSAAdaptorSignature>? OutcomeSigs;
-			public Script? Payout;
+			public Script? PayoutDestination;
 		}
 		public bool IsInitiator { get; set; }
 		public Party? Acceptor { get; set; }

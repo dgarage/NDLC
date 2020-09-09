@@ -65,6 +65,8 @@ namespace NDLC.Messages
 		{
 			if (offer is null)
 				return;
+			if (offer.TotalCollateral is null)
+				throw new InvalidOperationException("Offer's collateral required");
 			if (s.IsInitiator)
 			{
 				s.OffererChange = offer.ChangeAddress?.ScriptPubKey;
@@ -80,14 +82,14 @@ namespace NDLC.Messages
 				{
 					if (i.Outcome is DLCOutcome && i.Payout is Money)
 					{
-						s.OffererPnLOutcomes.Add(i.Outcome, i.Payout);
+						s.OffererPnLOutcomes.Add(i.Outcome, i.Payout - offer.TotalCollateral);
 					}
 				}
 			}
 
 			s.Offerer.Collateral = offer.TotalCollateral;
 			s.Offerer.FundPubKey = offer.PubKeys?.FundingKey;
-			s.Offerer.Payout = offer.PubKeys?.PayoutAddress?.ScriptPubKey;
+			s.Offerer.PayoutDestination = offer.PubKeys?.PayoutAddress?.ScriptPubKey;
 			s.FeeRate = offer.FeeRate;
 		}
 		static Coin[] GetCoins(FundingInformation? fi)
@@ -105,7 +107,7 @@ namespace NDLC.Messages
 			s.Acceptor.OutcomeSigs = accept.CetSigs?.OutcomeSigs.ToDictionary(kv => kv.Key, kv => kv.Value.Signature);
 			s.Acceptor.RefundSig = accept.CetSigs?.RefundSig?.Signature.Signature;
 			s.Acceptor.Collateral = accept.TotalCollateral;
-			s.Acceptor.Payout = accept.PubKeys?.PayoutAddress?.ScriptPubKey;
+			s.Acceptor.PayoutDestination = accept.PubKeys?.PayoutAddress?.ScriptPubKey;
 		}
 
 		public void FillStateFrom(Sign? sign)
@@ -123,7 +125,7 @@ namespace NDLC.Messages
 				throw new InvalidOperationException("We did not received enough data to create the refund");
 			if (s.Offerer?.Collateral is null || s.Acceptor?.Collateral is null)
 				throw new InvalidOperationException("We did not received enough data to create the refund");
-			if (s.Offerer?.Payout is null || s.Acceptor?.Payout is null)
+			if (s.Offerer?.PayoutDestination is null || s.Acceptor?.PayoutDestination is null)
 				throw new InvalidOperationException("We did not received enough data to create the refund");
 			if (s.Funding is null)
 				throw new InvalidOperationException("Invalid state");
@@ -131,8 +133,8 @@ namespace NDLC.Messages
 			tx.Version = 2;
 			tx.LockTime = s.Timeouts.ContractTimeout;
 			tx.Inputs.Add(new OutPoint(s.Funding.PSBT.GetGlobalTransaction().GetHash(), 0), sequence: 0xFFFFFFFE);
-			tx.Outputs.Add(s.Offerer.Collateral, s.Offerer.Payout);
-			tx.Outputs.Add(s.Acceptor.Collateral, s.Acceptor.Payout);
+			tx.Outputs.Add(s.Offerer.Collateral, s.Offerer.PayoutDestination);
+			tx.Outputs.Add(s.Acceptor.Collateral, s.Acceptor.PayoutDestination);
 			return tx;
 		}
 
@@ -392,21 +394,21 @@ namespace NDLC.Messages
 			if (s.Timeouts is null ||
 				s.Offerer?.Collateral is null ||
 				s.Acceptor?.Collateral is null ||
-				s.Offerer?.Payout is null ||
-				s.Acceptor?.Payout is null ||
+				s.Offerer?.PayoutDestination is null ||
+				s.Acceptor?.PayoutDestination is null ||
 				s.Timeouts is null ||
 				s.OffererPnLOutcomes is null ||
 				s.Funding is null)
 				throw new InvalidOperationException("We did not received enough data to create the refund");
-			if (!s.OffererPnLOutcomes.TryGetValue(outcome, out var offererPayout) || offererPayout is null)
+			if (!s.OffererPnLOutcomes.TryGetValue(outcome, out var offererReward) || offererReward is null)
 				throw new InvalidOperationException("Invalid outcome");
 			Transaction tx = network.CreateTransaction();
 			tx.Version = 2;
 			tx.LockTime = s.Timeouts.ContractMaturity;
 			tx.Inputs.Add(s.Funding.FundCoin.Outpoint, sequence: 0xFFFFFFFE);
 			var collateral = s.Offerer.Collateral + s.Acceptor.Collateral;
-			tx.Outputs.Add(offererPayout, s.Offerer.Payout);
-			tx.Outputs.Add(collateral - offererPayout, s.Acceptor.Payout);
+			tx.Outputs.Add(offererReward + s.Offerer.Collateral, s.Offerer.PayoutDestination);
+			tx.Outputs.Add(s.Acceptor.Collateral - offererReward, s.Acceptor.PayoutDestination);
 			foreach (var output in tx.Outputs.ToArray())
 			{
 				if (output.Value < Money.Satoshis(1000))
