@@ -37,11 +37,11 @@ namespace NDLC.Messages
 		[JsonProperty(Order = 104, DefaultValueHandling = DefaultValueHandling.Ignore)]
 		public string? EventId { get; set; }
 
-		public PnLOutcomes CalculatePnL()
+		public DiscretePayoffs ToDiscretePayoffs()
 		{
 			if (ContractInfo is null || ContractInfo.Length is 0)
 				throw new InvalidOperationException("contractInfo is required");
-			return base.CalculatePnL(ContractInfo);
+			return base.ToDiscretePayoffs(ContractInfo);
 		}
 	}
 

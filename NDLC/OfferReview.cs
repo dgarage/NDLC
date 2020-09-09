@@ -26,16 +26,16 @@ namespace NDLC
 				throw new ArgumentException("Timeout is missing", nameof(offer));
 			OraclePubKey = Encoders.Hex.EncodeData(offer.OracleInfo.PubKey.ToBytes());
 			Nonce = offer.OracleInfo.RValue.ToString();
-			OffererPnL = new List<ProfitAndLoss>();
-			AcceptorPnL = new List<ProfitAndLoss>();
+			OffererPayoffs = new List<Payoff>();
+			AcceptorPayoffs = new List<Payoff>();
 
-			var offererPnL = offer.CalculatePnL();
+			var offererPnL = offer.ToDiscretePayoffs();
 			var acceptorPnL = offererPnL.Inverse();
 			AcceptorCollateral = acceptorPnL.CalculateCollateral();
 			for (int i = 0; i < offererPnL.Count; i++)
 			{
-				OffererPnL.Add(new ProfitAndLoss(offererPnL[i]));
-				AcceptorPnL.Add(new ProfitAndLoss(acceptorPnL[i]));
+				OffererPayoffs.Add(new Payoff(offererPnL[i]));
+				AcceptorPayoffs.Add(new Payoff(acceptorPnL[i]));
 			}
 			Timeouts = offer.Timeouts;
 		}
@@ -43,27 +43,28 @@ namespace NDLC
 		public string Nonce { get; set; }
 		[JsonConverter(typeof(BTCSatsJsonConverter))]
 		public Money AcceptorCollateral { get; set; }
-		public List<ProfitAndLoss> OffererPnL { get; set; }
-		public List<ProfitAndLoss> AcceptorPnL { get; set; }
+		public List<Payoff> OffererPayoffs { get; set; }
+		public List<Payoff> AcceptorPayoffs { get; set; }
 		public Timeouts Timeouts { get; set; }
-	}
-	public class ProfitAndLoss
-	{
-		public ProfitAndLoss(PnLOutcome pnl)
+
+		public class Payoff
 		{
-			Reward = pnl.Reward;
-			IsHash = pnl.Outcome.OutcomeString is null;
-			Outcome = pnl.Outcome.ToString();
+			public Payoff(DiscretePayoff payoff)
+			{
+				Reward = payoff.Reward;
+				IsHash = payoff.Outcome.OutcomeString is null;
+				Outcome = payoff.Outcome.ToString();
+			}
+			public Payoff(Money collateral, ContractInfo ci)
+			{
+				Reward = ci.Payout - collateral;
+				IsHash = ci.Outcome.OutcomeString is null;
+				Outcome = ci.Outcome.ToString();
+			}
+			public string Outcome { get; set; }
+			public bool IsHash { get; set; }
+			[JsonConverter(typeof(BTCSatsJsonConverter))]
+			public Money Reward { get; set; }
 		}
-		public ProfitAndLoss(Money collateral, ContractInfo ci)
-		{
-			Reward = ci.Payout - collateral;
-			IsHash = ci.Outcome.OutcomeString is null;
-			Outcome = ci.Outcome.ToString();
-		}
-		public string Outcome { get; set; }
-		public bool IsHash { get; set; }
-		[JsonConverter(typeof(BTCSatsJsonConverter))]
-		public Money Reward { get; set; }
 	}
 }

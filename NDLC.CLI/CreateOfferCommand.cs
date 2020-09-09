@@ -32,12 +32,12 @@ namespace NDLC.CLI
 			//WriteObject(context, offer);
 		}
 
-		private PnLOutcomes GetOutcomes(string[]? outcomes)
+		private DiscretePayoffs GetOutcomes(string[]? outcomes)
 		{
 			string optionName = "outcome";
 			if (outcomes is null || outcomes.Length is 0)
 				throw new CommandOptionRequiredException(optionName);
-			PnLOutcomes pnl = new PnLOutcomes();
+			DiscretePayoffs pnl = new DiscretePayoffs();
 			for (int i = 0; i < outcomes.Length; i++)
 			{
 				var separator = outcomes[i].LastIndexOf(':');
@@ -56,7 +56,7 @@ namespace NDLC.CLI
 				{
 					rewardMoney = Money.Satoshis(long.Parse(reward.Substring(0, satsSeparator)));
 				}
-				pnl.Add(new PnLOutcome(outcome, rewardMoney));
+				pnl.Add(new DiscretePayoff(outcome, rewardMoney));
 			}
 			return pnl;
 		}

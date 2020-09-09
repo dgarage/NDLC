@@ -75,14 +75,14 @@ namespace NDLC.Messages
 			s.OracleInfo = offer.OracleInfo;
 			s.Timeouts = offer.Timeouts;
 			s.Offerer ??= new Party();
-			s.OffererPnLOutcomes = new PnLOutcomes();
+			s.OffererPayoffs = new DiscretePayoffs();
 			if (offer.ContractInfo is ContractInfo[] ci)
 			{
 				foreach (var i in ci)
 				{
 					if (i.Outcome is DLCOutcome && i.Payout is Money)
 					{
-						s.OffererPnLOutcomes.Add(i.Outcome, i.Payout - offer.TotalCollateral);
+						s.OffererPayoffs.Add(i.Outcome, i.Payout - offer.TotalCollateral);
 					}
 				}
 			}
@@ -139,7 +139,7 @@ namespace NDLC.Messages
 		}
 
 		public Key? FundingKey { get; set; }
-		public Offer Offer(PSBTFundingTemplate fundingTemplate, OracleInfo oracleInfo, PnLOutcomes offererPnLs, Timeouts timeouts)
+		public Offer Offer(PSBTFundingTemplate fundingTemplate, OracleInfo oracleInfo, DiscretePayoffs offererPnLs, Timeouts timeouts)
 		{
 			using var tx = StartTransaction();
 			if (!s.IsInitiator)
@@ -203,14 +203,14 @@ namespace NDLC.Messages
 				throw new InvalidOperationException("The acceptor can't sign");
 			if (accept.PubKeys?.FundingKey is null)
 				throw new InvalidOperationException("The accept message is missing some information");
-			if (s.Offerer?.Collateral is null || s.OffererPnLOutcomes is null || s.Offerer?.FundPubKey is null || s.FeeRate is null)
+			if (s.Offerer?.Collateral is null || s.OffererPayoffs is null || s.Offerer?.FundPubKey is null || s.FeeRate is null)
 				throw new InvalidOperationException("Invalid state");
 			if (accept?.CetSigs?.OutcomeSigs is null)
 				throw new InvalidOperationException("Outcome sigs missing");
 			FillStateFrom(accept);
 
 			var collateral = accept.TotalCollateral;
-			var expectedCollateral = s.OffererPnLOutcomes.Inverse().CalculateCollateral();
+			var expectedCollateral = s.OffererPayoffs.Inverse().CalculateCollateral();
 			if (collateral is null)
 			{
 				collateral = expectedCollateral;
@@ -324,13 +324,13 @@ namespace NDLC.Messages
 
 		private CetSigs CreateCetSigs()
 		{
-			if (FundingKey is null || s.OffererPnLOutcomes is null || s.Funding is null)
+			if (FundingKey is null || s.OffererPayoffs is null || s.Funding is null)
 				throw new InvalidOperationException("Invalid state for creating CetSigs");
 			var refund = BuildRefund();
 			var signature = refund.SignInput(FundingKey, s.Funding.FundCoin);
 			var cetSig = new CetSigs()
 			{
-				OutcomeSigs = s.OffererPnLOutcomes
+				OutcomeSigs = s.OffererPayoffs
 							  .Select(o => (o.Outcome, SignCET(FundingKey, o.Outcome)))
 							  .ToDictionary(kv => kv.Outcome, kv => kv.Item2),
 				RefundSig = new PartialSignature(FundingKey.PubKey, signature)
@@ -353,14 +353,14 @@ namespace NDLC.Messages
 
 		public Transaction BuildSignedCET(Key oracleSecret)
 		{
-			if (s.OffererPnLOutcomes is null ||
+			if (s.OffererPayoffs is null ||
 				s.Remote?.OutcomeSigs is null ||
 				s.Remote?.FundPubKey is null ||
 				this.FundingKey is null ||
 				s.OracleInfo is null ||
 				s.Funding is null)
 				throw new InvalidOperationException("Invalid state for building the signed CET");
-			foreach (var outcome in s.OffererPnLOutcomes.Select(o => o.Outcome))
+			foreach (var outcome in s.OffererPayoffs.Select(o => o.Outcome))
 			{
 				if (!s.OracleInfo.TryComputeSigpoint(outcome, out var sigPoint) || sigPoint is null)
 					continue;
@@ -397,10 +397,10 @@ namespace NDLC.Messages
 				s.Offerer?.PayoutDestination is null ||
 				s.Acceptor?.PayoutDestination is null ||
 				s.Timeouts is null ||
-				s.OffererPnLOutcomes is null ||
+				s.OffererPayoffs is null ||
 				s.Funding is null)
 				throw new InvalidOperationException("We did not received enough data to create the refund");
-			if (!s.OffererPnLOutcomes.TryGetValue(outcome, out var offererReward) || offererReward is null)
+			if (!s.OffererPayoffs.TryGetValue(outcome, out var offererReward) || offererReward is null)
 				throw new InvalidOperationException("Invalid outcome");
 			Transaction tx = network.CreateTransaction();
 			tx.Version = 2;
@@ -422,7 +422,7 @@ namespace NDLC.Messages
 			if (s.Remote?.FundPubKey is null || s.OracleInfo is null || s.Funding is null)
 				throw new InvalidOperationException("We did not received enough data to verify the sigs");
 
-			foreach (var outcome in s.OffererPnLOutcomes.Select(o => o.Outcome))
+			foreach (var outcome in s.OffererPayoffs.Select(o => o.Outcome))
 			{
 				if (!cetSigs.TryGetValue(outcome, out var outcomeSig))
 					return false;

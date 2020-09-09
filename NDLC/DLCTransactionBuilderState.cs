@@ -59,7 +59,7 @@ namespace NDLC
 		public OracleInfo? OracleInfo { get; set; }
 		public FeeRate? FeeRate { get; set; }
 		public Timeouts? Timeouts { get; set; }
-		public PnLOutcomes? OffererPnLOutcomes { get; set; }
+		public DiscretePayoffs? OffererPayoffs { get; set; }
 		public FundingPSBT? Funding { get; set; }
 	}
 }

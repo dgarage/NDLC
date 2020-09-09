@@ -9,9 +9,9 @@ using System.Text;
 
 namespace NDLC
 {
-	public class PnLOutcomes : IEnumerable<PnLOutcome>, IList<PnLOutcome>
+	public class DiscretePayoffs : IEnumerable<DiscretePayoff>, IList<DiscretePayoff>
 	{
-		List<PnLOutcome> _Outcomes = new List<PnLOutcome>();
+		List<DiscretePayoff> _Outcomes = new List<DiscretePayoff>();
 		Dictionary<DLCOutcome, Money> _Rewards = new Dictionary<DLCOutcome, Money>();
 		public Money CalculateCollateral()
 		{
@@ -25,9 +25,9 @@ namespace NDLC
 
 		public void Add(DLCOutcome outcome, Money reward)
 		{
-			this.Add(new PnLOutcome(outcome, reward));
+			this.Add(new DiscretePayoff(outcome, reward));
 		}
-		public void Add(PnLOutcome outcome)
+		public void Add(DiscretePayoff outcome)
 		{
 			if (_Rewards.ContainsKey(outcome.Outcome))
 				throw new ArgumentException("Duplicate outcome", nameof(outcome));
@@ -35,12 +35,12 @@ namespace NDLC
 			_Rewards.Add(outcome.Outcome, outcome.Reward);
 		}
 
-		public PnLOutcomes Inverse()
+		public DiscretePayoffs Inverse()
 		{
-			var outcomes = new PnLOutcomes();
+			var outcomes = new DiscretePayoffs();
 			foreach (var pnl in this)
 			{
-				outcomes.Add(new PnLOutcome(pnl.Outcome, -pnl.Reward));
+				outcomes.Add(new DiscretePayoff(pnl.Outcome, -pnl.Reward));
 			}
 			return outcomes;
 		}
@@ -53,7 +53,7 @@ namespace NDLC
 				.ToArray();
 		}
 
-		public IEnumerator<PnLOutcome> GetEnumerator()
+		public IEnumerator<DiscretePayoff> GetEnumerator()
 		{
 			return this._Outcomes.GetEnumerator();
 		}
@@ -68,17 +68,17 @@ namespace NDLC
 			return _Rewards.TryGetValue(outcome, out payout);
 		}
 
-		int IList<PnLOutcome>.IndexOf(PnLOutcome item)
+		int IList<DiscretePayoff>.IndexOf(DiscretePayoff item)
 		{
 			throw new NotImplementedException();
 		}
 
-		void IList<PnLOutcome>.Insert(int index, PnLOutcome item)
+		void IList<DiscretePayoff>.Insert(int index, DiscretePayoff item)
 		{
 			throw new NotImplementedException();
 		}
 
-		void IList<PnLOutcome>.RemoveAt(int index)
+		void IList<DiscretePayoff>.RemoveAt(int index)
 		{
 			throw new NotImplementedException();
 		}
@@ -89,17 +89,17 @@ namespace NDLC
 			_Outcomes.Clear();
 		}
 
-		bool ICollection<PnLOutcome>.Contains(PnLOutcome item)
+		bool ICollection<DiscretePayoff>.Contains(DiscretePayoff item)
 		{
 			throw new NotImplementedException();
 		}
 
-		void ICollection<PnLOutcome>.CopyTo(PnLOutcome[] array, int arrayIndex)
+		void ICollection<DiscretePayoff>.CopyTo(DiscretePayoff[] array, int arrayIndex)
 		{
 			throw new NotImplementedException();
 		}
 
-		bool ICollection<PnLOutcome>.Remove(PnLOutcome item)
+		bool ICollection<DiscretePayoff>.Remove(DiscretePayoff item)
 		{
 			throw new NotImplementedException();
 		}
@@ -108,15 +108,15 @@ namespace NDLC
 
 		public bool IsReadOnly => false;
 
-		public PnLOutcome this[int index]
+		public DiscretePayoff this[int index]
 		{
 			get { return _Outcomes[index]; }
 			set { _Outcomes[index] = value; }
 		}
 	}
-	public class PnLOutcome
+	public class DiscretePayoff
 	{
-		public PnLOutcome(DLCOutcome outcome, Money reward)
+		public DiscretePayoff(DLCOutcome outcome, Money reward)
 		{
 			Reward = reward;
 			Outcome = outcome;

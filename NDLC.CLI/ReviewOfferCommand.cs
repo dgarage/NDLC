@@ -10,6 +10,7 @@ using System.CommandLine.Parsing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static NDLC.OfferReview;
 
 namespace NDLC.CLI
 {
@@ -28,10 +29,10 @@ namespace NDLC.CLI
 				{
 					context.Console.Out.WriteLine($"Oracle pubkey: {review.OraclePubKey}");
 					context.Console.Out.WriteLine($"Event's nonce: {review.Nonce}");
-					context.Console.Out.WriteLine($"Offerer PnL:");
-					PrintPnL(context, review.OffererPnL);
-					context.Console.Out.WriteLine($"Accepter PnL:");
-					PrintPnL(context, review.AcceptorPnL);
+					context.Console.Out.WriteLine($"Offerer payoffs:");
+					PrintPayoffs(context, review.OffererPayoffs);
+					context.Console.Out.WriteLine($"Accepter payoffs:");
+					PrintPayoffs(context, review.AcceptorPayoffs);
 					context.Console.Out.WriteLine($"Expected Acceptor Collateral: {review.AcceptorCollateral.ToString(false, false)}");
 					context.Console.Out.Write($"You will be able to broadcast the contract transactions " + ToString(review.Timeouts.ContractMaturity));
 					context.Console.Out.Write($"If the oracle disappears, you can be refunded " + ToString(review.Timeouts.ContractTimeout));
@@ -60,7 +61,7 @@ namespace NDLC.CLI
 			}
 		}
 
-		private static void PrintPnL(InvocationContext context, IEnumerable<ProfitAndLoss> pnl)
+		private static void PrintPayoffs(InvocationContext context, IEnumerable<Payoff> pnl)
 		{
 			foreach (var item in pnl)
 			{
