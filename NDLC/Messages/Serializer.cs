@@ -15,7 +15,13 @@ namespace NDLC.Messages
 		{
 			if (network == null)
 				throw new ArgumentNullException(nameof(network));
-			settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+			settings.ContractResolver = new CamelCasePropertyNamesContractResolver()
+			{
+				NamingStrategy = new CamelCaseNamingStrategy
+				{
+					ProcessDictionaryKeys = false
+				}
+			};
 			settings.Converters.Add(new NBitcoin.JsonConverters.BitcoinSerializableJsonConverter(network));
 			settings.Converters.Add(new NBitcoin.JsonConverters.BitcoinStringJsonConverter(network));
 			settings.Converters.Add(new NBitcoin.JsonConverters.OutpointJsonConverter());

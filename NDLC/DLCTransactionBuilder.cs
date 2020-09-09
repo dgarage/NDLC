@@ -325,7 +325,7 @@ namespace NDLC.Messages
 			if (FundingKey is null || s.OffererPnLOutcomes is null || s.Funding is null)
 				throw new InvalidOperationException("Invalid state for creating CetSigs");
 			var refund = BuildRefund();
-			var signature = refund.SignInput(FundingKey, s.Funding.FundingCoin);
+			var signature = refund.SignInput(FundingKey, s.Funding.FundCoin);
 			var cetSig = new CetSigs()
 			{
 				OutcomeSigs = s.OffererPnLOutcomes
@@ -341,7 +341,7 @@ namespace NDLC.Messages
 			if (s.OracleInfo is null || s.Funding is null)
 				throw new InvalidOperationException("Invalid state for signing CET");
 			var cet = BuildCET(outcome);
-			var hash = cet.GetSignatureHash(s.Funding.FundingCoin);
+			var hash = cet.GetSignatureHash(s.Funding.FundCoin);
 			if (!s.OracleInfo.TryComputeSigpoint(outcome, out var sigpoint) || sigpoint is null)
 				throw new InvalidOperationException("TryComputeSigpoint failed");
 			if (!key.ToECPrivKey().TrySignAdaptor(hash.ToBytes(), sigpoint, out var sig, out var proof) || sig  is null || proof is null)
@@ -369,8 +369,8 @@ namespace NDLC.Messages
 					continue;
 				var ecdsaSig = encryptedSig.AdaptECDSA(oracleSecret.ToECPrivKey());
 				var builder = network.CreateTransactionBuilder();
-				builder.AddCoins(s.Funding.FundingCoin);
-				builder.AddKnownSignature(s.Remote.FundPubKey, new TransactionSignature(ecdsaSig.ToDER(), SigHash.All), s.Funding.FundingCoin.Outpoint);
+				builder.AddCoins(s.Funding.FundCoin);
+				builder.AddKnownSignature(s.Remote.FundPubKey, new TransactionSignature(ecdsaSig.ToDER(), SigHash.All), s.Funding.FundCoin.Outpoint);
 				builder.AddKeys(this.FundingKey);
 				builder.SignTransactionInPlace(cet);
 				if (!builder.Verify(cet, out var err))
@@ -403,7 +403,7 @@ namespace NDLC.Messages
 			Transaction tx = network.CreateTransaction();
 			tx.Version = 2;
 			tx.LockTime = s.Timeouts.ContractMaturity;
-			tx.Inputs.Add(s.Funding.FundingCoin.Outpoint, sequence: 0xFFFFFFFE);
+			tx.Inputs.Add(s.Funding.FundCoin.Outpoint, sequence: 0xFFFFFFFE);
 			var collateral = s.Offerer.Collateral + s.Acceptor.Collateral;
 			tx.Outputs.Add(offererPayout, s.Offerer.Payout);
 			tx.Outputs.Add(collateral - offererPayout, s.Acceptor.Payout);
@@ -428,7 +428,7 @@ namespace NDLC.Messages
 				if (!s.OracleInfo.TryComputeSigpoint(outcome, out var sigpoint) || sigpoint is null)
 					return false;
 				var ecPubKey = s.Remote.FundPubKey.ToECPubKey();
-				var msg = BuildCET(outcome).GetSignatureHash(s.Funding.FundingCoin).ToBytes();
+				var msg = BuildCET(outcome).GetSignatureHash(s.Funding.FundCoin).ToBytes();
 				if (!ecPubKey.SigVerify(outcomeSig.Signature, outcomeSig.Proof, msg, sigpoint))
 					return false;
 			}
@@ -439,7 +439,7 @@ namespace NDLC.Messages
 			if (s.Remote?.RefundSig is null || s.Remote?.FundPubKey is null || s.Funding is null)
 				throw new InvalidOperationException("We did not received enough data to verify refund signature");
 			var refund = BuildRefund();
-			if (!s.Remote.FundPubKey.Verify(refund.GetSignatureHash(s.Funding.FundingCoin), s.Remote.RefundSig))
+			if (!s.Remote.FundPubKey.Verify(refund.GetSignatureHash(s.Funding.FundCoin), s.Remote.RefundSig))
 				return false;
 			return true;
 		}
@@ -471,6 +471,7 @@ namespace NDLC.Messages
 				{
 					var settings = new JsonSerializerSettings();
 					Messages.Serializer.Configure(settings, network);
+					settings.Converters.Add(new DLCOutcomeJsonConverter());
 					_SerializerSettings = settings;
 				}
 				return _SerializerSettings;

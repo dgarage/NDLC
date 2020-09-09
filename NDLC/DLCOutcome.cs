@@ -25,6 +25,31 @@ namespace NDLC
 			Hash = Hashes.SHA256(Encoding.UTF8.GetBytes(outcomeString));
 		}
 
+		public static bool TryParse(string str, out DLCOutcome? outcome)
+		{
+			outcome = null;
+			if (str == null)
+				throw new ArgumentNullException(nameof(str));
+			if (str.StartsWith("MSG:"))
+			{
+				outcome = new DLCOutcome(str.Substring(4));
+				return true;
+			}
+			else if (str.StartsWith("SHA256:"))
+			{
+				try
+				{
+					outcome = new DLCOutcome(Encoders.Hex.DecodeData(str.Substring(7)));
+					return true;
+				}
+				catch 
+				{
+					return false;
+				}
+			}
+			return false;
+		}
+
 		public string? OutcomeString { get; }
 		public byte[] Hash
 		{
@@ -64,7 +89,10 @@ namespace NDLC
 		}
 		public override string ToString()
 		{
-			return OutcomeString ?? Encoders.Hex.EncodeData(Hash);
+			if (OutcomeString is string)
+				return $"MSG:{OutcomeString}";
+			else
+				return $"SHA256:{Encoders.Hex.EncodeData(Hash)}";
 		}
 	}
 }

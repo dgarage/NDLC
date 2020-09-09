@@ -99,13 +99,13 @@ namespace NDLC
 
 	public class FundingPSBT
 	{
-		public FundingPSBT(PSBT pSBT, Coin fundingCoin)
+		public FundingPSBT(PSBT pSBT, Coin fundCoin)
 		{
 			PSBT = pSBT;
-			FundingCoin = fundingCoin;
+			FundCoin = fundCoin;
 		}
 
 		public PSBT PSBT { get; set; }
-		public Coin FundingCoin { get; set; }
+		public Coin FundCoin { get; set; }
 	}
 }

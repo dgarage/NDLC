@@ -222,7 +222,7 @@ namespace NDLC.Tests
 		public void CanCheckMessages()
 		{
 			var offer = Parse<Messages.Offer>("Data/Offer.json");
-			Assert.Equal("cbaede9e2ad17109b71b85a23306b6d4b93e78e8e8e8d830d836974f16128ae8", offer.ContractInfo[1].Outcome.ToString());
+			Assert.Equal("SHA256:cbaede9e2ad17109b71b85a23306b6d4b93e78e8e8e8d830d836974f16128ae8", offer.ContractInfo[1].Outcome.ToString());
 			Assert.Equal(200000000L, offer.ContractInfo[1].Payout.Satoshi);
 			Assert.Equal(100000000L, offer.TotalCollateral.Satoshi);
 
