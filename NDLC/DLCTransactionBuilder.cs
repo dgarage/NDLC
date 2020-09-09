@@ -131,13 +131,12 @@ namespace NDLC.Messages
 			return tx;
 		}
 
-		public Key? FundingKey { get; set; }
 		public Offer Offer(PSBTFundingTemplate fundingTemplate, OracleInfo oracleInfo, DiscretePayoffs offererPnLs, Timeouts timeouts)
 		{
 			using var tx = StartTransaction();
 			if (!s.IsInitiator)
 				throw new InvalidOperationException("The acceptor can't initiate an offer");
-			var fundingKey = this.FundingKey ?? new Key();
+			var fundingKey = s.FundKey ?? new Key();
 			Offer offer = new Offer()
 			{
 				OracleInfo = oracleInfo,
@@ -146,7 +145,7 @@ namespace NDLC.Messages
 				Timeouts = timeouts
 			};
 			offer.FillFromTemplateFunding(fundingTemplate, fundingKey.PubKey, network);
-			this.FundingKey = fundingKey;
+			s.FundKey = fundingKey;
 			this.s.OracleInfo = oracleInfo;
 			FillStateFrom(offer);
 			tx.Commit();
@@ -166,9 +165,9 @@ namespace NDLC.Messages
 				offer.FeeRate is null)
 				throw new InvalidOperationException("Offer is missing some informations");
 			this.FillStateFrom(offer);
-			this.FundingKey = this.FundingKey ?? new Key();
+			s.FundKey = s.FundKey ?? new Key();
 			Accept accept = new Accept();
-			accept.FillFromTemplateFunding(fundingTemplate, FundingKey.PubKey, network);
+			accept.FillFromTemplateFunding(fundingTemplate, s.FundKey.PubKey, network);
 			FillStateFrom(accept);
 
 			var offerer = new FundingParty(
@@ -180,7 +179,7 @@ namespace NDLC.Messages
 				fundingTemplate.Collateral,
 				fundingTemplate.FundingCoins.ToArray(),
 				fundingTemplate.Change,
-				this.FundingKey.PubKey
+				s.FundKey.PubKey
 				);
 			s.Funding = new FundingParameters(offerer, acceptor, offer.FeeRate, FundingOverride).Build(network);
 			accept.CetSigs = CreateCetSigs();
@@ -317,16 +316,16 @@ namespace NDLC.Messages
 
 		private CetSigs CreateCetSigs()
 		{
-			if (FundingKey is null || s.OffererPayoffs is null || s.Funding is null)
+			if (s.FundKey is null || s.OffererPayoffs is null || s.Funding is null)
 				throw new InvalidOperationException("Invalid state for creating CetSigs");
 			var refund = BuildRefund();
-			var signature = refund.SignInput(FundingKey, s.Funding.FundCoin);
+			var signature = refund.SignInput(s.FundKey, s.Funding.FundCoin);
 			var cetSig = new CetSigs()
 			{
 				OutcomeSigs = s.OffererPayoffs
-							  .Select(o => (o.Outcome, SignCET(FundingKey, o.Outcome)))
+							  .Select(o => (o.Outcome, SignCET(s.FundKey, o.Outcome)))
 							  .ToDictionary(kv => kv.Outcome, kv => kv.Item2),
-				RefundSig = new PartialSignature(FundingKey.PubKey, signature)
+				RefundSig = new PartialSignature(s.FundKey.PubKey, signature)
 			};
 			return cetSig;
 		}
@@ -349,7 +348,7 @@ namespace NDLC.Messages
 			if (s.OffererPayoffs is null ||
 				s.Remote?.OutcomeSigs is null ||
 				s.Remote?.FundPubKey is null ||
-				this.FundingKey is null ||
+				s.FundKey is null ||
 				s.OracleInfo is null ||
 				s.Funding is null)
 				throw new InvalidOperationException("Invalid state for building the signed CET");
@@ -366,7 +365,7 @@ namespace NDLC.Messages
 				var builder = network.CreateTransactionBuilder();
 				builder.AddCoins(s.Funding.FundCoin);
 				builder.AddKnownSignature(s.Remote.FundPubKey, new TransactionSignature(ecdsaSig.ToDER(), SigHash.All), s.Funding.FundCoin.Outpoint);
-				builder.AddKeys(this.FundingKey);
+				builder.AddKeys(s.FundKey);
 				builder.SignTransactionInPlace(cet);
 				if (!builder.Verify(cet, out var err))
 					throw new InvalidOperationException("This CET is not fully signed");
@@ -450,6 +449,13 @@ namespace NDLC.Messages
 			if (s.Funding is null)
 				throw new InvalidOperationException("Invalid state");
 			return s.Funding.PSBT;
+		}
+
+		public void UseFundKey(Key myKey)
+		{
+			s.FundKey = myKey;
+			s.Us ??= new Party();
+			s.Us.FundPubKey = myKey.PubKey;
 		}
 
 		public string ExportState()

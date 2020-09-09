@@ -354,7 +354,7 @@ namespace NDLC.Tests
 		{
 			var myKey = new Key(Encoders.Hex.DecodeData("659ed592d16a47f8b3eea2e3d918624963e20da29a83e097c0ffbf0ef1b3e8cc"));
 			var data = AcceptorTest.Open(acceptorFolder, network);
-			data.Builder.FundingKey = myKey;
+			data.Builder.UseFundKey(myKey);
 
 			if (data.FundingOverride != null)
 			{
