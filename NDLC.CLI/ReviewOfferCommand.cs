@@ -65,8 +65,8 @@ namespace NDLC.CLI
 		{
 			foreach (var item in pnl)
 			{
-				var type = item.IsHash ? "PreImage" : "Message";
-				context.Console.Out.WriteLine($"\t{item.Reward.ToString(true, false)} <= {type}({item.Outcome})");
+				var type = item.IsHash ? "SHA256:" : "MSG:";
+				context.Console.Out.WriteLine($"\t{item.Reward.ToString(true, false)} <= {type}{item.Outcome}");
 			}
 		}
 	}
