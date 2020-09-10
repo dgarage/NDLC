@@ -32,7 +32,11 @@ namespace NDLC.CLI
 				IsRequired = false
 			});
 
-			Command offer = new Command("offer");
+			Command info = new Command("info", "Show informations");
+			root.Add(info);
+			info.Handler = new ShowInfoCommand();
+
+			Command offer = new Command("offer", "Manage offers");
 			root.Add(offer);
 			offer.Description = "Manage offers";
 			Command createOffer = new Command("create")
@@ -97,11 +101,24 @@ namespace NDLC.CLI
 			oracleRemove.Handler = new RemoveOracleCommand();
 			Command oracleList = new Command("list", "List oracles");
 			oracleList.Handler = new ListOracleCommand();
+			Command oracleShow = new Command("show", "Show an oracle")
+				{
+					new Argument<string>("name", "The oracle name")
+				};
+			oracleShow.Add(new Option<bool>("--show-sensitive", "Show sensitive informations (like private keys)"));
+			oracleShow.Handler = new ShowOracleCommand();
+			Command oracleCreate = new Command("generate", "Generate a new oracle (the private key will be stored locally)")
+				{
+					new Argument<string>("name", "The oracle name")
+				};
+			oracleCreate.Handler = new GenerateOracleCommand();
 			root.Add(oracle);
 			oracle.Add(oracleAdd);
 			oracle.Add(oracleSet);
 			oracle.Add(oracleRemove);
 			oracle.Add(oracleList);
+			oracle.Add(oracleShow);
+			oracle.Add(oracleCreate);
 
 			Command reviewOffer = new Command("review", "Review an offer");
 			offer.Add(reviewOffer);

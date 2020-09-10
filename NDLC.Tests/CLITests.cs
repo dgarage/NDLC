@@ -25,6 +25,26 @@ namespace NDLC.Tests
 		public CommandTester Tester { get; }
 		public ITestOutputHelper Log { get; }
 
+		[Fact]
+		public async Task CanShowInfo()
+		{
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"info"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "generate",
+				"neo"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"info"
+			});
+		}
 
 		[Fact]
 		public async Task CanManageOracles()
@@ -56,6 +76,12 @@ namespace NDLC.Tests
 			await Tester.AssertInvokeSuccess(new string[]
 			{
 				"--datadir", GetDataDirectory(),
+				"oracle", "show",
+				"neo"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
 				"oracle", "list"
 			});
 			Assert.Equal("neo\t16735f228c76e81e1ca671521991f682ad50a79ad7a44fb073f5a5462a4243ba" + Environment.NewLine, Tester.GetLastOutput());
@@ -77,6 +103,36 @@ namespace NDLC.Tests
 				"oracle", "list"
 			});
 			Assert.Empty(Tester.GetLastOutput());
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "generate",
+				"neo"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "show",
+				"neo"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "show",
+				"neo", "--show-sensitive"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "generate",
+				"neo2"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "show",
+				"neo2", "--show-sensitive"
+			});
 		}
 
 		[Fact]

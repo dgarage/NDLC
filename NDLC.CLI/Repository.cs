@@ -1,6 +1,7 @@
 ﻿using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
+using NDLC.CLI.JsonConverters;
 using NDLC.Messages.JsonConverters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -15,11 +16,49 @@ namespace NDLC.CLI
 {
 	public class Repository
 	{
-		class Oracle
+		class Keyset
+		{
+			[JsonConverter(typeof(MnemonicJsonConverter))]
+			public Mnemonic? Mnemonic { get; set; }
+			public uint NextIndex { get; set; }
+
+			public Key GetNextKey()
+			{
+				if (Mnemonic is null)
+					throw new InvalidOperationException("The keyset does not have a mnemonic set");
+				var k = Mnemonic.DeriveExtKey().Derive(new KeyPath(NextIndex)).PrivateKey;
+				NextIndex++;
+				return k;
+			}
+
+			public Key GetKey(RootedKeyPath keyPath)
+			{
+				if (Mnemonic is null)
+					throw new InvalidOperationException("The keyset does not have a mnemonic set");
+				var master = Mnemonic.DeriveExtKey();
+				if (master.GetPublicKey().GetHDFingerPrint() != keyPath.MasterFingerprint)
+					throw new InvalidOperationException("The fingerprint of the keyset, does not match the mnemonic");
+				return master.Derive(keyPath.KeyPath).PrivateKey;
+			}
+		}
+		public class Oracle
 		{
 			public string? Name { get; set; }
 			[JsonConverter(typeof(ECXOnlyPubKeyJsonConverter))]
 			public ECXOnlyPubKey? PubKey { get; set; }
+			[JsonConverter(typeof(NBitcoin.JsonConverters.KeyPathJsonConverter))]
+			public RootedKeyPath? RootedKeyPath { get; set; }
+		}
+		public class Settings
+		{
+			[JsonConverter(typeof(NBitcoin.JsonConverters.HDFingerprintJsonConverter))]
+			public HDFingerprint? DefaultWallet { get; set; }
+		}
+
+		public async Task<Key> GetKey(RootedKeyPath keyPath)
+		{
+			var keyset = await OpenKeyset(keyPath.MasterFingerprint);
+			return keyset.GetKey(keyPath);
 		}
 
 		public async Task<List<(string Name, ECXOnlyPubKey PubKey)>> ListOracles()
@@ -31,6 +70,54 @@ namespace NDLC.CLI
 					r.Add((oracle.Name, oracle.PubKey));
 			}
 			return r;
+		}
+
+		public async Task<(RootedKeyPath KeyPath, Key PrivateKey)> CreatePrivateKey()
+		{
+			var settings = await this.GetSettings();
+			Keyset wallet;
+			if (settings.DefaultWallet is HDFingerprint fp)
+			{
+				wallet = await OpenKeyset(fp);
+			}
+			else
+			{
+				var mnemo = new Mnemonic(Wordlist.English);
+				wallet = new Keyset() { Mnemonic = mnemo, NextIndex = 0 };
+				fp = mnemo.DeriveExtKey().Neuter().PubKey.GetHDFingerPrint();
+				settings.DefaultWallet = fp;
+				await this.SaveSettings(settings);
+			}
+			var key = wallet.GetNextKey();
+			await this.SaveKeyset(fp, wallet);
+			return (new RootedKeyPath(fp, new KeyPath(wallet.NextIndex - 1)), key);
+		}
+
+		private async Task SaveKeyset(HDFingerprint fingerprint, Keyset v)
+		{
+			var dir = Path.Combine(DataDirectory, "keysets");
+			if (!Directory.Exists(dir))
+				Directory.CreateDirectory(dir);
+			var keyset = Path.Combine(dir, $"{fingerprint}.json");
+			await File.WriteAllTextAsync(keyset, JsonConvert.SerializeObject(v, JsonSettings));
+		}
+
+		private async Task<Keyset> OpenKeyset(HDFingerprint fingerprint)
+		{
+			var dir = Path.Combine(DataDirectory, "keysets");
+			if (!Directory.Exists(dir))
+				Directory.CreateDirectory(dir);
+			var keyset = Path.Combine(dir, $"{fingerprint}.json");
+			return JsonConvert.DeserializeObject<Keyset>(await File.ReadAllTextAsync(keyset), JsonSettings) ??
+					throw new FormatException("Invalid keyset file");
+		}
+
+		public async Task<Oracle?> GetOracle(string oracleName)
+		{
+			var oracle = GetOracle(oracleName, await GetOracles());
+			if (oracle is null)
+				return null;
+			return oracle;
 		}
 
 		JsonSerializerSettings JsonSettings;
@@ -55,6 +142,15 @@ namespace NDLC.CLI
 			get;
 		}
 
+		public async Task<Settings> GetSettings()
+		{
+			var file = Path.Combine(DataDirectory, "settings.json");
+			if (!File.Exists(file))
+				return new Settings();
+			var settings = JsonConvert.DeserializeObject<Settings>(await File.ReadAllTextAsync(file), JsonSettings);
+			return settings ?? new Settings();
+		}
+
 		async Task<List<Oracle>> GetOracles()
 		{
 			var file = Path.Combine(DataDirectory, "oracles.json");
@@ -69,7 +165,12 @@ namespace NDLC.CLI
 			var file = Path.Combine(DataDirectory, "oracles.json");
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(oracles, JsonSettings));
 		}
-		public async Task SetOracle(string oracleName, ECXOnlyPubKey pubKey)
+		private async Task SaveSettings(Settings settings)
+		{
+			var file = Path.Combine(DataDirectory, "settings.json");
+			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(settings, JsonSettings));
+		}
+		public async Task SetOracle(string oracleName, ECXOnlyPubKey pubKey, RootedKeyPath? rootedKeyPath = null)
 		{
 			var oracles = await GetOracles();
 			var oracle = GetOracle(oracleName, oracles);
@@ -79,6 +180,7 @@ namespace NDLC.CLI
 				oracles.Add(oracle);
 			}
 			oracle.PubKey = pubKey;
+			oracle.RootedKeyPath = rootedKeyPath;
 			await SaveOracles(oracles);
 		}
 

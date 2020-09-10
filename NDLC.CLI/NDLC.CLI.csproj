@@ -6,6 +6,7 @@
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
     <AssemblyName>ndlc-cli</AssemblyName>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
