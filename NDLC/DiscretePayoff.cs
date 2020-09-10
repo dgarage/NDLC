@@ -27,7 +27,7 @@ namespace NDLC
 
 		List<DiscretePayoff> _Outcomes = new List<DiscretePayoff>();
 		Dictionary<DiscreteOutcome, Money> _Rewards = new Dictionary<DiscreteOutcome, Money>();
-		public Money CalculateCollateral()
+		public Money CalculateMinimumCollateral()
 		{
 			Money collateral = Money.Zero;
 			foreach (var pnl in this)
@@ -59,9 +59,8 @@ namespace NDLC
 			return outcomes;
 		}
 
-		public ContractInfo[] ToContractInfo()
+		public ContractInfo[] ToContractInfo(Money collateral)
 		{
-			var collateral = CalculateCollateral();
 			return this
 				.Select(o => new ContractInfo(o.Outcome, collateral + o.Reward))
 				.ToArray();

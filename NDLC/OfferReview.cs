@@ -31,7 +31,7 @@ namespace NDLC
 
 			var offererPnL = offer.ToDiscretePayoffs();
 			var acceptorPnL = offererPnL.Inverse();
-			AcceptorCollateral = acceptorPnL.CalculateCollateral();
+			AcceptorCollateral = acceptorPnL.CalculateMinimumCollateral();
 			for (int i = 0; i < offererPnL.Count; i++)
 			{
 				OffererPayoffs.Add(new Payoff(offererPnL[i]));

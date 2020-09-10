@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Xml;
+using Microsoft.Win32.SafeHandles;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
@@ -133,7 +134,7 @@ namespace NDLC.Messages
 			ECXOnlyPubKey oraclePubKey,
 			SchnorrNonce eventNonce,
 			DiscretePayoffs offererPayoffs,
-			Timeouts timeouts)
+			Timeouts timeouts, Money? collateral = null)
 		{
 			using var tx = StartTransaction();
 			if (!s.IsInitiator)
@@ -142,7 +143,10 @@ namespace NDLC.Messages
 			s.Timeouts = timeouts;
 			s.OffererPayoffs = offererPayoffs;
 			s.Offerer = new Party();
-			s.Offerer.Collateral = offererPayoffs.CalculateCollateral();
+			var minimumCollateral = offererPayoffs.CalculateMinimumCollateral();
+			if (collateral is Money m && m < minimumCollateral)
+				throw new ArgumentException($"The collateral is too small, it should be at least {minimumCollateral.ToString(false, false)}");
+			s.Offerer.Collateral = collateral ?? minimumCollateral;
 			tx.Commit();
 			return s.Offerer.Collateral;
 		}
@@ -162,18 +166,18 @@ namespace NDLC.Messages
 		{
 			if (!s.IsInitiator)
 				throw new InvalidOperationException("The acceptor can't initiate an offer");
-			if (s.OracleInfo is null || s.OffererPayoffs is null || s.Timeouts is null)
+			if (s.OracleInfo is null || s.OffererPayoffs is null || s.Timeouts is null || s.Offerer.Collateral is null)
 				throw new InvalidOperationException("Invalid state");
 			using var tx = StartTransaction();
-			var collateral = s.OffererPayoffs.CalculateCollateral();
+			var collateral = s.OffererPayoffs.CalculateMinimumCollateral();
 			var fundingKey = GetOrCreateFundingKey();
 			var fundingInfo = ExtractFundingInformation(psbt, collateral);
 
 			Offer offer = new Offer()
 			{
 				OracleInfo = s.OracleInfo,
-				TotalCollateral = s.OffererPayoffs.CalculateCollateral(),
-				ContractInfo = s.OffererPayoffs.ToContractInfo(),
+				TotalCollateral = s.Offerer.Collateral,
+				ContractInfo = s.OffererPayoffs.ToContractInfo(s.Offerer.Collateral),
 				Timeouts = s.Timeouts,
 				PubKeys = new PubKeyObject()
 				{
@@ -206,6 +210,9 @@ namespace NDLC.Messages
 			this.FillStateFrom(offer);
 			if (s.OffererPayoffs is null)
 				throw new InvalidOperationException("The offer should contains contractInfo");
+			var minimumCollateral = s.OffererPayoffs.CalculateMinimumCollateral();
+			if (offer.TotalCollateral < minimumCollateral)
+				throw new ArgumentException($"The collateral of the offer is too small, should be at least {minimumCollateral.ToString(false, false)}");
 			tx.Commit();
 			return s.OffererPayoffs.Inverse();
 		}
@@ -222,7 +229,7 @@ namespace NDLC.Messages
 			using var tx = StartTransaction();
 			var fundKey = GetOrCreateFundingKey();
 
-			var minimumCollateral = s.OffererPayoffs.Inverse().CalculateCollateral();
+			var minimumCollateral = s.OffererPayoffs.Inverse().CalculateMinimumCollateral();
 			collateral ??= minimumCollateral;
 			if (collateral < minimumCollateral)
 				throw new ArgumentException($"The collateral of the PSBT is too small, it should be at least {minimumCollateral.ToString(false, false)}");
@@ -269,7 +276,7 @@ namespace NDLC.Messages
 			FillStateFrom(accept);
 
 			var collateral = accept.TotalCollateral;
-			var expectedCollateral = s.OffererPayoffs.Inverse().CalculateCollateral();
+			var expectedCollateral = s.OffererPayoffs.Inverse().CalculateMinimumCollateral();
 			if (collateral is null)
 			{
 				collateral = expectedCollateral;

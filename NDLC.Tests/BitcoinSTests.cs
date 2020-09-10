@@ -108,7 +108,7 @@ namespace NDLC.Tests
 			var offer = initiator.FundOffer(fund1);
 			var acceptor = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 			var acceptorPayoff = acceptor.Accept(offer);
-			var fund2 = GetFundingPSBT(acceptorInputKey, acceptorPayoff.CalculateCollateral());
+			var fund2 = GetFundingPSBT(acceptorInputKey, acceptorPayoff.CalculateMinimumCollateral());
 			var accept = acceptor.FundAccept(fund2);
 			initiator.Sign1(accept);
 			var fundPSBT = initiator.GetFundingPSBT();
@@ -133,8 +133,8 @@ namespace NDLC.Tests
 			payoffs.Add(new DiscreteOutcome("a"), Money.Coins(5.0m));
 			payoffs.Add(new DiscreteOutcome("b"), Money.Coins(-5.0m));
 			payoffs.Add(new DiscreteOutcome("c"), Money.Coins(-2.0m));
-			Assert.Equal(Money.Coins(5.0m), payoffs.CalculateCollateral());
-			var ci = payoffs.ToContractInfo();
+			Assert.Equal(Money.Coins(5.0m), payoffs.CalculateMinimumCollateral());
+			var ci = payoffs.ToContractInfo(payoffs.CalculateMinimumCollateral());
 			Assert.Equal(Money.Coins(10.0m), ci[0].Payout);
 			Assert.Equal(Money.Coins(0m), ci[1].Payout);
 			Assert.Equal(Money.Coins(3.0m), ci[2].Payout);
@@ -179,7 +179,7 @@ namespace NDLC.Tests
 			var offer = initiator.FundOffer(fund1);
 
 			var payoff = acceptor.Accept(offer);
-			var fund2 = GetFundingPSBT(initiatorInputKey, payoff.CalculateCollateral());
+			var fund2 = GetFundingPSBT(initiatorInputKey, payoff.CalculateMinimumCollateral());
 			var accept = acceptor.FundAccept(fund2);
 			initiator.Sign1(accept);
 			var fundPSBT = initiator.GetFundingPSBT();
@@ -211,7 +211,7 @@ namespace NDLC.Tests
 			
 			var builder = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 			var payoff = builder.Accept(offer);
-			PSBT fundPSBT = GetFundingPSBT(new Key(), payoff.CalculateCollateral());
+			PSBT fundPSBT = GetFundingPSBT(new Key(), payoff.CalculateMinimumCollateral());
 			var accept2 = builder.FundAccept(fundPSBT);
 			Assert.Equal(accept.EventId, accept2.EventId);
 		}
@@ -224,7 +224,7 @@ namespace NDLC.Tests
 			var fundingInputKey = new Key();
 
 			var payoffs = builder.Accept(offer);
-			PSBT fundPSBT = GetFundingPSBT(fundingInputKey, payoffs.CalculateCollateral());
+			PSBT fundPSBT = GetFundingPSBT(fundingInputKey, payoffs.CalculateMinimumCollateral());
 			var accept = builder.FundAccept(fundPSBT);
 
 			builder = new DLCTransactionBuilder(true, offer, null, null, Network.RegTest);
