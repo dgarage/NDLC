@@ -20,6 +20,7 @@ namespace NDLC.CLI
 			try
 			{
 				Network = Bitcoin.Instance.GetNetwork(GetNetworkType(context.ParseResult.RootCommandResult.ValueForOption("network") as string ?? "mainnet"));
+				_Repository = new Repository(context.ParseResult.RootCommandResult.ValueForOption<string>("datadir"), Network);
 				NDLC.Messages.Serializer.Configure(JsonSerializerSettings, Network);
 				await InvokeAsyncBase(context);
 				return 0;
@@ -31,6 +32,8 @@ namespace NDLC.CLI
 			}
 		}
 
+		Repository? _Repository;
+		public Repository Repository => _Repository ?? throw new InvalidOperationException("Repository is not set");
 		protected void WriteObject<T>(InvocationContext context, T obj)
 		{
 			context.Console.Out.Write(JsonConvert.SerializeObject(obj, JsonSerializerSettings));

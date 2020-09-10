@@ -26,6 +26,11 @@ namespace NDLC.CLI
 				Argument = new Argument<string>(),
 				IsRequired = false
 			});
+			root.Add(new Option<string>("--datadir", "The data directory")
+			{
+				Argument = new Argument<string>(),
+				IsRequired = false
+			});
 
 			Command offer = new Command("offer");
 			root.Add(offer);
@@ -71,6 +76,32 @@ namespace NDLC.CLI
 			});
 			createOffer.Handler = new CreateOfferCommand();
 
+
+			Command oracle = new Command("oracle", "Oracle commands");
+			Command oracleAdd = new Command("add", "Add a new oracle")
+				{
+					new Argument<string>("name", "The oracle name"),
+					new Argument<string>("pubkey", "The oracle pubkey"),
+				};
+			oracleAdd.Handler = new AddSetOracleCommand();
+			Command oracleSet = new Command("set", "Modify an oracle")
+				{
+					new Argument<string>("name", "The oracle name"),
+					new Argument<string>("pubkey", "The oracle pubkey"),
+				};
+			oracleSet.Handler = new AddSetOracleCommand() { Set = true };
+			Command oracleRemove = new Command("remove", "Remove an oracle")
+				{
+					new Argument<string>("name", "The oracle name")
+				};
+			oracleRemove.Handler = new RemoveOracleCommand();
+			Command oracleList = new Command("list", "List oracles");
+			oracleList.Handler = new ListOracleCommand();
+			root.Add(oracle);
+			oracle.Add(oracleAdd);
+			oracle.Add(oracleSet);
+			oracle.Add(oracleRemove);
+			oracle.Add(oracleList);
 
 			Command reviewOffer = new Command("review", "Review an offer");
 			offer.Add(reviewOffer);

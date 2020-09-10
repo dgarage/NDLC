@@ -1,8 +1,12 @@
 ﻿using NBitcoin;
+using NBitcoin.DataEncoders;
 using NDLC.Messages;
+using NDLC.Secp256k1;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
@@ -23,10 +27,64 @@ namespace NDLC.Tests
 
 
 		[Fact]
+		public async Task CanManageOracles()
+		{
+			await Tester.AssertInvoke(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "set",
+				"neo", "57caa081b0a0e9e9413cf4fb72ddc2630d609bdf6a912b98c4cfd358a4ce1496"
+			}, 1);
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "add",
+				"neo", "57caa081b0a0e9e9413cf4fb72ddc2630d609bdf6a912b98c4cfd358a4ce1496"
+			});
+			await Tester.AssertInvoke(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "add",
+				"neo", "57caa081b0a0e9e9413cf4fb72ddc2630d609bdf6a912b98c4cfd358a4ce1496"
+			}, 1);
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "set",
+				"neo", "16735f228c76e81e1ca671521991f682ad50a79ad7a44fb073f5a5462a4243ba"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "list"
+			});
+			Assert.Equal("neo\t16735f228c76e81e1ca671521991f682ad50a79ad7a44fb073f5a5462a4243ba" + Environment.NewLine, Tester.GetLastOutput());
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "remove",
+				"neo"
+			});
+			await Tester.AssertInvoke(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "remove",
+				"neo"
+			}, 1);
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "list"
+			});
+			Assert.Empty(Tester.GetLastOutput());
+		}
+
+		[Fact]
 		public async Task CanCreateAndReviewOffer()
 		{
 			await Tester.AssertInvokeSuccess(new string[]
 			{
+				"--datadir", GetDataDirectory(),
 				"--network", "testnet",
 				"offer", "create",
 				"--oraclepubkey", "57caa081b0a0e9e9413cf4fb72ddc2630d609bdf6a912b98c4cfd358a4ce1496",
@@ -55,6 +113,20 @@ namespace NDLC.Tests
 				"offer", "review", "-h",
 				offerStr
 			});
+		}
+
+
+		bool created;
+		private string GetDataDirectory([CallerMemberName]string testName = null)
+		{
+			if (!created)
+			{
+				if (Directory.Exists(testName))
+					Directory.Delete(testName, true);
+				Directory.CreateDirectory(testName);
+				created = true;
+			}
+			return testName;
 		}
 	}
 }

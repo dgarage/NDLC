@@ -9,10 +9,10 @@ namespace NDLC.Tests
 {
 	public static class CommandExtensions
 	{
-		public static async Task AssertInvokeSuccess(this RootCommand command, string[] args, IConsole console)
+		public static async Task AssertInvoke(this RootCommand command, string[] args, IConsole console, int expectedResult)
 		{
 			var result = await command.InvokeAsync(args, console);
-			Assert.Equal(0, result);
+			Assert.Equal(expectedResult, result);
 		}
 	}
 }
