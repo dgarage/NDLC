@@ -28,6 +28,98 @@ namespace NDLC.Secp256k1
 			return r;
 		}
 
+		public static bool SigVerifyBIP340FIX_DLC(this ECXOnlyPubKey pubkey, SecpSchnorrSignature signature, ReadOnlySpan<byte> msg32)
+		{
+			if (signature is null)
+				return false;
+			if (msg32.Length < 32)
+				return false;
+			Span<byte> buf = stackalloc byte[32];
+			SHA256 sha = new SHA256();
+			sha.InitializeTagged(TAG_BIP0340Challenge);
+
+			signature.rx.WriteToSpan(buf);
+			sha.Write(buf);
+			pubkey.Q.x.WriteToSpan(buf);
+			sha.Write(buf);
+			sha.Write(msg32.Slice(0, 32));
+			sha.GetHash(buf);
+			var e = new Scalar(buf, out _);
+
+			/* Compute rj =  s*G + (-e)*pkj */
+			e = e.Negate();
+			var pkj = pubkey.Q.ToGroupElementJacobian();
+			var rj = pubkey.ctx.EcMultContext.Mult(pkj, e, signature.s);
+
+			var r = rj.ToGroupElementVariable();
+			if (r.IsInfinity)
+				return false;
+			return !r.y.Normalize().IsOdd && signature.rx.EqualsVariable(r.x);
+		}
+		public static bool TrySignBIP140DLC_FIX(this ECPrivKey key, ReadOnlySpan<byte> msg32, INonceFunctionHardened? nonceFunction, out SecpSchnorrSignature? signature)
+		{
+			signature = null;
+			if (msg32.Length != 32)
+				return false;
+			using var sha = new SHA256();
+			Span<byte> buf = stackalloc byte[32];
+			Span<byte> sig64 = stackalloc byte[64];
+			Span<byte> pk_buf = stackalloc byte[32];
+			Span<byte> sec_key = stackalloc byte[32];
+
+			if (nonceFunction == null)
+			{
+				nonceFunction = new BIP340NonceFunction(true);
+			}
+
+			var pk = key.CreatePubKey().Q;
+			var sk = key.sec;
+			/* Because we are signing for a x-only pubkey, the secret key is negated
+	* before signing if the point corresponding to the secret key does not
+	* have an even Y. */
+			if (pk.y.IsOdd)
+			{
+				sk = sk.Negate();
+			}
+			sk.WriteToSpan(sec_key);
+			pk.x.WriteToSpan(pk_buf);
+			var ret = nonceFunction.TryGetNonce(buf, msg32, sec_key, pk_buf, BIP340NonceFunctionDLC_FIX.ALGO_BIP340);
+			var k = new Scalar(buf, out _);
+			ret &= !k.IsZero;
+			Scalar.CMov(ref k, Scalar.One, ret ? 0 : 1);
+			var rj = key.ctx.EcMultGenContext.MultGen(k);
+			var r = rj.ToGroupElement();
+			var ry = r.y.NormalizeVariable();
+			if (!ry.IsQuadVariable)
+				k = k.Negate();
+			var rx = r.x.NormalizeVariable();
+			rx.WriteToSpan(sig64);
+			/* tagged hash(r.x, pk.x, msg32) */
+			sha.InitializeTagged(TAG_BIP0340Challenge);
+			sha.Write(sig64.Slice(0, 32));
+			sha.Write(pk_buf);
+			sha.Write(msg32);
+			sha.GetHash(buf);
+
+			/* Set scalar e to the challenge hash modulo the curve order as per
+     * BIP340. */
+			var e = new Scalar(buf, out _);
+			e = e * sk;
+			e = e + k;
+			e.WriteToSpan(sig64.Slice(32));
+
+			ret &= SecpSchnorrSignature.TryCreate(sig64, out signature);
+
+			k = default;
+			sk = default;
+			sec_key.Fill(0);
+			sig64.Fill(0);
+			if (!ret)
+				signature = null;
+			return ret;
+		}
+
+
 		internal static byte[] TAG_BIP0340Challenge = ASCIIEncoding.ASCII.GetBytes("BIP340/challenge");
 		public static bool TryComputeSigPoint(this ECXOnlyPubKey pubkey, ReadOnlySpan<byte> msg32, SchnorrNonce rx, out ECPubKey? sigpoint)
 		{

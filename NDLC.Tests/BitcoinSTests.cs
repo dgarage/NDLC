@@ -15,6 +15,7 @@ using NBitcoin;
 using Xunit.Abstractions;
 using NBitcoin.Logging;
 using Xunit.Sdk;
+using NBitcoin.Crypto;
 
 namespace NDLC.Tests
 {
@@ -69,7 +70,7 @@ namespace NDLC.Tests
 			RemoveSigs(cet);
 			RemoveSigs(funding);
 
-			
+
 			foreach (var isInitiator in new[] { true, false })
 			{
 				var b = new DLCTransactionBuilder(isInitiator, offer, accept, sign, funding, Network.RegTest);
@@ -161,7 +162,7 @@ namespace NDLC.Tests
 			var initiatorInputKey = new Key();
 			var acceptorInputKey = new Key();
 
-			
+
 			var initiator = new DLCTransactionBuilder(true, null, null, null, Network.RegTest);
 			var acceptor = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 
@@ -208,7 +209,7 @@ namespace NDLC.Tests
 		{
 			var offer = Parse<Messages.Offer>("Data/Offer2.json");
 			var accept = Parse<Messages.Accept>("Data/Accept2.json");
-			
+
 			var builder = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 			var payoff = builder.Accept(offer);
 			PSBT fundPSBT = GetFundingPSBT(new Key(), payoff.CalculateMinimumCollateral());
@@ -386,6 +387,20 @@ namespace NDLC.Tests
 
 			if (data.OracleAttestation != null)
 			{
+				var nonce = data.Offer.OracleInfo.RValue;
+				var sig64 = new byte[64];
+				nonce.WriteToSpan(sig64);
+				data.OracleAttestation.ToECPrivKey().WriteToSpan(sig64.AsSpan().Slice(32));
+				NBitcoin.Secp256k1.SecpSchnorrSignature.TryCreate(sig64, out var siig);
+
+				foreach (var outcome in data.Offer.ContractInfo)
+				{
+					if (data.Offer.OracleInfo.PubKey.SigVerifyBIP340FIX_DLC(siig, outcome.Outcome.Hash))
+					{
+
+					}
+				}
+
 				var outcomeSigned = data.Builder.BuildSignedCET(data.OracleAttestation);
 
 				testOutputHelper.WriteLine("---Signed CET---");
@@ -439,6 +454,72 @@ namespace NDLC.Tests
 			String expectedSecret = "475697A71A74FF3F2A8F150534E9B67D4B0B6561FAB86FCAA51F8C9D6C9DB8C6";
 			String sigString = toHex(resultArr);
 			assertEquals(sigString, expectedSecret, "testAdaptorExtractSecret");
+		}
+
+		[Fact]
+		public void testSchnorrSign()
+		{
+
+			byte[] data = toByteArray("E48441762FB75010B2AA31A512B62B4148AA3FB08EB0765D76B252559064A614");
+			byte[] secKey = toByteArray("688C77BC2D5AAFF5491CF309D4753B732135470D05B7B2CD21ADD0744FE97BEF");
+			byte[] auxRand = toByteArray("02CCE08E913F22A36C5648D6405A2C7C50106E7AA2F1649E381C7F09D16B80AB");
+
+			byte[] sigArr = schnorrSign(data, secKey, auxRand);
+			String sigStr = toHex(sigArr);
+			String expectedSig = "F14D7E54FF58C5D019CE9986BE4A0E8B7D643BD08EF2CDF1099E1A457865B5477C988C51634A8DC955950A58FF5DC8C506DDB796121E6675946312680C26CF33";
+			assertEquals(sigStr, expectedSig, "testSchnorrSign");
+		}
+
+		private byte[] schnorrSign(byte[] data, byte[] secKey, byte[] auxRand)
+		{
+			Assert.True(Context.Instance.TryCreateECPrivKey(secKey, out var key));
+			Assert.True(key.TrySignBIP140DLC_FIX(data, new BIP340NonceFunctionDLC_FIX(auxRand), out var sig));
+			var buf = new byte[64];
+			sig.WriteToSpan(buf);
+			return buf;
+		}
+
+		[Fact]
+		public void testSchnorrVerify()
+		{
+
+			byte[] sig = toByteArray("F14D7E54FF58C5D019CE9986BE4A0E8B7D643BD08EF2CDF1099E1A457865B5477C988C51634A8DC955950A58FF5DC8C506DDB796121E6675946312680C26CF33");
+			byte[] data = toByteArray("E48441762FB75010B2AA31A512B62B4148AA3FB08EB0765D76B252559064A614");
+			byte[] pubx = toByteArray("B33CC9EDC096D0A83416964BD3C6247B8FECD256E4EFA7870D2C854BDEB33390");
+
+			var result = schnorrVerify(sig, data, pubx);
+
+			assertEquals(result, true, "testSchnorrVerify");
+		}
+
+		private bool schnorrVerify(byte[] sig, byte[] data, byte[] pubx)
+		{
+			Assert.True(NBitcoin.Secp256k1.SecpSchnorrSignature.TryCreate(sig, out var o));
+			Assert.True(ECXOnlyPubKey.TryCreate(pubx, Context.Instance, out var pub));
+			return pub.SigVerifyBIP340FIX_DLC(o, data);
+		}
+
+		[Fact]
+		public void testSchnorrSignWithNonce()
+		{
+
+			byte[] data = toByteArray("E48441762FB75010B2AA31A512B62B4148AA3FB08EB0765D76B252559064A614");
+			byte[] secKey = toByteArray("688C77BC2D5AAFF5491CF309D4753B732135470D05B7B2CD21ADD0744FE97BEF");
+			byte[] nonce = toByteArray("8C8CA771D3C25EB38DE7401818EEDA281AC5446F5C1396148F8D9D67592440FE");
+
+			byte[] sigArr = schnorrSignWithNonce(data, secKey, nonce);
+			String sigStr = toHex(sigArr);
+			String expectedSig = "5DA618C1936EC728E5CCFF29207F1680DCF4146370BDCFAB0039951B91E3637A50A2A860B130D009405511C3EAFE943E157A0DF2C2020E3E50DF05ADB175332F";
+			assertEquals(sigStr, expectedSig, "testSchnorrSignWithNonce");
+		}
+
+		private byte[] schnorrSignWithNonce(byte[] data, byte[] secKey, byte[] nonce)
+		{
+			Assert.True(Context.Instance.TryCreateECPrivKey(secKey, out var key));
+			Assert.True(key.TrySignBIP140DLC_FIX(data, new PrecomputedNonceFunctionHardened(nonce), out var sig));
+			var buf = new byte[64];
+			sig.WriteToSpan(buf);
+			return buf;
 		}
 
 		private byte[] adaptorAdapt(byte[] secret, byte[] adaptorSig)
