@@ -366,8 +366,8 @@ namespace NDLC.Tests
 				data.Builder.FundingOverride = data.FundingOverride;
 			}
 
-			data.Builder.Accept(data.Offer);
-			var accepted = data.Builder.FundAccept(data.FundingTemplate, data.FundingTemplate.Outputs[0].Value);
+			data.Builder.Accept(data.Offer, data.FundingTemplate.Outputs[0].Value);
+			var accepted = data.Builder.FundAccept(data.FundingTemplate);
 			testOutputHelper.WriteLine("---Accept message---");
 			testOutputHelper.WriteLine(JsonConvert.SerializeObject(accepted, TestnetSettings));
 			testOutputHelper.WriteLine("--------------------");

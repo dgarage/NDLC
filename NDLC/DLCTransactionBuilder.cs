@@ -79,7 +79,7 @@ namespace NDLC.Messages
 			{
 				s.OffererPayoffs = DiscretePayoffs.CreateFromContractInfo(offer.ContractInfo, offer.TotalCollateral);
 			}
-			s.Offerer.Collateral = offer.TotalCollateral;
+			s.Offerer.Collateral = offer.TotalCollateral ?? s.OffererPayoffs?.CalculateMinimumCollateral();
 			s.Offerer.FundPubKey = offer.PubKeys?.FundingKey;
 			s.Offerer.PayoutDestination = offer.PubKeys?.PayoutAddress?.ScriptPubKey;
 			s.FeeRate = offer.FeeRate;
@@ -99,6 +99,11 @@ namespace NDLC.Messages
 			s.Acceptor.OutcomeSigs = accept.CetSigs?.OutcomeSigs.ToDictionary(kv => kv.Key, kv => kv.Value.Signature);
 			s.Acceptor.RefundSig = accept.CetSigs?.RefundSig?.Signature.Signature;
 			s.Acceptor.Collateral = accept.TotalCollateral;
+			if (s.Acceptor.Collateral is null &&
+				s.OffererPayoffs is DiscretePayoffs)
+			{
+				s.Acceptor.Collateral = s.OffererPayoffs.Inverse().CalculateMinimumCollateral();
+			}
 			s.Acceptor.PayoutDestination = accept.PubKeys?.PayoutAddress?.ScriptPubKey;
 		}
 
@@ -166,12 +171,11 @@ namespace NDLC.Messages
 		{
 			if (!s.IsInitiator)
 				throw new InvalidOperationException("The acceptor can't initiate an offer");
-			if (s.OracleInfo is null || s.OffererPayoffs is null || s.Timeouts is null || s.Offerer.Collateral is null)
+			if (s.OracleInfo is null || s.OffererPayoffs is null || s.Timeouts is null || s.Offerer?.Collateral is null)
 				throw new InvalidOperationException("Invalid state");
 			using var tx = StartTransaction();
-			var collateral = s.OffererPayoffs.CalculateMinimumCollateral();
 			var fundingKey = GetOrCreateFundingKey();
-			var fundingInfo = ExtractFundingInformation(psbt, collateral);
+			var fundingInfo = ExtractFundingInformation(psbt, s.Offerer.Collateral);
 
 			Offer offer = new Offer()
 			{
@@ -202,43 +206,45 @@ namespace NDLC.Messages
 			return k;
 		}
 
-		public DiscretePayoffs Accept(Offer offer)
+		public DiscretePayoffs Accept(Offer offer, Money? collateral = null)
 		{
 			using var tx = StartTransaction();
 			if (s.IsInitiator)
 				throw new InvalidOperationException("The initiator can't accept");
 			this.FillStateFrom(offer);
-			if (s.OffererPayoffs is null)
+			if (s.OffererPayoffs is null || s.Offerer?.Collateral is null)
 				throw new InvalidOperationException("The offer should contains contractInfo");
 			var minimumCollateral = s.OffererPayoffs.CalculateMinimumCollateral();
-			if (offer.TotalCollateral < minimumCollateral)
+			if (s.Offerer.Collateral < minimumCollateral)
 				throw new ArgumentException($"The collateral of the offer is too small, should be at least {minimumCollateral.ToString(false, false)}");
+			minimumCollateral = s.OffererPayoffs.Inverse().CalculateMinimumCollateral();
+			collateral ??= minimumCollateral;
+			if (collateral < minimumCollateral)
+				throw new ArgumentException($"The acceptor's collateral is too small, it should be at least {minimumCollateral.ToString(false, false)}");
+			s.Acceptor ??= new Party();
+			s.Acceptor.Collateral = collateral;
 			tx.Commit();
 			return s.OffererPayoffs.Inverse();
 		}
 
-		public Accept FundAccept(PSBT psbt, Money? collateral = null)
+		public Accept FundAccept(PSBT psbt)
 		{
 			if (s.IsInitiator)
 				throw new InvalidOperationException("The initiator can't accept");
 			if (s.OffererPayoffs is null ||
 				s.Offerer?.Collateral is null ||
 				s.Offerer?.FundPubKey is null ||
+				s.Acceptor?.Collateral is null ||
 				s.FeeRate is null)
 				throw new InvalidOperationException("Invalid state");
 			using var tx = StartTransaction();
 			var fundKey = GetOrCreateFundingKey();
 
-			var minimumCollateral = s.OffererPayoffs.Inverse().CalculateMinimumCollateral();
-			collateral ??= minimumCollateral;
-			if (collateral < minimumCollateral)
-				throw new ArgumentException($"The collateral of the PSBT is too small, it should be at least {minimumCollateral.ToString(false, false)}");
-
-			var fundingInfo = ExtractFundingInformation(psbt, collateral);
+			var fundingInfo = ExtractFundingInformation(psbt, s.Acceptor.Collateral);
 
 			Accept accept = new Accept()
 			{
-				TotalCollateral = collateral,
+				TotalCollateral = s.Acceptor.Collateral,
 				ChangeAddress = fundingInfo.ChangeAddress,
 				PubKeys = new PubKeyObject()
 				{
@@ -253,7 +259,7 @@ namespace NDLC.Messages
 				s.OffererCoins,
 				s.OffererChange,
 				s.Offerer.FundPubKey),
-				new FundingParty(collateral,
+				new FundingParty(s.Acceptor.Collateral,
 				fundingInfo.Coins,
 				fundingInfo.ChangeAddress?.ScriptPubKey,
 				fundKey.PubKey), s.FeeRate, FundingOverride).Build(network);
@@ -261,7 +267,6 @@ namespace NDLC.Messages
 			tx.Commit();
 			return accept;
 		}
-		public bool AllowUnexpectedCollateral { get; set; }
 		public void Sign1(Accept accept)
 		{
 			using var tx = StartTransaction();
@@ -276,15 +281,11 @@ namespace NDLC.Messages
 			FillStateFrom(accept);
 
 			var collateral = accept.TotalCollateral;
-			var expectedCollateral = s.OffererPayoffs.Inverse().CalculateMinimumCollateral();
-			if (collateral is null)
-			{
-				collateral = expectedCollateral;
-			}
-			else if (!AllowUnexpectedCollateral && collateral != expectedCollateral)
-			{
-				throw new InvalidOperationException("Unexpected collateral");
-			}
+			var minimumCollateral = s.OffererPayoffs.Inverse().CalculateMinimumCollateral();
+			collateral ??= minimumCollateral;
+			if (collateral < minimumCollateral)
+				throw new ArgumentException($"The accept collateral should be at least {minimumCollateral.ToString(false, false)}");
+			
 			var acceptor = new FundingParty(
 			collateral,
 			accept.FundingInputs.Select(c => new Coin(c.Outpoint, c.Output)).ToArray(),
