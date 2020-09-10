@@ -28,12 +28,6 @@ namespace NDLC.Messages
 		public FeeRate? FeeRate { get; set; }
 		[JsonProperty(Order = 103)]
 		public Timeouts? Timeouts { get; set; }
-
-		public override void FillFromTemplateFunding(PSBTFundingTemplate fundingTemplate, PubKey fundingKey, Network network)
-		{
-			FeeRate = fundingTemplate.FeeRate;
-			base.FillFromTemplateFunding(fundingTemplate, fundingKey, network);
-		}
 		[JsonProperty(Order = 104, DefaultValueHandling = DefaultValueHandling.Ignore)]
 		public string? EventId { get; set; }
 

@@ -331,7 +331,7 @@ namespace NDLC.Tests
 					t.OracleAttestation = new Key(Encoders.Hex.DecodeData(File.ReadAllText(attestation)));
 				}
 				t.Builder = new DLCTransactionBuilder(false, null, null, null, network);
-				t.FundingTemplate = PSBTFundingTemplate.Parse(File.ReadAllText(Path.Combine(folder, "FundingTemplate.psbt")), network);
+				t.FundingTemplate = PSBT.Parse(File.ReadAllText(Path.Combine(folder, "FundingTemplate.psbt")), network);
 				return t;
 			}
 			public Transaction FundingOverride { get; set; }
@@ -342,11 +342,10 @@ namespace NDLC.Tests
 			public DLCTransactionBuilder Builder { get; set; }
 			/// <summary>
 			/// Funding templates are PSBT built with the following format:
-			/// * 1 output sending to "collateral" BTC to "1DLCFundingAddressxxxxxxxxy2BvHew" (mfjHVJzmSkDvwk7UNSrLntBHpxZfskpVko for testnet)
-			/// * 1 output sending 0.00001111 to "payout address" 
-			/// * 1 output which is the change address
+			/// * 1 output sending to "collateral" BTC to the payout address
+			/// * Optionally, 1 output which is the change address
 			/// </summary>
-			public PSBTFundingTemplate FundingTemplate { get; set; }
+			public PSBT FundingTemplate { get; set; }
 		}
 
 		[Fact]
@@ -367,7 +366,8 @@ namespace NDLC.Tests
 				data.Builder.FundingOverride = data.FundingOverride;
 			}
 
-			var accepted = data.Builder.Accept(data.Offer, data.FundingTemplate);
+			data.Builder.Accept(data.Offer);
+			var accepted = data.Builder.FundAccept(data.FundingTemplate, data.FundingTemplate.Outputs[0].Value);
 			testOutputHelper.WriteLine("---Accept message---");
 			testOutputHelper.WriteLine(JsonConvert.SerializeObject(accepted, TestnetSettings));
 			testOutputHelper.WriteLine("--------------------");
@@ -395,7 +395,7 @@ namespace NDLC.Tests
 		}
 
 		[Fact]
-		public void testAdaptorVeirfy()
+		public void testAdaptorVerify()
 		{
 
 			byte[]

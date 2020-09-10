@@ -189,26 +189,6 @@ namespace NDLC.Messages
 			return offer;
 		}
 
-		public Offer Offer(PSBTFundingTemplate fundingTemplate, OracleInfo oracleInfo, DiscretePayoffs offererPnLs, Timeouts timeouts)
-		{
-			using var tx = StartTransaction();
-			if (!s.IsInitiator)
-				throw new InvalidOperationException("The acceptor can't initiate an offer");
-			var fundingKey = GetOrCreateFundingKey();
-			Offer offer = new Offer()
-			{
-				OracleInfo = oracleInfo,
-				TotalCollateral = offererPnLs.CalculateCollateral(),
-				ContractInfo = offererPnLs.ToContractInfo(),
-				Timeouts = timeouts
-			};
-			offer.FillFromTemplateFunding(fundingTemplate, fundingKey.PubKey, network);
-			this.s.OracleInfo = oracleInfo;
-			FillStateFrom(offer);
-			tx.Commit();
-			return offer;
-		}
-
 		private Key GetOrCreateFundingKey()
 		{
 			if (s.FundKey is Key k)
@@ -230,7 +210,7 @@ namespace NDLC.Messages
 			return s.OffererPayoffs.Inverse();
 		}
 
-		public Accept FundAccept(PSBT psbt)
+		public Accept FundAccept(PSBT psbt, Money? collateral = null)
 		{
 			if (s.IsInitiator)
 				throw new InvalidOperationException("The initiator can't accept");
@@ -241,7 +221,12 @@ namespace NDLC.Messages
 				throw new InvalidOperationException("Invalid state");
 			using var tx = StartTransaction();
 			var fundKey = GetOrCreateFundingKey();
-			var collateral = s.OffererPayoffs.Inverse().CalculateCollateral();
+
+			var minimumCollateral = s.OffererPayoffs.Inverse().CalculateCollateral();
+			collateral ??= minimumCollateral;
+			if (collateral < minimumCollateral)
+				throw new ArgumentException($"The collateral of the PSBT is too small, it should be at least {minimumCollateral.ToString(false, false)}");
+
 			var fundingInfo = ExtractFundingInformation(psbt, collateral);
 
 			Accept accept = new Accept()
@@ -266,42 +251,6 @@ namespace NDLC.Messages
 				fundingInfo.ChangeAddress?.ScriptPubKey,
 				fundKey.PubKey), s.FeeRate, FundingOverride).Build(network);
 			accept.CetSigs = CreateCetSigs();
-			tx.Commit();
-			return accept;
-		}
-
-		public Accept Accept(Offer offer,
-							PSBTFundingTemplate fundingTemplate)
-		{
-			using var tx = StartTransaction();
-			if (s.IsInitiator)
-				throw new InvalidOperationException("The initiator can't accept");
-			if (fundingTemplate == null)
-				throw new ArgumentNullException(nameof(fundingTemplate));
-			if (offer.PubKeys?.FundingKey is null ||
-				offer.TotalCollateral is null ||
-				offer.FeeRate is null)
-				throw new InvalidOperationException("Offer is missing some informations");
-			this.FillStateFrom(offer);
-			var fundKey = GetOrCreateFundingKey();
-			Accept accept = new Accept();
-			accept.FillFromTemplateFunding(fundingTemplate, fundKey.PubKey, network);
-			FillStateFrom(accept);
-
-			var offerer = new FundingParty(
-				offer.TotalCollateral,
-				offer.FundingInputs.Select(c => c.AsCoin()).ToArray(),
-				offer.ChangeAddress?.ScriptPubKey,
-				offer.PubKeys.FundingKey);
-			var acceptor = new FundingParty(
-				fundingTemplate.Collateral,
-				fundingTemplate.FundingCoins.ToArray(),
-				fundingTemplate.Change,
-				fundKey.PubKey
-				);
-			s.Funding = new FundingParameters(offerer, acceptor, offer.FeeRate, FundingOverride).Build(network);
-			accept.CetSigs = CreateCetSigs();
-			accept.EventId = offer.EventId;
 			tx.Commit();
 			return accept;
 		}
