@@ -13,8 +13,16 @@ namespace NDLC.Secp256k1
 {
 	public static class Extensions
 	{
-		public static ECPrivKey ExtractPrivateKey(this ECPubKey pubKey, ReadOnlySpan<byte> msg1, SecpSchnorrSignature sig1, ReadOnlySpan<byte> msg2, SecpSchnorrSignature sig2)
+		public static bool TryExtractPrivateKey(this ECPubKey pubKey, ReadOnlySpan<byte> msg1, SecpSchnorrSignature sig1, ReadOnlySpan<byte> msg2, SecpSchnorrSignature sig2, out ECPrivKey? key)
 		{
+			key = null;
+			if (msg1.Length != 32)
+				return false;
+			if (msg2.Length != 32)
+				return false;
+			if (msg1.SequenceCompareTo(msg2) == 0)
+				return false;
+
 			Span<byte> sig64 = stackalloc byte[64];
 			sig1.WriteToSpan(sig64);
 			Span<byte> pk_buf = stackalloc byte[32];
@@ -44,8 +52,9 @@ namespace NDLC.Secp256k1
 
 			if (pubKey.Q.y.IsOdd)
 				sk = sk.Negate();
-				
-			return pubKey.ctx.CreateECPrivKey(sk);
+			if (!pubKey.ctx.TryCreateECPrivKey(sk, out key))
+				return false;
+			return true;
 		}
 		public static ECPubKey ToECPubKey(this PubKey pubkey)
 		{
@@ -175,7 +184,7 @@ namespace NDLC.Secp256k1
 			sigpoint = null;
 			Span<byte> buf = stackalloc byte[32];
 			Span<byte> pk_buf = stackalloc byte[32];
-			pubkey.WriteXToSpan(pk_buf);
+			pubkey.WriteToSpan(pk_buf);
 			/* tagged hash(r.x, pk.x, msg32) */
 			using var sha = new SHA256();
 			sha.InitializeTagged(TAG_BIP0340Challenge);

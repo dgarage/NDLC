@@ -82,7 +82,7 @@ namespace NDLC.Messages
 		}
 		public void WriteToBytes(Span<byte> out64)
 		{
-			PubKey.WriteXToSpan(out64);
+			PubKey.WriteToSpan(out64);
 			RValue.WriteToSpan(out64.Slice(32));
 		}
 

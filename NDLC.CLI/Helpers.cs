@@ -12,13 +12,13 @@ namespace NDLC.CLI
 		public static string ToString(ECXOnlyPubKey pubKey)
 		{
 			var buf = new byte[32];
-			pubKey.WriteXToSpan(buf);
+			pubKey.WriteToSpan(buf);
 			return Encoders.Hex.EncodeData(buf);
 		}
 		public static string ToBase58(ECXOnlyPubKey pubKey)
 		{
 			var buf = new byte[32];
-			pubKey.WriteXToSpan(buf);
+			pubKey.WriteToSpan(buf);
 			return Encoders.Base58.EncodeData(buf);
 		}
 	}

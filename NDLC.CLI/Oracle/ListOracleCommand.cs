@@ -17,7 +17,7 @@ namespace NDLC.CLI
 			byte[] buf = new byte[32];
 			foreach (var o in (await Repository.ListOracles()).OrderBy(o => o.Name))
 			{
-				o.PubKey.WriteXToSpan(buf);
+				o.PubKey.WriteToSpan(buf);
 				var hex = Encoders.Hex.EncodeData(buf);
 				context.Console.Out.WriteLine($"{o.Name}\t{hex}");
 			}

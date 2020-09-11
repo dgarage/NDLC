@@ -117,9 +117,9 @@ namespace NDLC.CLI
 												   Signature: TryCreateSchnorrSig(kv.Value.ToECPrivKey(), evt.Nonce) ?? throw new InvalidOperationException("Invalid signature in attestations")))
 									.Take(2)
 									.ToArray();
-					var extracted = oracle.PubKey.ExtractPrivateKey(sigs[0].Outcome.Hash, sigs[0].Signature,
-													sigs[1].Outcome.Hash, sigs[1].Signature);
-					if (extracted.CreateXOnlyPubKey() != oracle.PubKey)
+					if (!oracle.PubKey.TryExtractPrivateKey(
+													sigs[0].Outcome.Hash, sigs[0].Signature,
+													sigs[1].Outcome.Hash, sigs[1].Signature, out var extracted) || extracted is null)
 						throw new InvalidOperationException("Could not recover the private key of the oracle, this should never happen");
 					var k = new Key(extracted.ToBytes());
 					oracle.RootedKeyPath = new RootedKeyPath(k.PubKey.GetHDFingerPrint(), new KeyPath());

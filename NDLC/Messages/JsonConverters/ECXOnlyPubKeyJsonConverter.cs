@@ -35,7 +35,7 @@ namespace NDLC.Messages.JsonConverters
 			if (value is ECXOnlyPubKey)
 			{
 				Span<byte> buf = stackalloc byte[32];
-				value.WriteXToSpan(buf);
+				value.WriteToSpan(buf);
 				writer.WriteValue(Encoders.Hex.EncodeData(buf));
 			}
 		}
