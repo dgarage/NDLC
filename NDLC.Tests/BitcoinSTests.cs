@@ -97,7 +97,8 @@ namespace NDLC.Tests
 		public void FullExchange()
 		{
 			var offerExample = Parse<Messages.Offer>("Data/Offer2.json");
-
+			var offerKey = new Key();
+			var acceptKey = new Key();
 			var initiatorInputKey = new Key();
 			var acceptorInputKey = new Key();
 			var initiator = new DLCTransactionBuilder(true, null, null, null, Network.RegTest);
@@ -106,15 +107,15 @@ namespace NDLC.Tests
 								  DiscretePayoffs.CreateFromContractInfo(offerExample.ContractInfo, offerExample.TotalCollateral),
 								  offerExample.Timeouts);
 			var fund1 = GetFundingPSBT(initiatorInputKey, requiredFund);
-			var offer = initiator.FundOffer(fund1);
+			var offer = initiator.FundOffer(offerKey, fund1);
 			var acceptor = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 			var acceptorPayoff = acceptor.Accept(offer);
 			var fund2 = GetFundingPSBT(acceptorInputKey, acceptorPayoff.CalculateMinimumCollateral());
-			var accept = acceptor.FundAccept(fund2);
+			var accept = acceptor.FundAccept(acceptKey, fund2);
 			initiator.Sign1(accept);
 			var fundPSBT = initiator.GetFundingPSBT();
 			fundPSBT.SignWithKeys(initiatorInputKey);
-			var sign = initiator.Sign2(fundPSBT);
+			var sign = initiator.Sign2(offerKey, fundPSBT);
 
 			acceptor.Finalize1(sign);
 			fundPSBT = acceptor.GetFundingPSBT();
@@ -176,6 +177,8 @@ namespace NDLC.Tests
 			var initiatorInputKey = new Key();
 			var acceptorInputKey = new Key();
 
+			var offerKey = new Key();
+			var acceptKey = new Key();
 
 			var initiator = new DLCTransactionBuilder(true, null, null, null, Network.RegTest);
 			var acceptor = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
@@ -191,15 +194,15 @@ namespace NDLC.Tests
 					ContractTimeout = 200
 				});
 			var fund1 = GetFundingPSBT(acceptorInputKey, requiredCollateral);
-			var offer = initiator.FundOffer(fund1);
+			var offer = initiator.FundOffer(offerKey, fund1);
 
 			var payoff = acceptor.Accept(offer);
 			var fund2 = GetFundingPSBT(initiatorInputKey, payoff.CalculateMinimumCollateral());
-			var accept = acceptor.FundAccept(fund2);
+			var accept = acceptor.FundAccept(acceptKey, fund2);
 			initiator.Sign1(accept);
 			var fundPSBT = initiator.GetFundingPSBT();
 			fundPSBT.SignWithKeys(initiatorInputKey);
-			var sign = initiator.Sign2(fundPSBT);
+			var sign = initiator.Sign2(offerKey, fundPSBT);
 
 			acceptor.Finalize1(sign);
 			fundPSBT = acceptor.GetFundingPSBT();
@@ -211,7 +214,7 @@ namespace NDLC.Tests
 			var cet = initiator.BuildCET(offer.ContractInfo[0].Outcome);
 			var keyBytes = Encoders.Hex.DecodeData("39eabd151030f4f2d518fb8a8d00f679aa9e034c66263032a1245a04cfbc592b");
 			var oracleSecret = new Key(keyBytes);
-			initiator.BuildSignedCET(oracleSecret);
+			initiator.BuildSignedCET(offerKey, oracleSecret);
 
 			this.testOutputHelper.WriteLine("----Final state------");
 			testOutputHelper.WriteLine(JObject.Parse(initiator.ExportState()).ToString(Formatting.Indented));
@@ -227,7 +230,7 @@ namespace NDLC.Tests
 			var builder = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 			var payoff = builder.Accept(offer);
 			PSBT fundPSBT = GetFundingPSBT(new Key(), payoff.CalculateMinimumCollateral());
-			var accept2 = builder.FundAccept(fundPSBT);
+			var accept2 = builder.FundAccept(new Key(), fundPSBT);
 			Assert.Equal(accept.EventId, accept2.EventId);
 		}
 
@@ -240,7 +243,7 @@ namespace NDLC.Tests
 
 			var payoffs = builder.Accept(offer);
 			PSBT fundPSBT = GetFundingPSBT(fundingInputKey, payoffs.CalculateMinimumCollateral());
-			var accept = builder.FundAccept(fundPSBT);
+			var accept = builder.FundAccept(new Key(), fundPSBT);
 
 			builder = new DLCTransactionBuilder(true, offer, null, null, Network.RegTest);
 			builder.Sign1(accept);
@@ -373,7 +376,6 @@ namespace NDLC.Tests
 		{
 			var myKey = new Key(Encoders.Hex.DecodeData("659ed592d16a47f8b3eea2e3d918624963e20da29a83e097c0ffbf0ef1b3e8cc"));
 			var data = AcceptorTest.Open(acceptorFolder, network);
-			data.Builder.UseFundKey(myKey);
 
 			if (data.FundingOverride != null)
 			{
@@ -382,7 +384,7 @@ namespace NDLC.Tests
 			}
 
 			data.Builder.Accept(data.Offer, data.FundingTemplate.Outputs[0].Value);
-			var accepted = data.Builder.FundAccept(data.FundingTemplate);
+			var accepted = data.Builder.FundAccept(myKey, data.FundingTemplate);
 			testOutputHelper.WriteLine("---Accept message---");
 			testOutputHelper.WriteLine(JsonConvert.SerializeObject(accepted, TestnetSettings));
 			testOutputHelper.WriteLine("--------------------");
@@ -401,21 +403,7 @@ namespace NDLC.Tests
 
 			if (data.OracleAttestation != null)
 			{
-				var nonce = data.Offer.OracleInfo.RValue;
-				var sig64 = new byte[64];
-				nonce.WriteToSpan(sig64);
-				data.OracleAttestation.ToECPrivKey().WriteToSpan(sig64.AsSpan().Slice(32));
-				NBitcoin.Secp256k1.SecpSchnorrSignature.TryCreate(sig64, out var siig);
-
-				foreach (var outcome in data.Offer.ContractInfo)
-				{
-					if (data.Offer.OracleInfo.PubKey.SigVerifyBIP340FIX_DLC(siig, outcome.Outcome.Hash))
-					{
-
-					}
-				}
-
-				var outcomeSigned = data.Builder.BuildSignedCET(data.OracleAttestation);
+				var outcomeSigned = data.Builder.BuildSignedCET(myKey, data.OracleAttestation);
 
 				testOutputHelper.WriteLine("---Signed CET---");
 				testOutputHelper.WriteLine(outcomeSigned.ToHex());

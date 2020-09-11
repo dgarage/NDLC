@@ -53,7 +53,6 @@ namespace NDLC
 					Acceptor = value;
 			}
 		}
-		public Key? FundKey { get; set; }
 		public Coin[]? OffererCoins { get; set; }
 		public Script? OffererChange { get; set; }
 		public OracleInfo? OracleInfo { get; set; }
