@@ -67,7 +67,7 @@ namespace NDLC
 		{
 			if (System.Object.ReferenceEquals(a, b))
 				return true;
-			if (((object)a == null) || ((object)b == null))
+			if ((a is null) || (b is null))
 				return false;
 			return a.Hash.AsSpan().SequenceCompareTo(b.Hash) == 0;
 		}

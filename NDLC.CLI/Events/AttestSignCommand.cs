@@ -34,7 +34,7 @@ namespace NDLC.CLI.Events
 			outcome = evtObj.Outcomes.FirstOrDefault(o => o.Equals(outcome, StringComparison.OrdinalIgnoreCase));
 			if (outcome is null)
 				throw new CommandException("outcome", "This outcome does not exists in this event");
-			var key = await Repository.GetKey(oracle);
+			var key = oracle.RootedKeyPath is RootedKeyPath ? await Repository.GetKey(oracle.RootedKeyPath) : null;
 			if (key is null)
 				throw new CommandException("name", "You do not own the keys of this oracle");
 			if (evtObj.Attestations?.ContainsKey(outcome) is true)

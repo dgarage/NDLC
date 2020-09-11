@@ -45,6 +45,9 @@ namespace NDLC.CLI
 		{
 			[JsonConverter(typeof(MnemonicJsonConverter))]
 			public Mnemonic? Mnemonic { get; set; }
+			[JsonConverter(typeof(NBitcoin.JsonConverters.KeyJsonConverter))]
+			public Key? SingleKey { get; set; }
+
 			[JsonConverter(typeof(NBitcoin.JsonConverters.KeyPathJsonConverter))]
 			public KeyPath? NextKeyPath { get; set; }
 
@@ -60,6 +63,14 @@ namespace NDLC.CLI
 
 			public Key GetKey(RootedKeyPath keyPath)
 			{
+				if (SingleKey is Key)
+				{
+					if (SingleKey.PubKey.GetHDFingerPrint() != keyPath.MasterFingerprint)
+						throw new InvalidOperationException("The fingerprint of the keyset, does not match the mnemonic");
+					if (keyPath.KeyPath.Indexes.Length != 0)
+						throw new InvalidOperationException("Indices in the keypath are not valid for this keyset");
+					return SingleKey;
+				}
 				if (Mnemonic is null)
 					throw new InvalidOperationException("The keyset does not have a mnemonic set");
 				var master = Mnemonic.DeriveExtKey();
@@ -75,8 +86,6 @@ namespace NDLC.CLI
 			public ECXOnlyPubKey? PubKey { get; set; }
 			[JsonConverter(typeof(NBitcoin.JsonConverters.KeyPathJsonConverter))]
 			public RootedKeyPath? RootedKeyPath { get; set; }
-			[JsonConverter(typeof(NBitcoin.JsonConverters.KeyJsonConverter))]
-			public Key? ExternalKey { get; set; }
 		}
 
 		public async Task<DiscreteOutcome?> AddReveal(EventFullName name, Key oracleAttestation)
@@ -103,7 +112,7 @@ namespace NDLC.CLI
 					return null;
 				// If we have two attestation for the same event, we can recover the private
 				// key of the oracle
-				if (evt.Attestations.Count > 1 && oracle.ExternalKey is null && oracle.RootedKeyPath is null)
+				if (evt.Attestations.Count > 1 && oracle.RootedKeyPath is null)
 				{
 					var sigs = evt.Attestations.Select(kv => (Outcome: new DiscreteOutcome(kv.Key),
 												   Signature: TryCreateSchnorrSig(kv.Value.ToECPrivKey(), evt.Nonce) ?? throw new InvalidOperationException("Invalid signature in attestations")))
@@ -113,8 +122,11 @@ namespace NDLC.CLI
 													sigs[1].Outcome.Hash, sigs[1].Signature);
 					if (extracted.CreateXOnlyPubKey() != oracle.PubKey)
 						throw new InvalidOperationException("Could not recover the private key of the oracle, this should never happen");
-					oracle.ExternalKey = new Key(extracted.ToBytes());
+					var k = new Key(extracted.ToBytes());
+					oracle.RootedKeyPath = new RootedKeyPath(k.PubKey.GetHDFingerPrint(), new KeyPath());
 					await SaveOracles(oracles);
+					if (!KeySetExists(k.PubKey.GetHDFingerPrint()))
+						await SaveKeyset(k.PubKey.GetHDFingerPrint(), new Keyset() { SingleKey = k });
 				}
 				await SaveEvents(oracle, events);
 				return discreteOutcome;
@@ -196,16 +208,6 @@ namespace NDLC.CLI
 			[JsonConverter(typeof(NBitcoin.JsonConverters.HDFingerprintJsonConverter))]
 			public HDFingerprint? DefaultWallet { get; set; }
 		}
-
-		public async Task<Key?> GetKey(Oracle oracle)
-		{
-			if (oracle.ExternalKey is Key &&
-				oracle.ExternalKey.PubKey.ToECPubKey() == oracle.PubKey)
-				return oracle.ExternalKey;
-			if (oracle.RootedKeyPath is null)
-				return null;
-			return await GetKey(oracle.RootedKeyPath);
-		}
 		public async Task<Key> GetKey(RootedKeyPath keyPath)
 		{
 			var keyset = await OpenKeyset(keyPath.MasterFingerprint);
@@ -261,6 +263,14 @@ namespace NDLC.CLI
 			var keyset = Path.Combine(dir, $"{fingerprint}.json");
 			return JsonConvert.DeserializeObject<Keyset>(await File.ReadAllTextAsync(keyset), JsonSettings) ??
 					throw new FormatException("Invalid keyset file");
+		}
+		private bool KeySetExists(HDFingerprint fingerprint)
+		{
+			var dir = Path.Combine(DataDirectory, "keysets");
+			if (!Directory.Exists(dir))
+				return false;
+			var keyset = Path.Combine(dir, $"{fingerprint}.json");
+			return File.Exists(keyset);
 		}
 
 		public async Task<Oracle?> GetOracle(string oracleName)
