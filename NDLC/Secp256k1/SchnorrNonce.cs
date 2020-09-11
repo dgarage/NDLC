@@ -37,6 +37,12 @@ namespace NDLC.Secp256k1
 		{
 			this.fe.WriteToSpan(out32);
 		}
+		public byte[] ToBytes()
+		{
+			var buf = new byte[32];
+			this.fe.WriteToSpan(buf);
+			return buf;
+		}
 
 		public override string ToString()
 		{

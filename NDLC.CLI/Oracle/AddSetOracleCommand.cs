@@ -14,10 +14,10 @@ namespace NDLC.CLI
 		public bool Set { get; set; }
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
-			var oracleName = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.ToLowerInvariant().Trim();
+			var oracleName = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.Trim();
 			if (oracleName is null)
 				throw new CommandOptionRequiredException("name");
-			var pubkey = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("pubkey")?.ToLowerInvariant();
+			var pubkey = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("pubkey")?.ToLowerInvariant()?.Trim();
 			if (pubkey is null)
 				throw new CommandOptionRequiredException("pubkey");
 			var exists = await Repository.OracleExists(oracleName);

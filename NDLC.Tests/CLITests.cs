@@ -47,6 +47,126 @@ namespace NDLC.Tests
 		}
 
 		[Fact]
+		public async Task CanManageEvents()
+		{
+			Log.WriteLine("Adding a wellknown oracle");
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "add",
+				"OutcomeObserver",
+				"57caa081b0a0e9e9413cf4fb72ddc2630d609bdf6a912b98c4cfd358a4ce1496"
+			});
+			Log.WriteLine("No events has been added yet");
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "list"
+			});
+			Assert.Empty(Tester.GetLastOutput());
+			Log.WriteLine("Adding an event that our oracle announced");
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "add",
+				"OutcomeObserver/Elections",
+				"57caa081b0a0e9e9413cf4fb72ddc2630d609bdf6a912b98c4cfd358a4ce1496",
+				"Republican_win",
+				"Democrat_win",
+				"other"
+			});
+			Log.WriteLine("The event should show in the list");
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "list"
+			});
+			Assert.Equal("OutcomeObserver/Elections" + Environment.NewLine, Tester.GetLastOutput());
+			Log.WriteLine("The event should show in the list, if we filter by the oracle's name");
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "list",
+				"--oracle", "outcomeobserver"
+			});
+			Assert.Equal("OutcomeObserver/Elections" + Environment.NewLine, Tester.GetLastOutput());
+			Log.WriteLine("But not with another oracle name");
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "list",
+				"--oracle", "blah"
+			});
+			Assert.Empty(Tester.GetLastOutput());
+			Log.WriteLine("We should be able to see the details of the event");
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+					"--datadir", GetDataDirectory(),
+					"event", "show", "OutcomeObserver/Elections"
+			});
+
+			Log.WriteLine("Let's generate a new oracle, and an event from it");
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "generate",
+				"neo"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "generate", "neo/NeoElections",
+				"Republicans", "Democrats", "Smith"
+			});
+			Log.WriteLine("It should be in the list");
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "show", "neo/NeoElections"
+			});
+
+			Log.WriteLine("Let's attest it");
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "attest", "sign", "neo/NeoElections", "Smith"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "show", "neo/NeoElections"
+			});
+			Assert.Contains("Attestation", Tester.GetLastOutput());
+
+			Log.WriteLine("Let's try to manually add an attestation");
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "add",
+				"morpheus", "156c7d1c7922f0aa1168d9e21ac77ea88bbbe05e24e70a08bbe0519778f2e5da"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "add",
+				"morpheus/elections", "ea3a68d8749b81682513b0479418d289d17e24d4820df2ce979f1a56a63ca525",
+				"Republicans_win", "Democrats_win", "other"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "attest", "add",
+				"morpheus/elections", "39eabd151030f4f2d518fb8a8d00f679aa9e034c66263032a1245a04cfbc592b"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "show", "morpheus/elections"
+			});
+			Assert.Contains("Attestation", Tester.GetLastOutput());
+		}
+
+		[Fact]
 		public async Task CanManageOracles()
 		{
 			await Tester.AssertInvoke(new string[]

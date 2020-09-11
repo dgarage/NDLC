@@ -1,14 +1,18 @@
 ﻿using NBitcoin;
 using NBitcoin.DataEncoders;
+using NBitcoin.JsonConverters;
 using NBitcoin.Secp256k1;
+using NDLC.CLI.Events;
 using NDLC.CLI.JsonConverters;
 using NDLC.Messages.JsonConverters;
+using NDLC.Secp256k1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,19 +20,42 @@ namespace NDLC.CLI
 {
 	public class Repository
 	{
+		public class Event
+		{
+			public string Name { get; set; } = string.Empty;
+			[JsonConverter(typeof(SchnorrNonceJsonConverter))]
+			public SchnorrNonce? Nonce { get; set; }
+			[JsonConverter(typeof(KeyPathJsonConverter))]
+			public RootedKeyPath? NonceKeyPath { get; set; }
+			public string[] Outcomes { get; set; } = Array.Empty<string>();
+			[JsonProperty(ItemConverterType = typeof(KeyJsonConverter))]
+			public Dictionary<string, Key>? Attestations { get; set; }
+		}
+
+		public async Task<Event?> GetEvent(EventFullName evtName)
+		{
+			var oracle = await GetOracle(evtName.OracleName);
+			if (oracle is null)
+				return null;
+			var evts = await GetEvents(oracle);
+			return evts.FirstOrDefault(e => e.Name.Equals(evtName.Name, StringComparison.OrdinalIgnoreCase));
+		}
+
 		class Keyset
 		{
 			[JsonConverter(typeof(MnemonicJsonConverter))]
 			public Mnemonic? Mnemonic { get; set; }
-			public uint NextIndex { get; set; }
+			[JsonConverter(typeof(NBitcoin.JsonConverters.KeyPathJsonConverter))]
+			public KeyPath? NextKeyPath { get; set; }
 
-			public Key GetNextKey()
+			public (KeyPath KeyPath, Key Key) GetNextKey()
 			{
-				if (Mnemonic is null)
-					throw new InvalidOperationException("The keyset does not have a mnemonic set");
-				var k = Mnemonic.DeriveExtKey().Derive(new KeyPath(NextIndex)).PrivateKey;
-				NextIndex++;
-				return k;
+				if (Mnemonic is null || NextKeyPath is null)
+					throw new InvalidOperationException("Invalid keyset");
+				var k = Mnemonic.DeriveExtKey().Derive(NextKeyPath).PrivateKey;
+				var path = NextKeyPath;
+				NextKeyPath = NextKeyPath.Increment()!;
+				return (path, k);
 			}
 
 			public Key GetKey(RootedKeyPath keyPath)
@@ -49,6 +76,95 @@ namespace NDLC.CLI
 			[JsonConverter(typeof(NBitcoin.JsonConverters.KeyPathJsonConverter))]
 			public RootedKeyPath? RootedKeyPath { get; set; }
 		}
+
+		public async Task<DiscreteOutcome?> AddReveal(EventFullName name, Key oracleAttestation)
+		{
+			var oracle = await GetOracle(name.OracleName);
+			if (oracle?.PubKey is null)
+				return null;
+			var events = await GetEvents(oracle);
+			var evt = events.FirstOrDefault(e => e.Name.Equals(name.Name, StringComparison.OrdinalIgnoreCase));
+			if (evt?.Nonce is null)
+				return null;
+			var sig64 = new byte[64];
+			evt.Nonce.WriteToSpan(sig64);
+			oracleAttestation.ToECPrivKey().WriteToSpan(sig64.AsSpan().Slice(32));
+			if (!NBitcoin.Secp256k1.SecpSchnorrSignature.TryCreate(sig64, out var sig) || sig is null)
+				return null;
+			foreach (var outcome in evt.Outcomes)
+			{
+				var discreteOutcome = new DiscreteOutcome(outcome);
+				if (!oracle.PubKey.SigVerifyBIP340FIX_DLC(sig, discreteOutcome.Hash))
+					continue;
+				evt.Attestations ??= new Dictionary<string, Key>();
+				if (!evt.Attestations.TryAdd(outcome, oracleAttestation))
+					return null;
+				await SaveEvents(oracle, events);
+				return discreteOutcome;
+			}
+			return null;
+		}
+
+		public async Task<bool> AddEvent(EventFullName name, SchnorrNonce nonce, string[] outcomes, RootedKeyPath? nonceKeyPath = null)
+		{
+			var oracle = await GetOracle(name.OracleName);
+			if (oracle is null)
+				throw new InvalidOperationException("The oracle does not exists");
+			var events = await GetEvents(oracle);
+			var evt = GetEvent(name, events);
+			if (evt is Event)
+				return false;
+			evt = new Event()
+			{
+				Name = name.Name,
+				Nonce = nonce,
+				Outcomes = outcomes,
+				NonceKeyPath = nonceKeyPath
+			};
+			events.Add(evt);
+			await SaveEvents(oracle, events);
+			return true;
+		}
+		public async Task<List<Event>> ListEvents(string oracleName)
+		{
+			var oracle = await GetOracle(oracleName);
+			if (oracle is null)
+				return new List<Event>();
+			return await GetEvents(oracle);
+		}
+
+		private async Task SaveEvents(Oracle oracle, List<Event> events)
+		{
+			if (oracle.PubKey is null)
+				throw new InvalidOperationException("This oracle's pubkey is not set");
+			var dir = Path.Combine(DataDirectory, "events");
+			if (!Directory.Exists(dir))
+				Directory.CreateDirectory(dir);
+			// base58, help keeping filename small to make windows happy
+			var eventFilePath = Path.Combine(dir, Helpers.ToBase58(oracle.PubKey));
+			await File.WriteAllTextAsync(eventFilePath, JsonConvert.SerializeObject(events, JsonSettings));
+		}
+
+		private static Event GetEvent(EventFullName name, List<Event> events)
+		{
+			return events.FirstOrDefault(ev => ev.Name?.Equals(name.Name, StringComparison.OrdinalIgnoreCase) is true);
+		}
+
+		private async Task<List<Event>> GetEvents(Oracle oracle)
+		{
+			if (oracle.PubKey is null)
+				throw new InvalidOperationException("This oracle's pubkey is not set");
+			var dir = Path.Combine(DataDirectory, "events");
+			if (!Directory.Exists(dir))
+				return new List<Event>();
+			// base58, help keeping filename small to make windows happy
+			var eventFilePath = Path.Combine(dir, Helpers.ToBase58(oracle.PubKey));
+			if (!File.Exists(eventFilePath))
+				return new List<Event>();
+			return JsonConvert.DeserializeObject<List<Event>>(await File.ReadAllTextAsync(eventFilePath), JsonSettings)
+					?? new List<Event>();
+		}
+
 		public class Settings
 		{
 			[JsonConverter(typeof(NBitcoin.JsonConverters.HDFingerprintJsonConverter))]
@@ -83,14 +199,14 @@ namespace NDLC.CLI
 			else
 			{
 				var mnemo = new Mnemonic(Wordlist.English);
-				wallet = new Keyset() { Mnemonic = mnemo, NextIndex = 0 };
+				wallet = new Keyset() { Mnemonic = mnemo, NextKeyPath = new KeyPath(0) };
 				fp = mnemo.DeriveExtKey().Neuter().PubKey.GetHDFingerPrint();
 				settings.DefaultWallet = fp;
 				await this.SaveSettings(settings);
 			}
 			var key = wallet.GetNextKey();
 			await this.SaveKeyset(fp, wallet);
-			return (new RootedKeyPath(fp, new KeyPath(wallet.NextIndex - 1)), key);
+			return (new RootedKeyPath(fp, key.KeyPath), key.Key);
 		}
 
 		private async Task SaveKeyset(HDFingerprint fingerprint, Keyset v)
@@ -106,7 +222,7 @@ namespace NDLC.CLI
 		{
 			var dir = Path.Combine(DataDirectory, "keysets");
 			if (!Directory.Exists(dir))
-				Directory.CreateDirectory(dir);
+				throw new FormatException("Invalid keyset file");
 			var keyset = Path.Combine(dir, $"{fingerprint}.json");
 			return JsonConvert.DeserializeObject<Keyset>(await File.ReadAllTextAsync(keyset), JsonSettings) ??
 					throw new FormatException("Invalid keyset file");
@@ -129,6 +245,12 @@ namespace NDLC.CLI
 			{
 				Formatting = Formatting.Indented,
 				ContractResolver = new CamelCasePropertyNamesContractResolver()
+				{
+					NamingStrategy = new CamelCaseNamingStrategy()
+					{
+						ProcessDictionaryKeys = false
+					}
+				}
 			};
 		}
 

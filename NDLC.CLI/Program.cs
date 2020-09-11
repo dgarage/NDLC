@@ -1,4 +1,5 @@
 ﻿using NBitcoin.Secp256k1;
+using NDLC.CLI.Events;
 using NDLC.Secp256k1;
 using System;
 using System.CommandLine;
@@ -119,6 +120,76 @@ namespace NDLC.CLI
 			oracle.Add(oracleList);
 			oracle.Add(oracleShow);
 			oracle.Add(oracleCreate);
+
+			Command evts = new Command("event", "Manage events");
+			Command addEvent = new Command("add", "Add a new event");
+			addEvent.Add(new Argument<string>("name", "The event full name, in format 'oraclename/name'")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			addEvent.Add(new Argument<string>("nonce", "The event nonce, as specified by the oracle")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			addEvent.Add(new Argument<string>("outcomes", "The outcomes, as specified by the oracle")
+			{
+				Arity = ArgumentArity.OneOrMore
+			});
+			addEvent.Handler = new AddEventCommand();
+			Command listEvent = new Command("list", "List events");
+			listEvent.Add(new Option<string>("--oracle", "Filter events of this specific oracle")
+			{
+				Argument = new Argument<string>()
+				{
+					Arity =	ArgumentArity.ExactlyOne
+				},
+				IsRequired = false
+			});
+			listEvent.Handler = new ListEventsCommand();
+			Command showEvents = new Command("show", "Show details of an event");
+			showEvents.Add(new Argument<string>("name", "The full name of the event"));
+			showEvents.Handler = new ShowEventCommand();
+
+			Command generateEvents = new Command("generate", "Generate a new event");
+			generateEvents.Add(new Argument<string>("name", "The event full name, in format 'oraclename/name'")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			generateEvents.Add(new Argument<string>("outcomes", "The outcomes, as specified by the oracle")
+			{
+				Arity = ArgumentArity.OneOrMore
+			});
+			generateEvents.Handler = new GenerateEventCommand();
+
+			Command attestEvent = new Command("attest", "Attest an event");
+			Command attestSignEvent = new Command("sign", "Sign an attestation");
+			attestSignEvent.Add(new Argument<string>("name", "The event full name, in format 'oraclename/name'")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			attestSignEvent.Add(new Argument<string>("outcome", "The outcome to attest")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			attestSignEvent.Handler = new AttestSignCommand();
+			Command attestAddEvent = new Command("add", "Add an attestation received by an oracle");
+			attestAddEvent.Add(new Argument<string>("name", "The event full name, in format 'oraclename/name'")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			attestAddEvent.Add(new Argument<string>("attestation", "The received attestation")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			attestAddEvent.Handler = new AttestAddCommand();
+			attestEvent.Add(attestAddEvent);
+			attestEvent.Add(attestSignEvent);
+			root.Add(evts);
+			evts.Add(addEvent);
+			evts.Add(listEvent);
+			evts.Add(showEvents);
+			evts.Add(generateEvents);
+			evts.Add(attestEvent);
 
 			Command reviewOffer = new Command("review", "Review an offer");
 			offer.Add(reviewOffer);

@@ -28,6 +28,18 @@ namespace NDLC.Secp256k1
 			return r;
 		}
 
+		public static SchnorrNonce CreateSchnorrNonce(this ECPrivKey key)
+		{
+			return new SchnorrNonce(key.CreateXOnlyPubKey().Q.x);
+		}
+
+		public static byte[] ToBytes(this ECPrivKey k)
+		{
+			var b = new byte[32];
+			k.WriteToSpan(b);
+			return b;
+		}
+
 		public static bool SigVerifyBIP340FIX_DLC(this ECXOnlyPubKey pubkey, SecpSchnorrSignature signature, ReadOnlySpan<byte> msg32)
 		{
 			if (signature is null)
@@ -54,7 +66,7 @@ namespace NDLC.Secp256k1
 			var r = rj.ToGroupElementVariable();
 			if (r.IsInfinity)
 				return false;
-			return !r.y.Normalize().IsOdd && signature.rx.EqualsVariable(r.x);
+			return r.y.Normalize().IsQuadVariable && signature.rx.EqualsVariable(r.x);
 		}
 		public static bool TrySignBIP140DLC_FIX(this ECPrivKey key, ReadOnlySpan<byte> msg32, INonceFunctionHardened? nonceFunction, out SecpSchnorrSignature? signature)
 		{

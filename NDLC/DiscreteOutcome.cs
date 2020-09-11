@@ -63,7 +63,7 @@ namespace NDLC
 				return false;
 			return Hash.AsSpan().SequenceCompareTo(item.Hash) == 0;
 		}
-		public static bool operator ==(DiscreteOutcome a, DiscreteOutcome b)
+		public static bool operator ==(DiscreteOutcome? a, DiscreteOutcome? b)
 		{
 			if (System.Object.ReferenceEquals(a, b))
 				return true;
@@ -72,7 +72,7 @@ namespace NDLC
 			return a.Hash.AsSpan().SequenceCompareTo(b.Hash) == 0;
 		}
 
-		public static bool operator !=(DiscreteOutcome a, DiscreteOutcome b)
+		public static bool operator !=(DiscreteOutcome? a, DiscreteOutcome? b)
 		{
 			return !(a == b);
 		}

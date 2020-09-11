@@ -156,6 +156,20 @@ namespace NDLC.Tests
 			aa = jobj["outcome"].Value<string>();
 			Assert.Equal("Trump", aa);
 		}
+
+		[Fact]
+		public void CanGenerateSchnorrNonce()
+		{
+			for (int i = 0; i < 30; i++)
+			{
+				var privKey = new Key().ToECPrivKey();
+				var nonce = privKey.CreateSchnorrNonce();
+				var msg = RandomUtils.GetBytes(32);
+				privKey.TrySignBIP140DLC_FIX(msg, new PrecomputedNonceFunctionHardened(privKey.ToBytes()), out var sig);
+				//Assert.Equal(sig.rx, nonce.fe);
+				Assert.True(privKey.CreateXOnlyPubKey().SigVerifyBIP340FIX_DLC(sig, msg));
+			}
+		}
 		[Fact]
 		public void FullExchange2()
 		{
