@@ -178,7 +178,7 @@ namespace NDLC.CLI
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
 			// base58, help keeping filename small to make windows happy
-			var eventFilePath = Path.Combine(dir, Helpers.ToBase58(oracle.PubKey));
+			var eventFilePath = GetEventFilePath(oracle.PubKey, dir);
 			await File.WriteAllTextAsync(eventFilePath, JsonConvert.SerializeObject(events, JsonSettings));
 		}
 
@@ -195,17 +195,22 @@ namespace NDLC.CLI
 			if (!Directory.Exists(dir))
 				return new List<Event>();
 			// base58, help keeping filename small to make windows happy
-			var eventFilePath = Path.Combine(dir, Helpers.ToBase58(oracle.PubKey));
+			var eventFilePath = GetEventFilePath(oracle.PubKey, dir);
 			if (!File.Exists(eventFilePath))
 				return new List<Event>();
 			return JsonConvert.DeserializeObject<List<Event>>(await File.ReadAllTextAsync(eventFilePath), JsonSettings)
 					?? new List<Event>();
 		}
 
+		private static string GetEventFilePath(ECXOnlyPubKey oraclePubKey, string dir)
+		{
+			return Path.Combine(dir, Helpers.ToBase58(oraclePubKey)) + ".json";
+		}
+
 		public class Settings
 		{
 			[JsonConverter(typeof(NBitcoin.JsonConverters.HDFingerprintJsonConverter))]
-			public HDFingerprint? DefaultWallet { get; set; }
+			public HDFingerprint? DefaultKeyset { get; set; }
 		}
 		public async Task<Key> GetKey(RootedKeyPath keyPath)
 		{
@@ -228,7 +233,7 @@ namespace NDLC.CLI
 		{
 			var settings = await this.GetSettings();
 			Keyset wallet;
-			if (settings.DefaultWallet is HDFingerprint fp)
+			if (settings.DefaultKeyset is HDFingerprint fp)
 			{
 				wallet = await OpenKeyset(fp);
 			}
@@ -237,7 +242,7 @@ namespace NDLC.CLI
 				var extkey = new ExtKey();
 				wallet = new Keyset() { HDKey = extkey.GetWif(this.Network), NextKeyPath = new KeyPath(0) };
 				fp = extkey.Neuter().PubKey.GetHDFingerPrint();
-				settings.DefaultWallet = fp;
+				settings.DefaultKeyset = fp;
 				await this.SaveSettings(settings);
 			}
 			var key = wallet.GetNextKey();

@@ -17,7 +17,7 @@ namespace NDLC.CLI
 			context.Console.Out.WriteLine($"Version: {version}");
 			context.Console.Out.WriteLine($"Data directory: {Repository.DataDirectory}");
 			var settings = await Repository.GetSettings();
-			var keyset = settings.DefaultWallet is HDFingerprint fp ? fp.ToString() : "<Not set>";
+			var keyset = settings.DefaultKeyset is HDFingerprint fp ? fp.ToString() : "<Not set>";
 			context.Console.Out.WriteLine($"Default keyset: {keyset}");
 		}
 	}
