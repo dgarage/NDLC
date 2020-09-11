@@ -27,11 +27,10 @@ namespace NDLC.CLI
 				context.Console.Out.WriteLine($"Pubkey: {Helpers.ToString(o.PubKey)}");
 			if (o.RootedKeyPath is RootedKeyPath)
 				context.Console.Out.WriteLine($"Keypath: {o.RootedKeyPath}");
-
+			context.Console.Out.WriteLine($"Has private key: {o.RootedKeyPath is RootedKeyPath || o.ExternalKey is Key}");
 			var showSensitive = context.ParseResult.ValueForOption<bool>("show-sensitive");
-			if (showSensitive && o.RootedKeyPath is RootedKeyPath)
+			if (showSensitive && await Repository.GetKey(o) is Key key)
 			{
-				var key = await Repository.GetKey(o.RootedKeyPath);
 				if (key.PubKey.ToECPubKey().ToXOnlyPubKey(out _) != o.PubKey)
 					throw new InvalidOperationException("The private key does not match the pubkey of the oracle");
 				context.Console.Out.WriteLine($"Key: {key.ToHex()}");

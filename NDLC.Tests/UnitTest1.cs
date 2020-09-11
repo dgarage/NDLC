@@ -33,6 +33,23 @@ namespace NDLC.Tests
 		ECMultContext ecmult_ctx = ECMultContext.Instance;
 
 		[Fact]
+		public void CanExtractGetKeyFromSchnorrSig()
+		{
+			for (int i = 0; i < 40; i++)
+			{
+				var priv = new Key();
+				var msg1 = RandomUtils.GetBytes(32);
+				var nonce = RandomUtils.GetBytes(32);
+				priv.ToECPrivKey().TrySignBIP140DLC_FIX(msg1, new PrecomputedNonceFunctionHardened(nonce), out var sig1);
+				var msg2 = RandomUtils.GetBytes(32);
+				priv.ToECPrivKey().TrySignBIP140DLC_FIX(msg2, new PrecomputedNonceFunctionHardened(nonce), out var sig2);
+
+				var privkey = priv.PubKey.ToECPubKey().ExtractPrivateKey(msg1, sig1, msg2, sig2);
+				Assert.Equal(priv.ToHex(), Encoders.Hex.EncodeData(privkey.ToBytes()));
+			}
+		}
+
+		[Fact]
 		public void dleq_tests()
 		{
 			for (int i = 0; i < 1000; i++)

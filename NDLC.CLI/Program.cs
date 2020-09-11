@@ -141,7 +141,7 @@ namespace NDLC.CLI
 			{
 				Argument = new Argument<string>()
 				{
-					Arity =	ArgumentArity.ExactlyOne
+					Arity = ArgumentArity.ExactlyOne
 				},
 				IsRequired = false
 			});
@@ -170,6 +170,11 @@ namespace NDLC.CLI
 			attestSignEvent.Add(new Argument<string>("outcome", "The outcome to attest")
 			{
 				Arity = ArgumentArity.ExactlyOne
+			});
+			attestSignEvent.Add(new Option<bool>(new[] { "--force", "-f" }, "Force this action")
+			{
+				Argument = new Argument<bool>(),
+				IsRequired = false
 			});
 			attestSignEvent.Handler = new AttestSignCommand();
 			Command attestAddEvent = new Command("add", "Add an attestation received by an oracle");

@@ -13,6 +13,40 @@ namespace NDLC.Secp256k1
 {
 	public static class Extensions
 	{
+		public static ECPrivKey ExtractPrivateKey(this ECPubKey pubKey, ReadOnlySpan<byte> msg1, SecpSchnorrSignature sig1, ReadOnlySpan<byte> msg2, SecpSchnorrSignature sig2)
+		{
+			Span<byte> sig64 = stackalloc byte[64];
+			sig1.WriteToSpan(sig64);
+			Span<byte> pk_buf = stackalloc byte[32];
+			Span<byte> buf = stackalloc byte[32];
+			pubKey.Q.x.WriteToSpan(pk_buf);
+			using var sha = new SHA256();
+			sha.InitializeTagged(TAG_BIP0340Challenge);
+			sha.Write(sig64.Slice(0, 32));
+			sha.Write(pk_buf);
+			sha.Write(msg1);
+			sha.GetHash(buf);
+
+			var n1 = new Scalar(buf, out _);
+
+			sig2.WriteToSpan(sig64);
+			sha.InitializeTagged(TAG_BIP0340Challenge);
+			sha.Write(sig64.Slice(0, 32));
+			sha.Write(pk_buf);
+			sha.Write(msg2);
+			sha.GetHash(buf);
+
+			var n2 = new Scalar(buf, out _);
+
+			var s = sig2.s + sig1.s.Negate();
+			var n = (n2 + n1.Negate());
+			var sk = s * n.Inverse();
+
+			if (pubKey.Q.y.IsOdd)
+				sk = sk.Negate();
+				
+			return pubKey.ctx.CreateECPrivKey(sk);
+		}
 		public static ECPubKey ToECPubKey(this PubKey pubkey)
 		{
 			Context.Instance.TryCreatePubKey(pubkey.ToBytes(), out var r);
@@ -119,7 +153,6 @@ namespace NDLC.Secp256k1
 			e = e * sk;
 			e = e + k;
 			e.WriteToSpan(sig64.Slice(32));
-
 			ret &= SecpSchnorrSignature.TryCreate(sig64, out signature);
 
 			k = default;

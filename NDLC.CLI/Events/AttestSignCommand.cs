@@ -17,14 +17,13 @@ namespace NDLC.CLI.Events
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
 			var outcome = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("outcome")?.Trim();
+			var force = context.ParseResult.ValueForOption<bool>("force");
 			if (outcome is null)
 				throw new CommandOptionRequiredException("outcome");
 			EventFullName evt = context.GetEventName();
 			var oracle = await Repository.GetOracle(evt.OracleName);
 			if (oracle is null)
 				throw new CommandException("name", "This oracle does not exists");
-			if (oracle.RootedKeyPath is null)
-				throw new CommandException("name", "You do not own the keys of this oracle");
 
 			var discreteOutcome = new DiscreteOutcome(outcome);
 			var evtObj = await Repository.GetEvent(evt);
@@ -35,7 +34,13 @@ namespace NDLC.CLI.Events
 			outcome = evtObj.Outcomes.FirstOrDefault(o => o.Equals(outcome, StringComparison.OrdinalIgnoreCase));
 			if (outcome is null)
 				throw new CommandException("outcome", "This outcome does not exists in this event");
-			var key = await Repository.GetKey(oracle.RootedKeyPath);
+			var key = await Repository.GetKey(oracle);
+			if (key is null)
+				throw new CommandException("name", "You do not own the keys of this oracle");
+			if (evtObj.Attestations?.ContainsKey(outcome) is true)
+				throw new CommandException("outcome", "This outcome has already been attested");
+			if (evtObj.Attestations != null && evtObj.Attestations.Count > 0 && !force)
+				throw new CommandException("outcome", "An outcome has already been attested, attesting another one could leak the private key of your oracle. Use -f to force your action.");
 			var kValue = await Repository.GetKey(evtObj.NonceKeyPath);
 			key.ToECPrivKey().TrySignBIP140DLC_FIX(discreteOutcome.Hash, new PrecomputedNonceFunctionHardened(kValue.ToECPrivKey().ToBytes()), out var sig);
 			if (sig is null)

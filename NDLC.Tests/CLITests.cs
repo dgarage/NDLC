@@ -137,33 +137,60 @@ namespace NDLC.Tests
 				"event", "show", "neo/NeoElections"
 			});
 			Assert.Contains("Attestation", Tester.GetLastOutput());
+			Log.WriteLine("Let's check if we can enforce two attestation");
+			await Tester.AssertInvoke(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "attest", "sign", "neo/NeoElections", "Republicans"
+			}, 1);
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "attest", "sign", "-f", "neo/NeoElections", "Republicans"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "show", "neo/NeoElections"
+			});
 
 			Log.WriteLine("Let's try to manually add an attestation");
 			await Tester.AssertInvokeSuccess(new string[]
 			{
 				"--datadir", GetDataDirectory(),
 				"oracle", "add",
-				"morpheus", "156c7d1c7922f0aa1168d9e21ac77ea88bbbe05e24e70a08bbe0519778f2e5da"
+				"morpheus", "daa9d8cdc6a594055efbade8312ec1621e56ec2cb1ed571181bc2460602a61f8"
 			});
 			await Tester.AssertInvokeSuccess(new string[]
 			{
 				"--datadir", GetDataDirectory(),
 				"event", "add",
-				"morpheus/elections", "ea3a68d8749b81682513b0479418d289d17e24d4820df2ce979f1a56a63ca525",
-				"Republicans_win", "Democrats_win", "other"
+				"morpheus/elections", "450f5a8e3da27c79080b853cd925772a929ff8dc5559a8bf81d432d1c9de22a7",
+				"Republicans", "Democrats", "Smith"
 			});
 			await Tester.AssertInvokeSuccess(new string[]
 			{
 				"--datadir", GetDataDirectory(),
 				"event", "attest", "add",
-				"morpheus/elections", "39eabd151030f4f2d518fb8a8d00f679aa9e034c66263032a1245a04cfbc592b"
+				"morpheus/elections", "a3b85eb6275cceb8bedb19076f1aab23a4021b3158faf6b9fdc4910586357c79"
 			});
 			await Tester.AssertInvokeSuccess(new string[]
 			{
 				"--datadir", GetDataDirectory(),
 				"event", "show", "morpheus/elections"
 			});
-			Assert.Contains("Attestation", Tester.GetLastOutput());
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"event", "attest", "add",
+				"morpheus/elections", "13bdfe5cb1cb7a2bced86a539b446cfc959d507fc10e777b1c4a39562e5b58e9"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", GetDataDirectory(),
+				"oracle", "show", "morpheus", "--show-sensitive"
+			});
+			Assert.Contains("Has private key: True", Tester.GetLastOutput());
 		}
 
 		[Fact]

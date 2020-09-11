@@ -30,7 +30,7 @@ namespace NDLC.CLI.Events
 				throw new CommandException("name", "This oracle does not exists");
 			var outcome = await Repository.AddReveal(evt, attestationKey);
 			if (outcome?.OutcomeString is null)
-				throw new InvalidOperationException("This attestation does not attest any of known outcomes");
+				throw new CommandException("attestation", "This attestation does not attest known outcomes");
 			context.Console.Out.Write(outcome.OutcomeString);
 		}
 	}

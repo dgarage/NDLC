@@ -75,21 +75,23 @@ namespace NDLC.CLI
 			public ECXOnlyPubKey? PubKey { get; set; }
 			[JsonConverter(typeof(NBitcoin.JsonConverters.KeyPathJsonConverter))]
 			public RootedKeyPath? RootedKeyPath { get; set; }
+			[JsonConverter(typeof(NBitcoin.JsonConverters.KeyJsonConverter))]
+			public Key? ExternalKey { get; set; }
 		}
 
 		public async Task<DiscreteOutcome?> AddReveal(EventFullName name, Key oracleAttestation)
 		{
-			var oracle = await GetOracle(name.OracleName);
+			var oracles = await GetOracles();
+			var oracle = GetOracle(name.OracleName, oracles);
 			if (oracle?.PubKey is null)
 				return null;
 			var events = await GetEvents(oracle);
 			var evt = events.FirstOrDefault(e => e.Name.Equals(name.Name, StringComparison.OrdinalIgnoreCase));
 			if (evt?.Nonce is null)
 				return null;
-			var sig64 = new byte[64];
-			evt.Nonce.WriteToSpan(sig64);
-			oracleAttestation.ToECPrivKey().WriteToSpan(sig64.AsSpan().Slice(32));
-			if (!NBitcoin.Secp256k1.SecpSchnorrSignature.TryCreate(sig64, out var sig) || sig is null)
+			var attestation = oracleAttestation.ToECPrivKey();
+			var sig = TryCreateSchnorrSig(attestation, evt.Nonce);
+			if (sig is null)
 				return null;
 			foreach (var outcome in evt.Outcomes)
 			{
@@ -99,10 +101,34 @@ namespace NDLC.CLI
 				evt.Attestations ??= new Dictionary<string, Key>();
 				if (!evt.Attestations.TryAdd(outcome, oracleAttestation))
 					return null;
+				// If we have two attestation for the same event, we can recover the private
+				// key of the oracle
+				if (evt.Attestations.Count > 1 && oracle.ExternalKey is null && oracle.RootedKeyPath is null)
+				{
+					var sigs = evt.Attestations.Select(kv => (Outcome: new DiscreteOutcome(kv.Key),
+												   Signature: TryCreateSchnorrSig(kv.Value.ToECPrivKey(), evt.Nonce) ?? throw new InvalidOperationException("Invalid signature in attestations")))
+									.Take(2)
+									.ToArray();
+					var extracted = oracle.PubKey.ExtractPrivateKey(sigs[0].Outcome.Hash, sigs[0].Signature,
+													sigs[1].Outcome.Hash, sigs[1].Signature);
+					if (extracted.CreateXOnlyPubKey() != oracle.PubKey)
+						throw new InvalidOperationException("Could not recover the private key of the oracle, this should never happen");
+					oracle.ExternalKey = new Key(extracted.ToBytes());
+					await SaveOracles(oracles);
+				}
 				await SaveEvents(oracle, events);
 				return discreteOutcome;
 			}
 			return null;
+		}
+
+		SecpSchnorrSignature? TryCreateSchnorrSig(ECPrivKey key, SchnorrNonce nonce)
+		{
+			var sig64 = new byte[64];
+			nonce.WriteToSpan(sig64);
+			key.WriteToSpan(sig64.AsSpan().Slice(32));
+			NBitcoin.Secp256k1.SecpSchnorrSignature.TryCreate(sig64, out var sig);
+			return sig;
 		}
 
 		public async Task<bool> AddEvent(EventFullName name, SchnorrNonce nonce, string[] outcomes, RootedKeyPath? nonceKeyPath = null)
@@ -171,6 +197,15 @@ namespace NDLC.CLI
 			public HDFingerprint? DefaultWallet { get; set; }
 		}
 
+		public async Task<Key?> GetKey(Oracle oracle)
+		{
+			if (oracle.ExternalKey is Key &&
+				oracle.ExternalKey.PubKey.ToECPubKey() == oracle.PubKey)
+				return oracle.ExternalKey;
+			if (oracle.RootedKeyPath is null)
+				return null;
+			return await GetKey(oracle.RootedKeyPath);
+		}
 		public async Task<Key> GetKey(RootedKeyPath keyPath)
 		{
 			var keyset = await OpenKeyset(keyPath.MasterFingerprint);
