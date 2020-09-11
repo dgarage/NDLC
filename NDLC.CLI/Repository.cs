@@ -43,8 +43,8 @@ namespace NDLC.CLI
 
 		class Keyset
 		{
-			[JsonConverter(typeof(MnemonicJsonConverter))]
-			public Mnemonic? Mnemonic { get; set; }
+			[JsonProperty("HDKey")]
+			public BitcoinExtKey? HDKey { get; set; }
 			[JsonConverter(typeof(NBitcoin.JsonConverters.KeyJsonConverter))]
 			public Key? SingleKey { get; set; }
 
@@ -53,9 +53,9 @@ namespace NDLC.CLI
 
 			public (KeyPath KeyPath, Key Key) GetNextKey()
 			{
-				if (Mnemonic is null || NextKeyPath is null)
+				if (HDKey is null || NextKeyPath is null)
 					throw new InvalidOperationException("Invalid keyset");
-				var k = Mnemonic.DeriveExtKey().Derive(NextKeyPath).PrivateKey;
+				var k = HDKey.Derive(NextKeyPath).PrivateKey;
 				var path = NextKeyPath;
 				NextKeyPath = NextKeyPath.Increment()!;
 				return (path, k);
@@ -71,12 +71,11 @@ namespace NDLC.CLI
 						throw new InvalidOperationException("Indices in the keypath are not valid for this keyset");
 					return SingleKey;
 				}
-				if (Mnemonic is null)
+				if (HDKey is null)
 					throw new InvalidOperationException("The keyset does not have a mnemonic set");
-				var master = Mnemonic.DeriveExtKey();
-				if (master.GetPublicKey().GetHDFingerPrint() != keyPath.MasterFingerprint)
+				if (HDKey.GetPublicKey().GetHDFingerPrint() != keyPath.MasterFingerprint)
 					throw new InvalidOperationException("The fingerprint of the keyset, does not match the mnemonic");
-				return master.Derive(keyPath.KeyPath).PrivateKey;
+				return HDKey.Derive(keyPath.KeyPath).PrivateKey;
 			}
 		}
 		public class Oracle
@@ -235,9 +234,9 @@ namespace NDLC.CLI
 			}
 			else
 			{
-				var mnemo = new Mnemonic(Wordlist.English);
-				wallet = new Keyset() { Mnemonic = mnemo, NextKeyPath = new KeyPath(0) };
-				fp = mnemo.DeriveExtKey().Neuter().PubKey.GetHDFingerPrint();
+				var extkey = new ExtKey();
+				wallet = new Keyset() { HDKey = extkey.GetWif(this.Network), NextKeyPath = new KeyPath(0) };
+				fp = extkey.Neuter().PubKey.GetHDFingerPrint();
 				settings.DefaultWallet = fp;
 				await this.SaveSettings(settings);
 			}
@@ -284,6 +283,7 @@ namespace NDLC.CLI
 		JsonSerializerSettings JsonSettings;
 		public Repository(string? dataDirectory, Network network)
 		{
+			Network = network;
 			dataDirectory ??= GetDefaultDataDirectory("ndlc", GetSubDirectory(network));
 			DataDirectory = dataDirectory;
 			JsonSettings = new JsonSerializerSettings()
@@ -295,8 +295,10 @@ namespace NDLC.CLI
 					{
 						ProcessDictionaryKeys = false
 					}
-				}
+				},
+				DefaultValueHandling = DefaultValueHandling.Ignore
 			};
+			JsonSettings.Converters.Add(new NBitcoin.JsonConverters.BitcoinStringJsonConverter(network));
 		}
 
 		public async Task<bool> OracleExists(string oracleName)
@@ -308,6 +310,7 @@ namespace NDLC.CLI
 		{
 			get;
 		}
+		public Network Network { get; }
 
 		public async Task<Settings> GetSettings()
 		{
