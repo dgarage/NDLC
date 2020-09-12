@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using NDLC.Secp256k1;
 using NBitcoin.Secp256k1;
 using NBitcoin;
+using NDLC.Messages;
 
 namespace NDLC.CLI.Events
 {
@@ -42,11 +43,9 @@ namespace NDLC.CLI.Events
 			if (evtObj.Attestations != null && evtObj.Attestations.Count > 0 && !force)
 				throw new CommandException("outcome", "An outcome has already been attested, attesting another one could leak the private key of your oracle. Use -f to force your action.");
 			var kValue = await Repository.GetKey(evtObj.NonceKeyPath);
-			key.ToECPrivKey().TrySignBIP140DLC_FIX(discreteOutcome.Hash, new PrecomputedNonceFunctionHardened(kValue.ToECPrivKey().ToBytes()), out var sig);
-			if (sig is null)
-				throw new NotSupportedException("BUG this should never happen");
-			var oracleAttestation = new Key(sig.s.ToBytes());
-			if (await Repository.AddReveal(evt, oracleAttestation) != outcome)
+			key.ToECPrivKey().TrySignBIP140(discreteOutcome.Hash, new PrecomputedNonceFunctionHardened(kValue.ToECPrivKey().ToBytes()), out var sig);
+			var oracleAttestation = new Key(sig!.s.ToBytes());
+			if (await Repository.AddAttestation(evt, oracleAttestation) != outcome)
 				throw new InvalidOperationException("Error while validating reveal");
 			context.Console.Out.Write(oracleAttestation.ToHex());
 		}

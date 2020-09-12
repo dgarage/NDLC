@@ -166,9 +166,9 @@ namespace NDLC.Tests
 				var privKey = new Key().ToECPrivKey();
 				var nonce = privKey.CreateSchnorrNonce();
 				var msg = RandomUtils.GetBytes(32);
-				privKey.TrySignBIP140DLC_FIX(msg, new PrecomputedNonceFunctionHardened(privKey.ToBytes()), out var sig);
+				privKey.TrySignBIP140(msg, new PrecomputedNonceFunctionHardened(privKey.ToBytes()), out var sig);
 				//Assert.Equal(sig.rx, nonce.fe);
-				Assert.True(privKey.CreateXOnlyPubKey().SigVerifyBIP340FIX_DLC(sig, msg));
+				Assert.True(privKey.CreateXOnlyPubKey().SigVerifyBIP340(sig, msg));
 			}
 		}
 		[Fact]
@@ -183,12 +183,12 @@ namespace NDLC.Tests
 			var initiator = new DLCTransactionBuilder(true, null, null, null, Network.RegTest);
 			var acceptor = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 
-			var oracleInfo = OracleInfo.Parse("156c7d1c7922f0aa1168d9e21ac77ea88bbbe05e24e70a08bbe0519778f2e5daea3a68d8749b81682513b0479418d289d17e24d4820df2ce979f1a56a63ca525");
+			var oracleInfo = OracleInfo.Parse("e4d36e995ff4bba4da2b60ad907d61d36e120d6f7314a3c2a20c6e27a5cd850ff67f8f41718c86f05eb95fab308f5ed788a2a963124299154648f97124caa579");
 			var requiredCollateral = initiator.Offer(oracleInfo.PubKey, oracleInfo.RValue,
 				new DiscretePayoffs() {
-				new DiscretePayoff("Republicans_win", Money.Coins(0.4m)),
-				new DiscretePayoff("Democrats_win", -Money.Coins(0.6m)),
-				new DiscretePayoff("other", Money.Zero) }, new Timeouts()
+				new DiscretePayoff("Republicans", Money.Coins(0.4m)),
+				new DiscretePayoff("Democrats", -Money.Coins(0.6m)),
+				new DiscretePayoff("Smith", Money.Zero) }, new Timeouts()
 				{
 					ContractMaturity = 100,
 					ContractTimeout = 200
@@ -212,8 +212,12 @@ namespace NDLC.Tests
 				Assert.NotNull(i.WitScript);
 
 			var cet = initiator.BuildCET(offer.ContractInfo[0].Outcome);
-			var keyBytes = Encoders.Hex.DecodeData("39eabd151030f4f2d518fb8a8d00f679aa9e034c66263032a1245a04cfbc592b");
+			var keyBytes = Encoders.Hex.DecodeData("d1da46f96f0be50bce2bbabe6bc8633f448ec3f1d14715a0b086b68ed34e095d");
 			var oracleSecret = new Key(keyBytes);
+
+			var sig = oracleInfo.RValue.CreateSchnorrSignature(oracleSecret.ToECPrivKey());
+			Assert.True(oracleInfo.PubKey.SigVerifyBIP340(sig, new DiscreteOutcome("Republicans").Hash));
+
 			initiator.BuildSignedCET(offerKey, oracleSecret);
 
 			this.testOutputHelper.WriteLine("----Final state------");
@@ -468,24 +472,58 @@ namespace NDLC.Tests
 
 			byte[] sigArr = schnorrSign(data, secKey, auxRand);
 			String sigStr = toHex(sigArr);
-			String expectedSig = "F14D7E54FF58C5D019CE9986BE4A0E8B7D643BD08EF2CDF1099E1A457865B5477C988C51634A8DC955950A58FF5DC8C506DDB796121E6675946312680C26CF33";
+			String expectedSig = "6470FD1303DDA4FDA717B9837153C24A6EAB377183FC438F939E0ED2B620E9EE5077C4A8B8DCA28963D772A94F5F0DDF598E1C47C137F91933274C7C3EDADCE8";
 			assertEquals(sigStr, expectedSig, "testSchnorrSign");
 		}
 
 		private byte[] schnorrSign(byte[] data, byte[] secKey, byte[] auxRand)
 		{
 			Assert.True(Context.Instance.TryCreateECPrivKey(secKey, out var key));
-			Assert.True(key.TrySignBIP140DLC_FIX(data, new BIP340NonceFunctionDLC_FIX(auxRand), out var sig));
+			Assert.True(key.TrySignBIP140(data, new BIP340NonceFunction(auxRand), out var sig));
 			var buf = new byte[64];
 			sig.WriteToSpan(buf);
 			return buf;
 		}
 
 		[Fact]
+		public void testSchnorrComputeSigPoint()
+		{
+
+			byte[] data = toByteArray("E48441762FB75010B2AA31A512B62B4148AA3FB08EB0765D76B252559064A614");
+			byte[] nonce = toByteArray("F14D7E54FF58C5D019CE9986BE4A0E8B7D643BD08EF2CDF1099E1A457865B547");
+			byte[] pubKey = toByteArray("B33CC9EDC096D0A83416964BD3C6247B8FECD256E4EFA7870D2C854BDEB33390");
+
+			byte[] pointArr = schnorrComputeSigPoint(data, nonce, pubKey, true);
+			String pointStr = toHex(pointArr);
+			String expectedPoint = "03735ACF82EEF9DA1540EFB07A68251D5476DABB11AC77054924ECCBB4121885E8";
+			assertEquals(pointStr, expectedPoint, "testSchnorrComputeSigPoint");
+		}
+		[Fact]
+		public void testSchnorrComputeSigPoint2()
+		{
+			byte[] data = toByteArray("FB84860B10A497DEDDC3EFB45D20786ED72D27CFCF54A09A0E1C04DCEF4882A1");
+			byte[] nonce = toByteArray("F67F8F41718C86F05EB95FAB308F5ED788A2A963124299154648F97124CAA579");
+			byte[] pubKey = toByteArray("E4D36E995FF4BBA4DA2B60AD907D61D36E120D6F7314A3C2A20C6E27A5CD850F");
+
+			byte[] pointArr = schnorrComputeSigPoint(data, nonce, pubKey, true);
+			String pointStr = toHex(pointArr);
+			String expectedPoint = "03C88D853DEA7F3E9C33027E99680446E4FB2ABF87704475522C8793CD1B03684B";
+			assertEquals(pointStr, expectedPoint, "testSchnorrComputeSigPoint");
+		}
+
+		private byte[] schnorrComputeSigPoint(byte[] data, byte[] nonce, byte[] pubKey, bool compressed)
+		{
+			Assert.True(ECXOnlyPubKey.TryCreate(pubKey, Context.Instance, out var pk));
+			Assert.True(SchnorrNonce.TryCreate(nonce, out var n));
+			Assert.True(new OracleInfo(pk, n).TryComputeSigpoint(new DiscreteOutcome(data), out var sigpoint));
+			return sigpoint.ToBytes(compressed);
+		}
+
+		[Fact]
 		public void testSchnorrVerify()
 		{
 
-			byte[] sig = toByteArray("F14D7E54FF58C5D019CE9986BE4A0E8B7D643BD08EF2CDF1099E1A457865B5477C988C51634A8DC955950A58FF5DC8C506DDB796121E6675946312680C26CF33");
+			byte[] sig = toByteArray("6470FD1303DDA4FDA717B9837153C24A6EAB377183FC438F939E0ED2B620E9EE5077C4A8B8DCA28963D772A94F5F0DDF598E1C47C137F91933274C7C3EDADCE8");
 			byte[] data = toByteArray("E48441762FB75010B2AA31A512B62B4148AA3FB08EB0765D76B252559064A614");
 			byte[] pubx = toByteArray("B33CC9EDC096D0A83416964BD3C6247B8FECD256E4EFA7870D2C854BDEB33390");
 
@@ -498,7 +536,7 @@ namespace NDLC.Tests
 		{
 			Assert.True(NBitcoin.Secp256k1.SecpSchnorrSignature.TryCreate(sig, out var o));
 			Assert.True(ECXOnlyPubKey.TryCreate(pubx, Context.Instance, out var pub));
-			return pub.SigVerifyBIP340FIX_DLC(o, data);
+			return pub.SigVerifyBIP340(o, data);
 		}
 
 		[Fact]
@@ -511,14 +549,14 @@ namespace NDLC.Tests
 
 			byte[] sigArr = schnorrSignWithNonce(data, secKey, nonce);
 			String sigStr = toHex(sigArr);
-			String expectedSig = "5DA618C1936EC728E5CCFF29207F1680DCF4146370BDCFAB0039951B91E3637A50A2A860B130D009405511C3EAFE943E157A0DF2C2020E3E50DF05ADB175332F";
+			String expectedSig = "5DA618C1936EC728E5CCFF29207F1680DCF4146370BDCFAB0039951B91E3637A958E91D68537D1F6F19687CEC1FD5DB1D83DA56EF3ADE1F3C611BABD7D08AF42";
 			assertEquals(sigStr, expectedSig, "testSchnorrSignWithNonce");
 		}
 
 		private byte[] schnorrSignWithNonce(byte[] data, byte[] secKey, byte[] nonce)
 		{
 			Assert.True(Context.Instance.TryCreateECPrivKey(secKey, out var key));
-			Assert.True(key.TrySignBIP140DLC_FIX(data, new PrecomputedNonceFunctionHardened(nonce), out var sig));
+			Assert.True(key.TrySignBIP140(data, new PrecomputedNonceFunctionHardened(nonce), out var sig));
 			var buf = new byte[64];
 			sig.WriteToSpan(buf);
 			return buf;

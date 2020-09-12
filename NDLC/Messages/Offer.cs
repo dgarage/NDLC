@@ -68,7 +68,7 @@ namespace NDLC.Messages
 		{
 			if (pubKey == null)
 				throw new ArgumentNullException(nameof(pubKey));
-			if (rValue == null)
+			if (rValue is null)
 				throw new ArgumentNullException(nameof(rValue));
 			RValue = rValue;
 			PubKey = pubKey;

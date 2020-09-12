@@ -3,7 +3,6 @@ using NBitcoin.DataEncoders;
 using NBitcoin.JsonConverters;
 using NBitcoin.Secp256k1;
 using NDLC.CLI.Events;
-using NDLC.CLI.JsonConverters;
 using NDLC.Messages.JsonConverters;
 using NDLC.Secp256k1;
 using Newtonsoft.Json;
@@ -87,7 +86,7 @@ namespace NDLC.CLI
 			public RootedKeyPath? RootedKeyPath { get; set; }
 		}
 
-		public async Task<DiscreteOutcome?> AddReveal(EventFullName name, Key oracleAttestation)
+		public async Task<DiscreteOutcome?> AddAttestation(EventFullName name, Key oracleAttestation)
 		{
 			var oracles = await GetOracles();
 			var oracle = GetOracle(name.OracleName, oracles);
@@ -98,13 +97,13 @@ namespace NDLC.CLI
 			if (evt?.Nonce is null)
 				return null;
 			var attestation = oracleAttestation.ToECPrivKey();
-			var sig = TryCreateSchnorrSig(attestation, evt.Nonce);
+			var sig = evt.Nonce.CreateSchnorrSignature(attestation);
 			if (sig is null)
 				return null;
 			foreach (var outcome in evt.Outcomes)
 			{
 				var discreteOutcome = new DiscreteOutcome(outcome);
-				if (!oracle.PubKey.SigVerifyBIP340FIX_DLC(sig, discreteOutcome.Hash))
+				if (!oracle.PubKey.SigVerifyBIP340(sig, discreteOutcome.Hash))
 					continue;
 				evt.Attestations ??= new Dictionary<string, Key>();
 				if (!evt.Attestations.TryAdd(outcome, oracleAttestation))
@@ -114,7 +113,7 @@ namespace NDLC.CLI
 				if (evt.Attestations.Count > 1 && oracle.RootedKeyPath is null)
 				{
 					var sigs = evt.Attestations.Select(kv => (Outcome: new DiscreteOutcome(kv.Key),
-												   Signature: TryCreateSchnorrSig(kv.Value.ToECPrivKey(), evt.Nonce) ?? throw new InvalidOperationException("Invalid signature in attestations")))
+												   Signature: evt.Nonce.CreateSchnorrSignature(kv.Value.ToECPrivKey()) ?? throw new InvalidOperationException("Invalid signature in attestations")))
 									.Take(2)
 									.ToArray();
 					if (!oracle.PubKey.TryExtractPrivateKey(
@@ -131,15 +130,6 @@ namespace NDLC.CLI
 				return discreteOutcome;
 			}
 			return null;
-		}
-
-		SecpSchnorrSignature? TryCreateSchnorrSig(ECPrivKey key, SchnorrNonce nonce)
-		{
-			var sig64 = new byte[64];
-			nonce.WriteToSpan(sig64);
-			key.WriteToSpan(sig64.AsSpan().Slice(32));
-			NBitcoin.Secp256k1.SecpSchnorrSignature.TryCreate(sig64, out var sig);
-			return sig;
 		}
 
 		public async Task<bool> AddEvent(EventFullName name, SchnorrNonce nonce, string[] outcomes, RootedKeyPath? nonceKeyPath = null)

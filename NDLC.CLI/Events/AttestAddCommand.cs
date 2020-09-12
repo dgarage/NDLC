@@ -28,7 +28,7 @@ namespace NDLC.CLI.Events
 			var oracle = await Repository.GetOracle(evt.OracleName);
 			if (oracle is null)
 				throw new CommandException("name", "This oracle does not exists");
-			var outcome = await Repository.AddReveal(evt, attestationKey);
+			var outcome = await Repository.AddAttestation(evt, attestationKey);
 			if (outcome?.OutcomeString is null)
 				throw new CommandException("attestation", "This attestation does not attest known outcomes");
 			context.Console.Out.Write(outcome.OutcomeString);

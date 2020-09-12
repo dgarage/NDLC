@@ -40,9 +40,9 @@ namespace NDLC.Tests
 				var priv = new Key();
 				var msg1 = RandomUtils.GetBytes(32);
 				var nonce = RandomUtils.GetBytes(32);
-				priv.ToECPrivKey().TrySignBIP140DLC_FIX(msg1, new PrecomputedNonceFunctionHardened(nonce), out var sig1);
+				priv.ToECPrivKey().TrySignBIP140(msg1, new PrecomputedNonceFunctionHardened(nonce), out var sig1);
 				var msg2 = RandomUtils.GetBytes(32);
-				priv.ToECPrivKey().TrySignBIP140DLC_FIX(msg2, new PrecomputedNonceFunctionHardened(nonce), out var sig2);
+				priv.ToECPrivKey().TrySignBIP140(msg2, new PrecomputedNonceFunctionHardened(nonce), out var sig2);
 
 				Assert.True(priv.PubKey.ToECPubKey().TryExtractPrivateKey(msg1, sig1, msg2, sig2, out var privkey));
 				Assert.Equal(priv.ToHex(), Encoders.Hex.EncodeData(privkey.ToBytes()));

@@ -159,20 +159,20 @@ namespace NDLC.Tests
 			{
 				"--datadir", GetDataDirectory(),
 				"oracle", "add",
-				"morpheus", "daa9d8cdc6a594055efbade8312ec1621e56ec2cb1ed571181bc2460602a61f8"
+				"morpheus", "399e2348d8b5db8161a915af8efd900aa7241e6eed6d28ff8cc77afc505e8258"
 			});
 			await Tester.AssertInvokeSuccess(new string[]
 			{
 				"--datadir", GetDataDirectory(),
 				"event", "add",
-				"morpheus/elections", "450f5a8e3da27c79080b853cd925772a929ff8dc5559a8bf81d432d1c9de22a7",
+				"morpheus/elections", "2fe5252fa3c676a4522f2e8a05d2bc3a79c865ca17a44ab6d168bcc79194491f",
 				"Republicans", "Democrats", "Smith"
 			});
 			await Tester.AssertInvokeSuccess(new string[]
 			{
 				"--datadir", GetDataDirectory(),
 				"event", "attest", "add",
-				"morpheus/elections", "a3b85eb6275cceb8bedb19076f1aab23a4021b3158faf6b9fdc4910586357c79"
+				"morpheus/elections", "b7728d379612731b26db15249106d9b59855c4c3957454415a93cb5daa065803"
 			});
 			await Tester.AssertInvokeSuccess(new string[]
 			{
@@ -183,7 +183,7 @@ namespace NDLC.Tests
 			{
 				"--datadir", GetDataDirectory(),
 				"event", "attest", "add",
-				"morpheus/elections", "13bdfe5cb1cb7a2bced86a539b446cfc959d507fc10e777b1c4a39562e5b58e9"
+				"morpheus/elections", "67812f3bd89a6ccc27ced51030f604a738ee9ac1726d21c22cb7282b2585f05e"
 			});
 			await Tester.AssertInvokeSuccess(new string[]
 			{
