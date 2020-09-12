@@ -161,7 +161,7 @@ By doing so they will learn Olivia's private key and able to create attestations
 You can test this behavior, with Olivia using the `-f` option:
 
 ```bash
-event attest sign -f "awesomeoracle/USElection2020" "Republicans"
+event attest sign -f "awesomeoracle/USElection2020" "Democrats"
 ```
 
 Then Alice/Bob
