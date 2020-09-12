@@ -31,6 +31,7 @@ namespace NDLC.CLI.Events
 			var nonce = k.PrivateKey.ToECPrivKey().CreateSchnorrNonce();
 			if (!await Repository.AddEvent(evt, nonce, outcomes, k.KeyPath))
 				throw new CommandException("name", "This event already exists");
+			context.Console.Out.Write(nonce.ToString());
 		}
 	}
 }
