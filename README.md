@@ -6,7 +6,7 @@ I WILL TAKE NO ATTEMPT AT MAINTAINING BACKWARD COMPATIBILITY AT THIS STAGE.
 
 ## What are DLC?
 
-Smart contracts are an often touted feature of cryptographic currencysystems such as Bitcoin, but they have yet to see widespread financial use.Two of the biggest hurdles to their implementation and adoption have beenscalability of the smart contracts, and the difficulty in getting data externalto the curency system into the smart contract.  Privacy of the contract hasbeen  another  issue  to  date.   Discreet  Log  Contracts  are  a  system  whichaddresses  the  scalability  and  privacy  concerns  and  seeks  to  minimize  thetrust required in the oracle which provides external data.  The contracts arediscreet in that external observers cannot detect the presence of the contractin the transaction log.  They also hinge on knowledge of adiscretelogarithm,which is a plus.
+Smart contracts are an often touted feature of cryptographic currency systems such as Bitcoin, but they have yet to see widespread financial use. Two of the biggest hurdles to their implementation and adoption have been scalability of the smart contracts, and the difficulty in getting data external to the curency system into the smart contract. Privacy of the contract has been another issue to date. Discreet Log Contracts are a system which addresses the  scalability and privacy concerns and seeks to minimize the trust required in the oracle which provides external data. The contracts are discreet in that external observers cannot detect the presence of the contract in the transaction log. They also hinge on knowledge of a discrete logarithm, which is a plus.
 
 Source: [Discreet Log Contracts](https://adiabat.github.io/dlc.pdf) by Thaddeus Dryja.
 
