@@ -94,6 +94,22 @@ namespace NDLC.Tests
 		}
 
 		[Fact]
+		public void CanComputeSigPoint()
+		{
+			for (int i = 0; i < 100; i++)
+			{
+				var oracleKey = Context.Instance.CreateECPrivKey(RandomUtils.GetBytes(32));
+				var msg = RandomUtils.GetBytes(32);
+				var kValue = Context.Instance.CreateECPrivKey(RandomUtils.GetBytes(32));
+				var nonce = kValue.CreateSchnorrNonce();
+				var sig = oracleKey.SignBIP140(msg, new PrecomputedNonceFunctionHardened(kValue.ToBytes()));
+				Assert.Equal(sig.rx, nonce.PubKey.Q.x);
+				Assert.True(oracleKey.CreateXOnlyPubKey().TryComputeSigPoint(msg, nonce, out var sigPoint));
+				Assert.Equal(sigPoint.Q, Context.Instance.CreateECPrivKey(sig.s).CreatePubKey().Q);
+			}
+		}
+
+		[Fact]
 		public void FullExchange()
 		{
 			var offerExample = Parse<Messages.Offer>("Data/Offer2.json");
