@@ -1,4 +1,5 @@
 ﻿using NBitcoin.Secp256k1;
+using NDLC.CLI.DLC;
 using NDLC.CLI.Events;
 using NDLC.Secp256k1;
 using System;
@@ -123,7 +124,7 @@ namespace NDLC.CLI
 
 			Command evts = new Command("event", "Manage events");
 			Command addEvent = new Command("add", "Add a new event");
-			addEvent.Add(new Argument<string>("name", "The event full name, in format 'oraclename/name'")
+			addEvent.Add(new Argument<string>("eventfullname", "The event full name, in format 'oraclename/name'")
 			{
 				Arity = ArgumentArity.ExactlyOne
 			});
@@ -147,11 +148,11 @@ namespace NDLC.CLI
 			});
 			listEvent.Handler = new ListEventsCommand();
 			Command showEvents = new Command("show", "Show details of an event");
-			showEvents.Add(new Argument<string>("name", "The full name of the event"));
+			showEvents.Add(new Argument<string>("eventfullname", "The full name of the event"));
 			showEvents.Handler = new ShowEventCommand();
 
 			Command generateEvents = new Command("generate", "Generate a new event");
-			generateEvents.Add(new Argument<string>("name", "The event full name, in format 'oraclename/name'")
+			generateEvents.Add(new Argument<string>("eventfullname", "The event full name, in format 'oraclename/name'")
 			{
 				Arity = ArgumentArity.ExactlyOne
 			});
@@ -163,7 +164,7 @@ namespace NDLC.CLI
 
 			Command attestEvent = new Command("attest", "Attest an event");
 			Command attestSignEvent = new Command("sign", "Sign an attestation");
-			attestSignEvent.Add(new Argument<string>("name", "The event full name, in format 'oraclename/name'")
+			attestSignEvent.Add(new Argument<string>("eventfullname", "The event full name, in format 'oraclename/name'")
 			{
 				Arity = ArgumentArity.ExactlyOne
 			});
@@ -178,7 +179,7 @@ namespace NDLC.CLI
 			});
 			attestSignEvent.Handler = new AttestSignCommand();
 			Command attestAddEvent = new Command("add", "Add an attestation received by an oracle");
-			attestAddEvent.Add(new Argument<string>("name", "The event full name, in format 'oraclename/name'")
+			attestAddEvent.Add(new Argument<string>("eventfullname", "The event full name, in format 'oraclename/name'")
 			{
 				Arity = ArgumentArity.ExactlyOne
 			});
@@ -195,6 +196,33 @@ namespace NDLC.CLI
 			evts.Add(showEvents);
 			evts.Add(generateEvents);
 			evts.Add(attestEvent);
+
+			Command dlc = new Command("dlc", "Manage DLCs");
+			root.Add(dlc);
+
+			Command generateDLC = new Command("generate", "Generate a new DLC");
+			generateDLC.Add(new Argument<string>("name", "The name of this DLC")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			generateDLC.Add(new Argument<string>("eventfullname", "The full name of the event")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			generateDLC.Add(new Argument<string>("payoff", "The payoffs in the format 'outcome:reward' or 'outcome:-loss'")
+			{
+				Arity = ArgumentArity.OneOrMore
+			});
+			generateDLC.Handler = new GenerateDLCCommand();
+			dlc.Add(generateDLC);
+
+			Command showDLC = new Command("show", "Show information about a DLC");
+			showDLC.Add(new Argument<string>("name", "The name of the DLC")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			showDLC.Handler = new ShowDLCCommand();
+			dlc.Add(showDLC);
 
 			Command reviewOffer = new Command("review", "Review an offer");
 			offer.Add(reviewOffer);

@@ -124,7 +124,15 @@ namespace NDLC
 		public DiscretePayoff this[int index]
 		{
 			get { return _Outcomes[index]; }
-			set { _Outcomes[index] = value; }
+			set
+			{
+				if (value == null)
+					throw new ArgumentNullException(nameof(value));
+				var oldPayoff = _Outcomes[index];
+				_Outcomes[index] = value;
+				_Rewards.Remove(oldPayoff.Outcome);
+				_Rewards.Add(value.Outcome, value.Reward);
+			}
 		}
 	}
 	public class DiscretePayoff

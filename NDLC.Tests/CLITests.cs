@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
+using System.Net.Http.Headers;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +26,77 @@ namespace NDLC.Tests
 
 		public CommandTester Tester { get; }
 		public ITestOutputHelper Log { get; }
+
+		[Fact]
+		public async Task CanMakeContract()
+		{
+			var alice = CreateDataDirectory("Alice");
+			var bob = CreateDataDirectory("Bob");
+			var parties = new[] { alice, bob };
+			var olivia = CreateDataDirectory("Olivia");
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", olivia,
+				"oracle", "generate",
+				"olivia"
+			});
+			var oliviaPubKey = Tester.GetLastOutput();
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", olivia,
+				"event", "generate", "olivia/coolestguy",
+				"Ninja", "Samurai", "Cowboy", "NicolasDorier"
+			});
+			var nonce = Tester.GetLastOutput();
+			foreach (var party in parties)
+			{
+				await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", party,
+					"oracle", "add",
+					"olivia", oliviaPubKey
+				});
+				await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", party,
+					"event", "add",
+					"olivia/coolestguy", nonce,
+					"Ninja", "Samurai", "Cowboy", "NicolasDorier"
+				});
+			}
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", alice,
+					"dlc", "generate",
+					"BetWithBob", "olivia/coolestguy",
+					"Ninja:-0.4",
+					"cowboy:-1.2",
+					"Samurai:0.6",
+					"NicolasDorier:1"
+				});
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", alice,
+					"dlc", "show", "BetWithBob", 
+				});
+
+			var offerFunding = CreateOfferFunding(Money.Coins(1.2m));
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", alice,
+					"dlc", "offer", "BetWithBob", offerFunding
+				});
+		}
+
+		private string CreateOfferFunding(Money money)
+		{
+			TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
+			builder.AddCoins(new Coin(new OutPoint(RandomUtils.GetUInt256(), 0), new TxOut(Money.Coins(50.0m), new Key().PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit))));
+			builder.Send(new Key().PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), money);
+			builder.SetChange(new Key().PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
+			builder.SendEstimatedFees(new FeeRate(10.0m));
+			return builder.BuildPSBT(false).ToBase64();
+		}
 
 		[Fact]
 		public async Task CanShowInfo()
@@ -330,6 +403,16 @@ namespace NDLC.Tests
 				created = true;
 			}
 			return testName;
+		}
+		public string CreateDataDirectory(string name, [CallerMemberName] string testName = null)
+		{
+			if (!Directory.Exists(testName))
+				Directory.CreateDirectory(testName);
+			var fullname = Path.Combine(testName, name);
+			if (Directory.Exists(fullname))
+				Directory.Delete(fullname, true);
+			Directory.CreateDirectory(fullname);
+			return fullname;
 		}
 	}
 }

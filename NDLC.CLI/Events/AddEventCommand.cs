@@ -14,11 +14,7 @@ namespace NDLC.CLI.Events
 	{
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
-			var eventName = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.Trim();
-			if (eventName is null)
-				throw new CommandOptionRequiredException("name");
-			if (!EventFullName.TryParse(eventName, out EventFullName? evt) || evt is null)
-				throw new CommandException("name", "Invalid event full name, should be in the form 'oracleName/eventName'");
+			EventFullName evt = context.GetEventName();
 			var rNonce = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("nonce")?.ToLowerInvariant().Trim();
 			if (rNonce is null)
 				throw new CommandOptionRequiredException("nonce");
@@ -26,9 +22,9 @@ namespace NDLC.CLI.Events
 				throw new CommandException("nonce", "Invalid nonce");
 			var outcomes = context.GetOutcomes();
 			if (!await Repository.OracleExists(evt.OracleName))
-				throw new CommandException("name", "The specified oracle do not exists");
+				throw new CommandException("eventfullname", "The specified oracle do not exists");
 			if (!await Repository.AddEvent(evt, nonce, outcomes.ToArray()))
-				throw new CommandException("name", "The specified event already exists");
+				throw new CommandException("eventfullname", "The specified event already exists");
 		}
 	}
 }

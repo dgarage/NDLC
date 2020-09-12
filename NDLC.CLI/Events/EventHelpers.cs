@@ -24,11 +24,11 @@ namespace NDLC.CLI.Events
 
 		public static EventFullName GetEventName(this InvocationContext context)
 		{
-			var eventName = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.Trim();
+			var eventName = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("eventfullname")?.Trim();
 			if (eventName is null)
-				throw new CommandOptionRequiredException("name");
+				throw new CommandOptionRequiredException("eventfullname");
 			if (!EventFullName.TryParse(eventName, out EventFullName? evt) || evt is null)
-				throw new CommandException("name", "Invalid event full name, should be in the form 'oracleName/eventName'");
+				throw new CommandException("eventfullname", "Invalid event full name, should be in the form 'oracleName/eventName'");
 			return evt;
 		}
 	}

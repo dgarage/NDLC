@@ -24,20 +24,20 @@ namespace NDLC.CLI.Events
 			EventFullName evt = context.GetEventName();
 			var oracle = await Repository.GetOracle(evt.OracleName);
 			if (oracle is null)
-				throw new CommandException("name", "This oracle does not exists");
+				throw new CommandException("eventfullname", "This oracle does not exists");
 
 			var discreteOutcome = new DiscreteOutcome(outcome);
 			var evtObj = await Repository.GetEvent(evt);
 			if (evtObj?.Nonce is null)
-				throw new CommandException("name", "This event does not exists");
+				throw new CommandException("eventfullname", "This event does not exists");
 			if (evtObj?.NonceKeyPath is null)
-				throw new CommandException("name", "You did not generated this event");
+				throw new CommandException("eventfullname", "You did not generated this event");
 			outcome = evtObj.Outcomes.FirstOrDefault(o => o.Equals(outcome, StringComparison.OrdinalIgnoreCase));
 			if (outcome is null)
 				throw new CommandException("outcome", "This outcome does not exists in this event");
 			var key = oracle.RootedKeyPath is RootedKeyPath ? await Repository.GetKey(oracle.RootedKeyPath) : null;
 			if (key is null)
-				throw new CommandException("name", "You do not own the keys of this oracle");
+				throw new CommandException("eventfullname", "You do not own the keys of this oracle");
 			if (evtObj.Attestations?.ContainsKey(outcome) is true)
 				throw new CommandException("outcome", "This outcome has already been attested");
 			if (evtObj.Attestations != null && evtObj.Attestations.Count > 0 && !force)

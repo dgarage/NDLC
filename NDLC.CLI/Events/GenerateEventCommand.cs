@@ -18,19 +18,19 @@ namespace NDLC.CLI.Events
 		{
 			EventFullName evt = context.GetEventName();
 			if (await Repository.GetEvent(evt) is Event)
-				throw new CommandException("name", "This event already exists");
+				throw new CommandException("eventfullname", "This event already exists");
 			var outcomes = context.GetOutcomes();
 			var oracle = await Repository.GetOracle(evt.OracleName);
 			if (oracle is null)
-				throw new CommandException("name", "This oracle does not exists");
+				throw new CommandException("eventfullname", "This oracle does not exists");
 			if (oracle.RootedKeyPath is null)
-				throw new CommandException("name", "You do not own the keys of this oracle");
+				throw new CommandException("eventfullname", "You do not own the keys of this oracle");
 
 
 			var k = await Repository.CreatePrivateKey();
 			var nonce = k.PrivateKey.ToECPrivKey().CreateSchnorrNonce();
 			if (!await Repository.AddEvent(evt, nonce, outcomes, k.KeyPath))
-				throw new CommandException("name", "This event already exists");
+				throw new CommandException("eventfullname", "This event already exists");
 			context.Console.Out.Write(nonce.ToString());
 		}
 	}

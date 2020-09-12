@@ -3,9 +3,11 @@ using NBitcoin.DataEncoders;
 using NBitcoin.JsonConverters;
 using NBitcoin.Secp256k1;
 using NDLC.CLI.Events;
+using NDLC.Messages;
 using NDLC.Messages.JsonConverters;
 using NDLC.Secp256k1;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
@@ -19,6 +21,21 @@ namespace NDLC.CLI
 {
 	public class Repository
 	{
+		public class DLCState
+		{
+			[JsonConverter(typeof(KeyPathJsonConverter))]
+			public RootedKeyPath? FundKeyPath { get; set; }
+			public JObject? BuilderState { get; set; }
+			[JsonConverter(typeof(OracleInfoJsonConverter))]
+			public OracleInfo? OracleInfo { get; set; }
+		}
+
+		public async Task<Oracle> GetOracle(ECXOnlyPubKey pubKey)
+		{
+			var oracles = await GetOracles();
+			return oracles.FirstOrDefault(o => o.PubKey == pubKey);
+		}
+
 		public class Event
 		{
 			public string Name { get; set; } = string.Empty;
@@ -38,6 +55,11 @@ namespace NDLC.CLI
 				return null;
 			var evts = await GetEvents(oracle);
 			return evts.FirstOrDefault(e => e.Name.Equals(evtName.Name, StringComparison.OrdinalIgnoreCase));
+		}
+		public async Task<Event?> GetEvent(ECXOnlyPubKey oraclePubKey, SchnorrNonce nonce)
+		{
+			var events = await GetEvents(oraclePubKey);
+			return events?.FirstOrDefault(e => e.Nonce == nonce);
 		}
 
 		class Keyset
@@ -77,6 +99,32 @@ namespace NDLC.CLI
 				return HDKey.Derive(keyPath.KeyPath).PrivateKey;
 			}
 		}
+
+		public async Task NewDLC(string name, OracleInfo oracleInfo, string builderState)
+		{
+			var dir = Path.Combine(DataDirectory, "dlcs");
+			if (!Directory.Exists(dir))
+				Directory.CreateDirectory(dir);
+			var file = GetDLCFilePath(name);
+			var s = new DLCState() { OracleInfo = oracleInfo, BuilderState = JObject.Parse(builderState) };
+			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(s, JsonSettings));
+		}
+		public async Task<DLCState?> GetDLC(string name)
+		{
+			var dir = Path.Combine(DataDirectory, "dlcs");
+			if (!Directory.Exists(dir))
+				return null;
+			var file = GetDLCFilePath(name);
+			if (!File.Exists(file))
+				return null;
+			return JsonConvert.DeserializeObject<DLCState>(await File.ReadAllTextAsync(file), JsonSettings);
+		}
+
+		string GetDLCFilePath(string name)
+		{
+			return Path.Combine(DataDirectory, "dlcs", $"{name}.json");
+		}
+
 		public class Oracle
 		{
 			public string? Name { get; set; }
@@ -177,15 +225,19 @@ namespace NDLC.CLI
 			return events.FirstOrDefault(ev => ev.Name?.Equals(name.Name, StringComparison.OrdinalIgnoreCase) is true);
 		}
 
-		private async Task<List<Event>> GetEvents(Oracle oracle)
+		private Task<List<Event>> GetEvents(Oracle oracle)
 		{
 			if (oracle.PubKey is null)
 				throw new InvalidOperationException("This oracle's pubkey is not set");
+			return GetEvents(oracle.PubKey);
+		}
+		private async Task<List<Event>> GetEvents(ECXOnlyPubKey oracle)
+		{
 			var dir = Path.Combine(DataDirectory, "events");
 			if (!Directory.Exists(dir))
 				return new List<Event>();
 			// base58, help keeping filename small to make windows happy
-			var eventFilePath = GetEventFilePath(oracle.PubKey, dir);
+			var eventFilePath = GetEventFilePath(oracle, dir);
 			if (!File.Exists(eventFilePath))
 				return new List<Event>();
 			return JsonConvert.DeserializeObject<List<Event>>(await File.ReadAllTextAsync(eventFilePath), JsonSettings)
@@ -295,6 +347,8 @@ namespace NDLC.CLI
 			};
 			JsonSettings.Converters.Add(new NBitcoin.JsonConverters.BitcoinStringJsonConverter(network));
 		}
+
+		
 
 		public async Task<bool> OracleExists(string oracleName)
 		{

@@ -66,11 +66,11 @@ namespace NDLC.Secp256k1
 				return false;
 			return PubKey.Equals(item.PubKey);
 		}
-		public static bool operator ==(SchnorrNonce a, SchnorrNonce b)
+		public static bool operator ==(SchnorrNonce? a, SchnorrNonce? b)
 		{
 			if (System.Object.ReferenceEquals(a, b))
 				return true;
-			if (((object)a == null) || ((object)b == null))
+			if ((a is null) || (b is null))
 				return false;
 			return a.PubKey == b.PubKey;
 		}

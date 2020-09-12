@@ -514,6 +514,7 @@ namespace NDLC.Messages
 		{
 			return JsonConvert.SerializeObject(s, SerializerSettings);
 		}
+		public DLCTransactionBuilderState State => s;
 
 		JsonSerializerSettings? _SerializerSettings;
 		JsonSerializerSettings SerializerSettings
