@@ -1,6 +1,7 @@
 ﻿using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.Reflection;
@@ -11,6 +12,12 @@ namespace NDLC.CLI
 {
 	public class ShowInfoCommand : CommandBase
 	{
+		public static Command CreateCommand()
+		{
+			Command command = new Command("info", "Show information");
+			command.Handler = new ShowInfoCommand();
+			return command;
+		}
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
 			var version = this.GetType().Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;

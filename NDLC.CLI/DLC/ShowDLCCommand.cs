@@ -13,6 +13,16 @@ namespace NDLC.CLI.DLC
 {
 	public class ShowDLCCommand : CommandBase
 	{
+		public static Command CreateCommand()
+		{
+			Command command = new Command("show", "Show information about a DLC");
+			command.Add(new Argument<string>("name", "The name of the DLC")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			command.Handler = new ShowDLCCommand();
+			return command;
+		}
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
 			var name = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.Trim();

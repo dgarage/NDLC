@@ -12,6 +12,12 @@ namespace NDLC.CLI
 {
 	public class ListOracleCommand : CommandBase
 	{
+		public static Command CreateCommand()
+		{
+			Command command = new Command("list", "List oracles");
+			command.Handler = new ListOracleCommand();
+			return command;
+		}
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
 			byte[] buf = new byte[32];

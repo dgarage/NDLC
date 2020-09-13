@@ -10,11 +10,26 @@ using NDLC.Secp256k1;
 using NBitcoin.Secp256k1;
 using NBitcoin;
 using NBitcoin.DataEncoders;
+using System.CommandLine;
 
 namespace NDLC.CLI.Events
 {
 	public class AttestAddCommand : CommandBase
 	{
+		public static Command CreateCommand()
+		{
+			Command command = new Command("add", "Add an attestation received by an oracle");
+			command.Add(new Argument<string>("eventfullname", "The event full name, in format 'oraclename/name'")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			command.Add(new Argument<string>("attestation", "The received attestation")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			command.Handler = new AttestAddCommand();
+			return command;
+		}
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
 			var attestation = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("attestation")?.Trim();

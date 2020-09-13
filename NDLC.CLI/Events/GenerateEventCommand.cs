@@ -2,6 +2,7 @@
 using NDLC.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
@@ -14,6 +15,20 @@ namespace NDLC.CLI.Events
 {
 	public class GenerateEventCommand : CommandBase
 	{
+		public static Command CreateCommand()
+		{
+			Command command = new Command("generate", "Generate a new event");
+			command.Add(new Argument<string>("eventfullname", "The event full name, in format 'oraclename/name'")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			command.Add(new Argument<string>("outcomes", "The outcomes, as specified by the oracle")
+			{
+				Arity = ArgumentArity.OneOrMore
+			});
+			command.Handler = new GenerateEventCommand();
+			return command;
+		}
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
 			EventFullName evt = context.GetEventName();

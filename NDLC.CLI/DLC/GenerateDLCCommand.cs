@@ -2,6 +2,7 @@
 using NDLC.Messages;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Linq;
@@ -13,6 +14,24 @@ namespace NDLC.CLI.DLC
 {
 	public class GenerateDLCCommand : CommandBase
 	{
+		public static Command CreateCommand()
+		{
+			Command command = new Command("generate", "Generate a new DLC");
+			command.Add(new Argument<string>("name", "The name of this DLC")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			command.Add(new Argument<string>("eventfullname", "The full name of the event")
+			{
+				Arity = ArgumentArity.ExactlyOne
+			});
+			command.Add(new Argument<string>("payoff", "The payoffs in the format 'outcome:reward' or 'outcome:-loss'")
+			{
+				Arity = ArgumentArity.OneOrMore
+			});
+			command.Handler = new GenerateDLCCommand();
+			return command;
+		}
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
 			var name = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.Trim();

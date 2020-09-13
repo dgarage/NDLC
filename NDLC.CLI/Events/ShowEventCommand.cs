@@ -1,6 +1,7 @@
 ﻿using NBitcoin;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
@@ -11,13 +12,16 @@ namespace NDLC.CLI.Events
 {
 	public class ShowEventCommand : CommandBase
 	{
+		public static Command CreateCommand()
+		{
+			Command command = new Command("show", "Show details of an event");
+			command.Add(new Argument<string>("eventfullname", "The full name of the event"));
+			command.Handler = new ShowEventCommand();
+			return command;
+		}
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
-			var name = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.Trim();
-			if (name is null)
-				throw new CommandOptionRequiredException("name");
-			if (!EventFullName.TryParse(name, out var evtName) || evtName is null)
-				throw new CommandException("name", "Invalid event full name, should be in the form 'oracleName/eventName'");
+			var evtName = context.GetEventName();
 			var evt = await Repository.GetEvent(evtName);
 			if (evt is null)
 				throw new CommandException("name", "Event not found");

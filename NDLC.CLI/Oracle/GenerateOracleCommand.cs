@@ -3,6 +3,7 @@ using NBitcoin.Secp256k1;
 using NDLC.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.CommandLine.Parsing;
@@ -13,6 +14,15 @@ namespace NDLC.CLI
 {
 	public class GenerateOracleCommand : CommandBase
 	{
+		public static Command CreateCommand()
+		{
+			Command command = new Command("generate", "Generate a new oracle (the private key will be stored locally)")
+				{
+					new Argument<string>("name", "The oracle name")
+				};
+			command.Handler = new GenerateOracleCommand();
+			return command;
+		}
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
 			var oracleName = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.ToLowerInvariant().Trim();

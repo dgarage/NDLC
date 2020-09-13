@@ -2,6 +2,7 @@
 using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Text;
@@ -11,6 +12,29 @@ namespace NDLC.CLI
 {
 	public class AddSetOracleCommand : CommandBase
 	{
+		public static Command CreateCommand(bool set)
+		{
+			if (set)
+			{
+				Command command = new Command("set", "Modify an oracle")
+				{
+					new Argument<string>("name", "The oracle name"),
+					new Argument<string>("pubkey", "The oracle pubkey"),
+				};
+				command.Handler = new AddSetOracleCommand() { Set = true };
+				return command;
+			}
+			else
+			{
+				Command command = new Command("add", "Add a new oracle")
+				{
+					new Argument<string>("name", "The oracle name"),
+					new Argument<string>("pubkey", "The oracle pubkey"),
+				};
+				command.Handler = new AddSetOracleCommand();
+				return command;
+			}
+		}
 		public bool Set { get; set; }
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
