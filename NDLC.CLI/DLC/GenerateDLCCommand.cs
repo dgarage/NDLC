@@ -1,4 +1,5 @@
-﻿using NDLC.CLI.Events;
+﻿using NBitcoin;
+using NDLC.CLI.Events;
 using NDLC.Messages;
 using System;
 using System.Collections.Generic;
@@ -53,7 +54,7 @@ namespace NDLC.CLI.DLC
 			builder.Offer(oracle.PubKey, evt.Nonce, payoffs, new Timeouts()
 			{
 				ContractMaturity = 0,
-				ContractTimeout = 0
+				ContractTimeout = Constants.NeverLockTime
 			});
 			await Repository.NewDLC(name, new OracleInfo(oracle.PubKey, evt.Nonce), builder);
 		}

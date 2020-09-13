@@ -152,7 +152,7 @@ namespace NDLC.CLI
 
 		public class Oracle
 		{
-			public string? Name { get; set; }
+			public string Name { get; set; } = string.Empty;
 			[JsonConverter(typeof(ECXOnlyPubKeyJsonConverter))]
 			public ECXOnlyPubKey? PubKey { get; set; }
 			[JsonConverter(typeof(NBitcoin.JsonConverters.KeyPathJsonConverter))]

@@ -15,8 +15,6 @@ namespace NDLC.Messages.JsonConverters
 		{
 			[JsonProperty("sha256")]
 			public string? SHA256 { get; set; }
-			[JsonProperty("outcome", DefaultValueHandling = DefaultValueHandling.Ignore)]
-			public string? Outcome { get; set;  }
 			[JsonConverter(typeof(NBitcoin.JsonConverters.MoneyJsonConverter))]
 			public Money? Sats { get; set; }
 		}
@@ -25,18 +23,10 @@ namespace NDLC.Messages.JsonConverters
 			if (reader.TokenType != JsonToken.StartObject)
 				throw new JsonObjectException("ContractInfo is expecting a json object", reader);
 			var cd = serializer.Deserialize<ContractData>(reader);
-			if (cd?.Sats is null || (cd?.Outcome is null && cd?.SHA256 is null))
+			if (cd?.Sats is null || cd?.SHA256 is null)
 				throw new JsonObjectException("Invalid contract info (missing fields)", reader);
 
-			DiscreteOutcome outcome = cd.Outcome is string ? new DiscreteOutcome(cd.Outcome)
-													  : new DiscreteOutcome(Encoders.Hex.DecodeData(cd.SHA256));
-			if (cd.Outcome is string && cd.SHA256 is string)
-			{
-				if (outcome.Hash.AsSpan().SequenceCompareTo(Encoders.Hex.DecodeData(cd.SHA256)) != 0)
-				{
-					throw new JsonObjectException("Invalid contract info (invalid sha256 for the outcome)", reader);
-				}
-			}
+			DiscreteOutcome outcome = new DiscreteOutcome(Encoders.Hex.DecodeData(cd.SHA256));
 			return new ContractInfo(outcome, cd.Sats);
 		}
 
@@ -45,7 +35,6 @@ namespace NDLC.Messages.JsonConverters
 			if (value is ContractInfo)
 			{
 				var data = new ContractData();
-				data.Outcome = value.Outcome.OutcomeString;
 				data.SHA256 = Encoders.Hex.EncodeData(value.Outcome.Hash);
 				data.Sats = value.Payout;
 				serializer.Serialize(writer, data);

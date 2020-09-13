@@ -59,6 +59,7 @@ namespace NDLC.CLI
 				{
 					GenerateDLCCommand.CreateCommand(),
 					OfferDLCCommand.CreateCommand(),
+					ReviewDLCCommand.CreateCommand(),
 					ShowDLCCommand.CreateCommand()
 				}
 			};

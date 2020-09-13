@@ -96,10 +96,17 @@ namespace NDLC.Tests
 					"--datadir", alice,
 					"dlc", "show", "--offer", "BetWithBob",
 				});
+			var offer = Tester.GetLastOutput();
 			await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", alice,
 					"dlc", "show", "--offer", "--json", "BetWithBob",
+				});
+			
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", bob,
+					"dlc", "review", offer
 				});
 		}
 

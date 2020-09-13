@@ -52,17 +52,18 @@ namespace NDLC
 			public Payoff(DiscretePayoff payoff)
 			{
 				Reward = payoff.Reward;
-				IsHash = payoff.Outcome.OutcomeString is null;
-				Outcome = payoff.Outcome.ToString();
+				if (payoff.Outcome.OutcomeString is null)
+					throw new ArgumentException(message: "The outcome string should not be empty");
+				Outcome = payoff.Outcome.OutcomeString;
 			}
 			public Payoff(Money collateral, ContractInfo ci)
 			{
 				Reward = ci.Payout - collateral;
-				IsHash = ci.Outcome.OutcomeString is null;
-				Outcome = ci.Outcome.ToString();
+				if (ci.Outcome.OutcomeString is null)
+					throw new ArgumentException(message: "The outcome string should not be empty");
+				Outcome = ci.Outcome.OutcomeString;
 			}
 			public string Outcome { get; set; }
-			public bool IsHash { get; set; }
 			[JsonConverter(typeof(BTCSatsJsonConverter))]
 			public Money Reward { get; set; }
 		}
