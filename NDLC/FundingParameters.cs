@@ -1,6 +1,7 @@
 ﻿using NBitcoin;
 using NDLC.Messages;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace NDLC
@@ -89,11 +90,14 @@ namespace NDLC
 			psbt.AddCoins(Acceptor.FundingCoins);
 			return new FundingPSBT(psbt, new ScriptCoin(tx, 0, fundingScript));
 		}
+		static readonly Comparer<PubKey> LexicographicComparer = Comparer<PubKey>.Create((a, b) => Comparer<string>.Default.Compare(a.ToHex(), b.ToHex()));
 		private Script GetFundingScript()
 		{
 			if (Offerer?.FundPubKey is null || Acceptor?.FundPubKey is null)
 				throw new InvalidOperationException("We did not received enough data to create the funding script");
-			return PayToMultiSigTemplate.Instance.GenerateScriptPubKey(2, Offerer.FundPubKey, Acceptor.FundPubKey);
+			var keys = new[] { Offerer.FundPubKey, Acceptor.FundPubKey };
+			Array.Sort(keys, LexicographicComparer);
+			return PayToMultiSigTemplate.Instance.GenerateScriptPubKey(2, keys);
 		}
 	}
 
