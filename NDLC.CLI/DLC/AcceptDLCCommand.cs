@@ -63,10 +63,13 @@ namespace NDLC.CLI.DLC
 
 			var maturity = new LockTimeEstimation(offer.Timeouts.ContractMaturity, Network);
 			var refund = new LockTimeEstimation(offer.Timeouts.ContractTimeout, Network);
-			if (refund.EstimatedRemainingBlocks == 0)
-				throw new CommandException("offer", "The refund should not be immediately valid");
-			if (refund.EstimatedRemainingBlocks < maturity.EstimatedRemainingBlocks)
-				throw new CommandException("offer", "The refund should not be valid faster than the contract execution transactions");
+			if (!refund.UnknownEstimation)
+			{
+				if (refund.EstimatedRemainingBlocks == 0)
+					throw new CommandException("offer", "The refund should not be immediately valid");
+				if (refund.EstimatedRemainingBlocks < maturity.EstimatedRemainingBlocks)
+					throw new CommandException("offer", "The refund should not be valid faster than the contract execution transactions");
+			}
 
 			DLCHelpers.FillOutcomes(offer.ContractInfo, evt);
 			try

@@ -10,6 +10,7 @@ namespace NDLC.CLI.DLC
 		int KnownBlock = 648085;
 		DateTimeOffset KnownDate = Utils.UnixTimeToDateTime(1599999529);
 		private readonly LockTime lockTime;
+		public bool UnknownEstimation { get; set; }
 		public LockTimeEstimation(LockTime lockTime, Network network)
 		{
 			this.lockTime = lockTime;
@@ -26,6 +27,7 @@ namespace NDLC.CLI.DLC
 					EstimatedRemainingTime = TimeSpan.Zero;
 				EstimatedRemainingBlocks = (int)network.Consensus.GetExpectedBlocksFor(EstimatedRemainingTime);
 			}
+			UnknownEstimation = network != Network.Main;
 		}
 
 		public int EstimatedRemainingBlocks { get; set; }
@@ -33,11 +35,25 @@ namespace NDLC.CLI.DLC
 
 		public override string ToString()
 		{
-			if (lockTime == Constants.NeverLockTime)
-				return "Never";
-			if (EstimatedRemainingTime == TimeSpan.Zero)
-				return "Immediate";
-			return $"{TimeString(EstimatedRemainingTime)} (More or less 5 days)";
+			if (UnknownEstimation)
+			{
+				if (lockTime.IsHeightLock)
+				{
+					return $"At block {lockTime.Height}";
+				}
+				else
+				{
+					return $"At date {lockTime.Date:f}";
+				}
+			}
+			else
+			{
+				if (lockTime == Constants.NeverLockTime)
+					return "Never";
+				if (EstimatedRemainingTime == TimeSpan.Zero)
+					return "Immediate";
+				return $"{TimeString(EstimatedRemainingTime)} (More or less 5 days)";
+			}
 		}
 		public static string TimeString(TimeSpan timeSpan)
 		{
