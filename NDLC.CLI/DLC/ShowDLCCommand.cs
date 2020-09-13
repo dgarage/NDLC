@@ -1,5 +1,7 @@
-﻿using NDLC.CLI.Events;
+﻿using NBitcoin.DataEncoders;
+using NDLC.CLI.Events;
 using NDLC.Messages;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -20,6 +22,11 @@ namespace NDLC.CLI.DLC
 			{
 				Arity = ArgumentArity.ExactlyOne
 			});
+			command.Add(new Option<bool>("--offer", "Show the offer of the DLC")
+			{
+				IsRequired = false
+			});
+			command.Add(new Option<bool>("--json", "Output objects in json instead of Base64"));
 			command.Handler = new ShowDLCCommand();
 			return command;
 		}
@@ -43,25 +50,52 @@ namespace NDLC.CLI.DLC
 				eventName = ev?.Name;
 			}
 
-			var builder = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
-			var role = builder.State.IsInitiator ? "Offerer" : "Acceptor";
-			if (oracleName is string && eventName is string)
+			var shown = ParseShownItem(context);
+			if (shown == ShowOption.DLC)
 			{
-				context.Console.Out.WriteLine($"Event: {new EventFullName(oracleName, eventName)}");
+				context.Console.Out.WriteLine($"Name: {dlc.Name}");
+				var builder = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
+				var role = builder.State.IsInitiator ? "Offerer" : "Acceptor";
+				if (oracleName is string && eventName is string)
+				{
+					context.Console.Out.WriteLine($"Event: {new EventFullName(oracleName, eventName)}");
+				}
+				else
+				{
+					context.Console.Out.WriteLine($"Event: ?");
+				}
+				context.Console.Out.WriteLine($"Role: {role}");
+				State nextStep = State.Unknown;
+				if (builder.State.IsInitiator)
+				{
+					if (dlc.FundKeyPath is null)
+					{
+						nextStep = State.OfferFund;
+					}
+					else
+					{
+						nextStep = State.SignAccept;
+					}
+				}
+				context.Console.Out.WriteLine($"Next step: {nextStep}");
+				context.Console.Out.WriteLine($"Next step explanation:");
+				context.Console.Out.Write($"{Explain(nextStep, dlc.Name, builder.State)}");
+			}
+			else if (shown == ShowOption.Offer)
+			{
+				if (dlc.Offer is null)
+					throw new CommandException("offer", "No offer available for this DLC");
+				context.WriteObject(dlc.Offer, Repository.JsonSettings);
 			}
 			else
-			{
-				context.Console.Out.WriteLine($"Event: ?");
-			}
-			context.Console.Out.WriteLine($"Role: {role}");
-			State nextStep = State.Unknown;
-			if (builder.State.IsInitiator && dlc.FundKeyPath is null)
-			{
-				nextStep = State.OfferFund;
-			}
-			context.Console.Out.WriteLine($"Next step: {nextStep}");
-			context.Console.Out.WriteLine($"Next step explanation:");
-			context.Console.Out.Write($"{Explain(nextStep, name, builder.State)}");
+				throw new NotSupportedException();
+		}
+
+		private ShowOption ParseShownItem(InvocationContext context)
+		{
+			if (context.ParseResult.CommandResult.ValueForOption<bool>("offer"))
+				return ShowOption.Offer;
+			return ShowOption.DLC;
 		}
 
 		private string Explain(State nextStep, string name, DLCTransactionBuilderState s)
@@ -69,18 +103,28 @@ namespace NDLC.CLI.DLC
 			switch (nextStep)
 			{
 				case State.OfferFund:
-					return $"You need to create a PSBT with your wallet sending {s.Offerer!.Collateral!.ToString(false, false)} BTC to yourself must not be broadcasted.{Environment.NewLine}"
+					return $"You need to create a PSBT with your wallet sending {s.Offerer!.Collateral!.ToString(false, false)} BTC to yourself, it must not be broadcasted.{Environment.NewLine}"
 						 + $"The address receiving this amount will be the same address where the reward of the DLC will be received.{Environment.NewLine}"
 						 + $"Then your can use 'dlc offer {name} \"<PSBT>\"', and give this offer to the other party.";
+				case State.SignAccept:
+					return $"You need to pass the offer to the acceptor, and the acceptor needs to reply with an accept message.{Environment.NewLine}"
+						 + $"Then you need to use `dlc sign {name} \"<accept message>\"`.{Environment.NewLine}"
+						 + $"You can get the offer of this dlc with `dlc show --offer {name}`";
 				default:
 					throw new NotSupportedException();
 			}
 		}
 
+		enum ShowOption
+		{
+			DLC,
+			Offer
+		}
 		enum State
 		{
 			Unknown,
-			OfferFund
+			OfferFund,
+			SignAccept
 		}
 	}
 }

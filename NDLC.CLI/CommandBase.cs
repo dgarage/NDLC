@@ -34,10 +34,6 @@ namespace NDLC.CLI
 
 		Repository? _Repository;
 		public Repository Repository => _Repository ?? throw new InvalidOperationException("Repository is not set");
-		protected void WriteObject<T>(InvocationContext context, T obj)
-		{
-			context.Console.Out.Write(JsonConvert.SerializeObject(obj, JsonSerializerSettings));
-		}
 
 		protected abstract Task InvokeAsyncBase(InvocationContext context);
 

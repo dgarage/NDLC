@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 using System.Text;
 using NBitcoin;
 using NBitcoin.Crypto;
+using System.IO;
 
 namespace NDLC.Messages
 {
@@ -97,8 +98,10 @@ namespace NDLC.Messages
 	public class Timeouts
 	{
 		[JsonConverter(typeof(LocktimeJsonConverter))]
+		[JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]
 		public LockTime ContractMaturity { get; set; }
 		[JsonConverter(typeof(LocktimeJsonConverter))]
+		[JsonProperty(DefaultValueHandling = DefaultValueHandling.Include)]
 		public LockTime ContractTimeout { get; set; }
 	}
 	public class PubKeyObject

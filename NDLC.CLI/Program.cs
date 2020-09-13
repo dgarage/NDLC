@@ -58,6 +58,7 @@ namespace NDLC.CLI
 				new Command("dlc", "Manage DLCs")
 				{
 					GenerateDLCCommand.CreateCommand(),
+					OfferDLCCommand.CreateCommand(),
 					ShowDLCCommand.CreateCommand()
 				}
 			};

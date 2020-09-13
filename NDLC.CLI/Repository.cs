@@ -2,6 +2,7 @@
 using NBitcoin.DataEncoders;
 using NBitcoin.JsonConverters;
 using NBitcoin.Secp256k1;
+using NDLC.CLI.DLC;
 using NDLC.CLI.Events;
 using NDLC.Messages;
 using NDLC.Messages.JsonConverters;
@@ -23,11 +24,20 @@ namespace NDLC.CLI
 	{
 		public class DLCState
 		{
+			public string Name { get; set; } = string.Empty;
 			[JsonConverter(typeof(KeyPathJsonConverter))]
 			public RootedKeyPath? FundKeyPath { get; set; }
 			public JObject? BuilderState { get; set; }
 			[JsonConverter(typeof(OracleInfoJsonConverter))]
 			public OracleInfo? OracleInfo { get; set; }
+			public Offer? Offer { get; set; }
+
+			public DLCTransactionBuilder GetBuilder(Network network)
+			{
+				if (BuilderState is null)
+					throw new InvalidOperationException("The builder is not created yet");
+				return new DLCTransactionBuilder(BuilderState.ToString(), network);
+			}
 		}
 
 		public async Task<Oracle> GetOracle(ECXOnlyPubKey pubKey)
@@ -100,15 +110,30 @@ namespace NDLC.CLI
 			}
 		}
 
-		public async Task NewDLC(string name, OracleInfo oracleInfo, string builderState)
+		public async Task NewDLC(string name, OracleInfo oracleInfo, DLCTransactionBuilder builder)
 		{
+			name = name.Trim();
 			var dir = Path.Combine(DataDirectory, "dlcs");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
 			var file = GetDLCFilePath(name);
-			var s = new DLCState() { OracleInfo = oracleInfo, BuilderState = JObject.Parse(builderState) };
+			var s = new DLCState() 
+			{ 
+				OracleInfo = oracleInfo,
+				BuilderState = builder.ExportStateJObject(),
+				Name = name
+			};
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(s, JsonSettings));
 		}
+		public async Task SaveDLC(DLCState dlc)
+		{
+			var dir = Path.Combine(DataDirectory, "dlcs");
+			if (!Directory.Exists(dir))
+				Directory.CreateDirectory(dir);
+			var file = GetDLCFilePath(dlc.Name);
+			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(dlc, JsonSettings));
+		}
+
 		public async Task<DLCState?> GetDLC(string name)
 		{
 			var dir = Path.Combine(DataDirectory, "dlcs");
@@ -327,7 +352,7 @@ namespace NDLC.CLI
 			return oracle;
 		}
 
-		JsonSerializerSettings JsonSettings;
+		public JsonSerializerSettings JsonSettings { get; }
 		public Repository(string? dataDirectory, Network network)
 		{
 			Network = network;
@@ -345,7 +370,7 @@ namespace NDLC.CLI
 				},
 				DefaultValueHandling = DefaultValueHandling.Ignore
 			};
-			JsonSettings.Converters.Add(new NBitcoin.JsonConverters.BitcoinStringJsonConverter(network));
+			NDLC.Messages.Serializer.Configure(JsonSettings, network);
 		}
 
 		

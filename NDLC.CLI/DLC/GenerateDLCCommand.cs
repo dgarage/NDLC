@@ -55,7 +55,7 @@ namespace NDLC.CLI.DLC
 				ContractMaturity = 0,
 				ContractTimeout = 0
 			});
-			await Repository.NewDLC(name, new OracleInfo(oracle.PubKey, evt.Nonce), builder.ExportState());
+			await Repository.NewDLC(name, new OracleInfo(oracle.PubKey, evt.Nonce), builder);
 		}
 
 		private DiscretePayoffs CreatePayoffs(List<string> payoffs)
