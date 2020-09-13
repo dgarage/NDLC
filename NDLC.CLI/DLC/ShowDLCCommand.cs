@@ -22,7 +22,11 @@ namespace NDLC.CLI.DLC
 			{
 				Arity = ArgumentArity.ExactlyOne
 			});
-			command.Add(new Option<bool>("--offer", "Show the offer of the DLC")
+			command.Add(new Option<bool>("--offer", "Show the offer message of the DLC")
+			{
+				IsRequired = false
+			});
+			command.Add(new Option<bool>("--accept", "Show the accept message of the DLC")
 			{
 				IsRequired = false
 			});
@@ -77,6 +81,13 @@ namespace NDLC.CLI.DLC
 						nextStep = State.SignAccept;
 					}
 				}
+				else
+				{
+					if (dlc.Sign is null)
+					{
+						nextStep = State.Finalize;
+					}
+				}
 				context.Console.Out.WriteLine($"Next step: {nextStep}");
 				context.Console.Out.WriteLine($"Next step explanation:");
 				context.Console.Out.Write($"{Explain(nextStep, dlc.Name, builder.State)}");
@@ -87,6 +98,12 @@ namespace NDLC.CLI.DLC
 					throw new CommandException("offer", "No offer available for this DLC");
 				context.WriteObject(dlc.Offer, Repository.JsonSettings);
 			}
+			else if (shown == ShowOption.Accept)
+			{
+				if (dlc.Accept is null)
+					throw new CommandException("offer", "No accept message available for this DLC");
+				context.WriteObject(dlc.Accept, Repository.JsonSettings);
+			}
 			else
 				throw new NotSupportedException();
 		}
@@ -95,6 +112,8 @@ namespace NDLC.CLI.DLC
 		{
 			if (context.ParseResult.CommandResult.ValueForOption<bool>("offer"))
 				return ShowOption.Offer;
+			if (context.ParseResult.CommandResult.ValueForOption<bool>("accept"))
+				return ShowOption.Accept;
 			return ShowOption.DLC;
 		}
 
@@ -110,6 +129,10 @@ namespace NDLC.CLI.DLC
 					return $"You need to pass the offer to the acceptor, and the acceptor needs to reply with an accept message.{Environment.NewLine}"
 						 + $"Then you need to use `dlc sign {name} \"<accept message>\"`.{Environment.NewLine}"
 						 + $"You can get the offer of this dlc with `dlc show --offer {name}`";
+				case State.Finalize:
+					return $"You need to pass the accept message to the offerer, and the offerer needs to reply with a sign message.{Environment.NewLine}"
+						 + $"Then you need to use `dlc finalize {name} \"<sign message>\"`.{Environment.NewLine}"
+						 + $"You can get the accept message of this dlc with `dlc show --accept {name}`";
 				default:
 					throw new NotSupportedException();
 			}
@@ -118,13 +141,15 @@ namespace NDLC.CLI.DLC
 		enum ShowOption
 		{
 			DLC,
-			Offer
+			Offer,
+			Accept
 		}
 		enum State
 		{
 			Unknown,
 			OfferFund,
-			SignAccept
+			SignAccept,
+			Finalize
 		}
 	}
 }

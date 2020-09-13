@@ -1,0 +1,51 @@
+﻿using NBitcoin;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace NDLC.CLI.DLC
+{
+	class LockTimeEstimation
+	{
+		int KnownBlock = 648085;
+		DateTimeOffset KnownDate = Utils.UnixTimeToDateTime(1599999529);
+		private readonly LockTime lockTime;
+		public LockTimeEstimation(LockTime lockTime, Network network)
+		{
+			this.lockTime = lockTime;
+			if (lockTime.IsHeightLock)
+			{
+				int currentEstimatedBlock = KnownBlock + (int)network.Consensus.GetExpectedBlocksFor(DateTimeOffset.UtcNow - KnownDate);
+				EstimatedRemainingBlocks = Math.Max(0, lockTime.Height - currentEstimatedBlock);
+				EstimatedRemainingTime = network.Consensus.GetExpectedTimeFor(EstimatedRemainingBlocks);
+			}
+			else
+			{
+				EstimatedRemainingTime = lockTime.Date - DateTimeOffset.UtcNow;
+				if (EstimatedRemainingTime < TimeSpan.Zero)
+					EstimatedRemainingTime = TimeSpan.Zero;
+				EstimatedRemainingBlocks = (int)network.Consensus.GetExpectedBlocksFor(EstimatedRemainingTime);
+			}
+		}
+
+		public int EstimatedRemainingBlocks { get; set; }
+		public TimeSpan EstimatedRemainingTime { get; set; }
+
+		public override string ToString()
+		{
+			if (lockTime == Constants.NeverLockTime)
+				return "Never";
+			if (EstimatedRemainingTime == TimeSpan.Zero)
+				return "Immediate";
+			return $"{TimeString(EstimatedRemainingTime)} (More or less 5 days)";
+		}
+		public static string TimeString(TimeSpan timeSpan)
+		{
+			return $"{(int)timeSpan.TotalDays} day{Plural((int)timeSpan.TotalDays)}";
+		}
+		private static string Plural(int totalDays)
+		{
+			return totalDays > 1 ? "s" : string.Empty;
+		}
+	}
+}

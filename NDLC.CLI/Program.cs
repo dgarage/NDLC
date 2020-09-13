@@ -1,6 +1,7 @@
 ﻿using NBitcoin.Secp256k1;
 using NDLC.CLI.DLC;
 using NDLC.CLI.Events;
+using NDLC.Messages;
 using NDLC.Secp256k1;
 using System;
 using System.CommandLine;
@@ -60,6 +61,7 @@ namespace NDLC.CLI
 					GenerateDLCCommand.CreateCommand(),
 					OfferDLCCommand.CreateCommand(),
 					ReviewDLCCommand.CreateCommand(),
+					AcceptDLCCommand.CreateCommand(),
 					ShowDLCCommand.CreateCommand()
 				}
 			};

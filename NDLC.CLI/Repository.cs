@@ -30,7 +30,9 @@ namespace NDLC.CLI
 			public JObject? BuilderState { get; set; }
 			[JsonConverter(typeof(OracleInfoJsonConverter))]
 			public OracleInfo? OracleInfo { get; set; }
-			public Offer? Offer { get; set; }
+			public JObject? Offer { get; set; }
+			public JObject? Accept { get; set; }
+			public JObject? Sign { get; set; }
 
 			public DLCTransactionBuilder GetBuilder(Network network)
 			{
@@ -110,7 +112,7 @@ namespace NDLC.CLI
 			}
 		}
 
-		public async Task NewDLC(string name, OracleInfo oracleInfo, DLCTransactionBuilder builder)
+		public async Task<DLCState> NewDLC(string name, OracleInfo oracleInfo, DLCTransactionBuilder builder)
 		{
 			name = name.Trim();
 			var dir = Path.Combine(DataDirectory, "dlcs");
@@ -124,6 +126,7 @@ namespace NDLC.CLI
 				Name = name
 			};
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(s, JsonSettings));
+			return s;
 		}
 		public async Task SaveDLC(DLCState dlc)
 		{

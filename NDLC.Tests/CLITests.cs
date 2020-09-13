@@ -108,6 +108,17 @@ namespace NDLC.Tests
 					"--datadir", bob,
 					"dlc", "review", offer
 				});
+			var acceptFunding = CreateOfferFunding(Money.Coins(1.0m));
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", bob,
+					"dlc", "accept", "BetWithAlice", offer, acceptFunding
+				});
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", bob,
+					"dlc", "show", "BetWithAlice"
+				});
 		}
 
 		private string CreateOfferFunding(Money money)

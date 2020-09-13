@@ -1,6 +1,7 @@
 ﻿using NBitcoin;
 using NDLC.Messages;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -33,7 +34,7 @@ namespace NDLC.CLI.DLC
 			var dlc = await Repository.GetDLC(name);
 			if (dlc is null)
 				throw new CommandException("name", "This DLC does not exist");
-			if (dlc.FundKeyPath is RootedKeyPath || dlc.Offer is Offer)
+			if (dlc.FundKeyPath is RootedKeyPath || dlc.Offer is JObject)
 				throw new CommandException("name", "This DLC already issued an offer");
 			var builder = dlc.GetBuilder(Network);
 			if (!builder.State.IsInitiator)
@@ -50,7 +51,7 @@ namespace NDLC.CLI.DLC
 				var offer = builder.FundOffer(key.PrivateKey, psbt);
 				dlc.FundKeyPath = key.KeyPath;
 				dlc.BuilderState = builder.ExportStateJObject();
-				dlc.Offer = offer;
+				dlc.Offer = JObject.FromObject(offer, JsonSerializer.Create(Repository.JsonSettings));
 				await Repository.SaveDLC(dlc);
 				context.WriteObject(offer, Repository.JsonSettings);
 			}

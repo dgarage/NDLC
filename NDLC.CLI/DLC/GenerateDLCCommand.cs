@@ -18,7 +18,7 @@ namespace NDLC.CLI.DLC
 		public static Command CreateCommand()
 		{
 			Command command = new Command("generate", "Generate a new DLC");
-			command.Add(new Argument<string>("name", "The name of this DLC")
+			command.Add(new Argument<string>("name", "The local name given to this DLC")
 			{
 				Arity = ArgumentArity.ExactlyOne
 			});
@@ -38,6 +38,8 @@ namespace NDLC.CLI.DLC
 			var name = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.Trim();
 			if (name is null)
 				throw new CommandOptionRequiredException("name");
+			if (await Repository.GetDLC(name) != null)
+				throw new CommandException("name", "This DLC already exists");
 			EventFullName evtName = context.GetEventName();
 			var oracle = await Repository.GetOracle(evtName.OracleName);
 			if (oracle?.PubKey is null)
