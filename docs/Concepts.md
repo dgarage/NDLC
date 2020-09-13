@@ -127,7 +127,7 @@ She can use `event list` and `event show` to get back the information of the eve
 
 ## Alice and Bob see Olivia will attest a new event
 
-Alice and Bob can see the announcement of Olivia, so they will add this event with `event add <eventfullname> <outcome1> <outcome2> <outcome...>`
+Alice and Bob can see the announcement of Olivia, so they will add this event with `event add <eventfullname> <nonce> <outcome1> <outcome2> <outcome...>`
 
 ```bash
 event add "olivia/us2020" "cd291..." "Republicans" "Democrats" "Others"

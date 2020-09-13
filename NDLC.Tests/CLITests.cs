@@ -96,6 +96,11 @@ namespace NDLC.Tests
 					"--datadir", alice,
 					"dlc", "show", "--offer", "BetWithBob",
 				});
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", alice,
+					"dlc", "show", "--offer", "--json", "BetWithBob",
+				});
 		}
 
 		private string CreateOfferFunding(Money money)
