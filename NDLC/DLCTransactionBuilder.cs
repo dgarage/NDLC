@@ -306,7 +306,7 @@ namespace NDLC.Messages
 			sign.CetSigs = CreateCetSigs(fundKey);
 			sign.FundingSigs = new Dictionary<OutPoint, List<PartialSignature>>();
 			sign.AcceptorContractId = s.Acceptor?.ContractId;
-			foreach (var input in signedFunding.Inputs)
+			foreach (var input in s.Funding.PSBT.Inputs)
 			{
 				if (!sign.FundingSigs.TryGetValue(input.PrevOut, out var sigs))
 				{
@@ -315,6 +315,11 @@ namespace NDLC.Messages
 				}
 				foreach (var sig in input.PartialSigs)
 				{
+					var sigHash = s.Funding.PSBT
+								.GetGlobalTransaction()
+								.GetSignatureHash(input.GetCoin());
+					if (!sig.Key.Verify(sigHash, sig.Value.Signature))
+						throw new InvalidOperationException("Invalid signature");
 					sigs.Add(new PartialSignature(sig.Key, sig.Value));
 				}
 			}
@@ -529,7 +534,6 @@ namespace NDLC.Messages
 				{
 					var settings = new JsonSerializerSettings();
 					Messages.Serializer.Configure(settings, network);
-					settings.Converters.Add(new DLCOutcomeJsonConverter());
 					_SerializerSettings = settings;
 				}
 				return _SerializerSettings;

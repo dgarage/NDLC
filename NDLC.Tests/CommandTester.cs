@@ -32,6 +32,7 @@ namespace NDLC.Tests
 			SpyConsole.Clear();
 			var command = Program.CreateCommand();
 			Log.WriteLine("Command: " + string.Join(' ', args));
+			Log.WriteLine("Output:");
 			var errorCode = await command.InvokeAsync(args, SpyConsole);
 			if (errorCode != expectedResult)
 			{

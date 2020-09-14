@@ -137,12 +137,38 @@ namespace NDLC
 	}
 	public class DiscretePayoff
 	{
+		public static bool TryParse(string str, out DiscretePayoff? payoff)
+		{
+			payoff = null;
+			str = str.Trim();
+			var i = str.LastIndexOf(':');
+			if (i == -1)
+				return false;
+
+			var outcome = str.Substring(0, i);
+			var reward = str.Substring(i + 1);
+			if (!Money.TryParse(reward, out var btc) || btc is null)
+				return false;
+			payoff = new DiscretePayoff(new DiscreteOutcome(outcome), reward);
+			return true;
+		}
+		public DiscretePayoff(string outcome, Money reward) :
+			this(new DiscreteOutcome(outcome), reward)
+		{
+
+		}
 		public DiscretePayoff(DiscreteOutcome outcome, Money reward)
 		{
+			if (outcome.OutcomeString is null)
+				throw new ArgumentException("OutcomeString is not available", nameof(outcome));
 			Reward = reward;
 			Outcome = outcome;
 		}
 		public Money Reward { get; }
 		public DiscreteOutcome Outcome { get; }
+		public override string ToString()
+		{
+			return $"{Outcome.OutcomeString!}:{Reward.ToString(false, true)}";
+		}
 	}
 }

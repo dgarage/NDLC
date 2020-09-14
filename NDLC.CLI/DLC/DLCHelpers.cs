@@ -29,6 +29,17 @@ namespace NDLC.CLI.DLC
 			else
 				ctx.Console.Out.Write(Encoders.Base64.EncodeData(UTF8Encoding.UTF8.GetBytes(txt)));
 		}
+		public static void WritePSBT(this InvocationContext ctx, PSBT psbt)
+		{
+			if (ctx.ParseResult.ValueForOption<bool>("json"))
+			{
+				ctx.Console.Out.Write(psbt.ToString());
+			}
+			else
+			{
+				ctx.Console.Out.Write(psbt.ToBase64());
+			}
+		}
 
 		public static Offer GetOffer(this InvocationContext ctx, JsonSerializerSettings settings)
 		{

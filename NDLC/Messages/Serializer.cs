@@ -38,6 +38,8 @@ namespace NDLC.Messages
 			settings.Converters.Add(new SecpECDSAAdaptorSignatureJsonConverter());
 			settings.Converters.Add(new CoinJsonConverter());
 			settings.Converters.Add(new NBitcoin.JsonConverters.KeyJsonConverter());
+			settings.Converters.Add(new DiscreteOutcomeJsonConverter());
+			settings.Converters.Add(new DiscretePayoffJsonConverter());
 		}
 	}
 }

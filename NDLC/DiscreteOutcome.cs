@@ -1,12 +1,15 @@
 ﻿using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
+using NDLC.Messages.JsonConverters;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace NDLC
 {
+	[TypeConverter(typeof(DiscreteOutcomeJsonConverter))]
 	public class DiscreteOutcome
 	{
 		public DiscreteOutcome(byte[] hash32)
@@ -81,11 +84,6 @@ namespace NDLC
 		{
 			var longArray = MemoryMarshal.Cast<byte, ulong>(Hash);
 			return HashCode.Combine(longArray[0], longArray[1], longArray[2], longArray[3]);
-		}
-
-		public static implicit operator DiscreteOutcome(string outcomeString)
-		{
-			return new DiscreteOutcome(outcomeString);
 		}
 		public override string ToString()
 		{

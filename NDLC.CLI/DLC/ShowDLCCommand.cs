@@ -35,6 +35,14 @@ namespace NDLC.CLI.DLC
 			{
 				IsRequired = false
 			});
+			command.Add(new Option<bool>("--refund", "Show the refund transaction of the DLC.")
+			{
+				IsRequired = false
+			});
+			command.Add(new Option<bool>("--abort", "Show the abort PSBT of the DLC")
+			{
+				IsRequired = false
+			});
 			command.Add(new Option<bool>("--json", "Output objects in json instead of Base64"));
 			command.Handler = new ShowDLCCommand();
 			return command;
@@ -94,21 +102,32 @@ namespace NDLC.CLI.DLC
 			}
 			else if (shown == ShowOption.Funding)
 			{
-				var builer = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
 				try
 				{
-					if (context.ParseResult.ValueForOption<bool>("json"))
-					{
-						context.Console.Out.Write(builer.GetFundingPSBT().ToString());
-					}
-					else
-					{
-						context.Console.Out.Write(builer.GetFundingPSBT().ToBase64());
-					}
+					var builder = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
+					context.WritePSBT(builder.GetFundingPSBT());
 				}
 				catch
 				{
-					throw new CommandException("offer", "No funding PSBT ready for this DLC");
+					throw new CommandException("funding", "No funding PSBT ready for this DLC");
+				}
+			}
+			else if (shown == ShowOption.Abort)
+			{
+				if (dlc.Abort is null)
+					throw new CommandException("abort", "No abort PSBT for this DLC");
+				context.WritePSBT(dlc.Abort);
+			}
+			else if (shown == ShowOption.Refund)
+			{
+				try
+				{
+					var builder = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
+					context.Console.Out.Write(builder.BuildRefund().ToHex());
+				}
+				catch
+				{
+					throw new CommandException("refund", "No refund PSBT ready for this DLC");
 				}
 			}
 			else
@@ -122,7 +141,11 @@ namespace NDLC.CLI.DLC
 			if (context.ParseResult.CommandResult.ValueForOption<bool>("accept"))
 				return ShowOption.Accept;
 			if (context.ParseResult.CommandResult.ValueForOption<bool>("funding"))
-				return ShowOption.Accept;
+				return ShowOption.Funding;
+			if (context.ParseResult.CommandResult.ValueForOption<bool>("refund"))
+				return ShowOption.Refund;
+			if (context.ParseResult.CommandResult.ValueForOption<bool>("abort"))
+				return ShowOption.Abort;
 			return ShowOption.DLC;
 		}
 
@@ -135,13 +158,27 @@ namespace NDLC.CLI.DLC
 						 + $"The address receiving this amount will be the same address where the reward of the DLC will be received.{Environment.NewLine}"
 						 + $"Then your can use 'dlc offer {name} \"<PSBT>\"', and give this offer to the other party.";
 				case DLCNextStep.OffererCheckSigs:
-					return $"You need to pass the offer to the acceptor, and the acceptor needs to reply with an accept message.{Environment.NewLine}"
-						 + $"Then you need to use `dlc checksigs \"<accept message>\"`.{Environment.NewLine}"
+					return $"You need to pass the offer to the other party, and the other party will need to accept if by sending you back a signed message.{Environment.NewLine}"
+						 + $"Then you need to use `dlc checksigs \"<signed message>\"`.{Environment.NewLine}"
 						 + $"You can get the offer of this dlc with `dlc show --offer {name}`";
 				case DLCNextStep.AcceptorCheckSigs:
-					return $"You need to pass the accept message to the offerer, and the offerer needs to reply with a signed message.{Environment.NewLine}"
-						 + $"Then you need to use `dlc checksigs \"<sign message>\"`.{Environment.NewLine}"
+					return $"You need to pass the accept message to the other party, and the other party needs to reply with a signed message.{Environment.NewLine}"
+						 + $"Then you need to use `dlc checksigs \"<signed message>\"`.{Environment.NewLine}"
 						 + $"You can get the accept message of this dlc with `dlc show --accept {name}`";
+				case DLCNextStep.OffererSignFunding:
+					return $"You need to partially sign a PSBT funding the DLC. You can can get the PSBT with `dlc show --funding {name}`.{Environment.NewLine}" +
+						   $"Then you need to use `dlc countersign {name} \"<PSBT>\"` and send the signed message to the other party.";
+				case DLCNextStep.OffererStarted:
+					return $"Make sure the other party actually start the DLC by broadcasting the funding transaction.{Environment.NewLine}" +
+					   	   $"IF THE OTHER PARTY DOES NOT RESPOND and doesn't broadcast the funding in reasonable delay. YOU MUST ABORT this DLC by signing and broadcasting the abort transaction `dlc show --abort {name}`.{Environment.NewLine}" +
+						   $"The abort transaction spend the coins you used for your collateral back to yourself.{Environment.NewLine}" +
+						   $"This will prevent a malicious acceptor to start the contract only if he wins.{Environment.NewLine}{Environment.NewLine}" +
+						   $"When the Oracle attests the event, you can settle this contract by running `dlc execute \"<attestation>\"` and broadcasting the transaction.{Environment.NewLine}{Environment.NewLine}" +
+						   $"If the Oracle never attests the event you can get a refund later by broadcasting `dlc show --refund \"{name}\"`.{Environment.NewLine}{Environment.NewLine}";
+				case DLCNextStep.AcceptorStarted:
+					return $"You need to fully sign and broadcast the funding transaction. You can get the PSBT with `dlc show --funding`.{Environment.NewLine}" +
+						   $"When the Oracle attests the event, you can settle this contract by running `dlc execute \"<attestation>\"` and broadcasting the transaction.{Environment.NewLine}{Environment.NewLine}" +
+						   $"If the Oracle never attests the event you can get a refund later by broadcasting `dlc show --refund \"{name}\"`."; ;
 				default:
 					throw new NotSupportedException();
 			}
@@ -152,7 +189,9 @@ namespace NDLC.CLI.DLC
 			DLC,
 			Offer,
 			Accept,
-			Funding
+			Abort,
+			Funding,
+			Refund
 		}
 	}
 }

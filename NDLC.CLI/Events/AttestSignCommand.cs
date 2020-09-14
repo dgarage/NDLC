@@ -65,7 +65,7 @@ namespace NDLC.CLI.Events
 			var kValue = await Repository.GetKey(evtObj.NonceKeyPath);
 			key.ToECPrivKey().TrySignBIP140(discreteOutcome.Hash, new PrecomputedNonceFunctionHardened(kValue.ToECPrivKey().ToBytes()), out var sig);
 			var oracleAttestation = new Key(sig!.s.ToBytes());
-			if (await Repository.AddAttestation(evt, oracleAttestation) != outcome)
+			if (await Repository.AddAttestation(evt, oracleAttestation) != new DiscreteOutcome(outcome))
 				throw new InvalidOperationException("Error while validating reveal");
 			context.Console.Out.Write(oracleAttestation.ToHex());
 		}

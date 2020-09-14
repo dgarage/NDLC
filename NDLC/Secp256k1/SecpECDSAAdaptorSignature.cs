@@ -70,6 +70,13 @@ namespace NDLC.Secp256k1
 			sp.WriteToSpan(output65.Slice(33));
 		}
 
+		public byte[] ToBytes()
+		{
+			var output = new byte[65];
+			WriteToSpan(output);
+			return output;
+		}
+
 		public bool TryExtractSecret(SecpECDSASignature sig, ECPubKey adaptor, out ECPrivKey? secret)
 		{
 			secret = null;

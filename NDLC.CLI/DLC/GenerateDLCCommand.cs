@@ -66,7 +66,7 @@ namespace NDLC.CLI.DLC
 			var result = new DiscretePayoffs();
 			foreach (var payoff in payoffs)
 			{
-				if (!Helpers.TryParse(payoff, out var o) || o is null)
+				if (!DiscretePayoff.TryParse(payoff, out var o) || o is null)
 					throw new CommandException("payoff", "The payoff can't be parsed");
 				result.Add(o);
 			}
@@ -84,7 +84,8 @@ namespace NDLC.CLI.DLC
 				var outcomeString = payoffs[i].Outcome.OutcomeString?.Trim();
 				if (outcomeString is null)
 					throw new CommandException("payoff", "The payoff can't be parsed");
-				var knownOutcome = evt.Outcomes.FirstOrDefault(o => o.Equals(outcomeString, StringComparison.OrdinalIgnoreCase));
+				var knownOutcome = evt.Outcomes.Select(o => new DiscreteOutcome(o))
+												.FirstOrDefault(o => o.OutcomeString!.Equals(outcomeString, StringComparison.OrdinalIgnoreCase));
 				if (knownOutcome is null)
 					throw new CommandException("payoff", $"This outcome {outcomeString} is not part of the event");
 				outcomes.Add(knownOutcome);

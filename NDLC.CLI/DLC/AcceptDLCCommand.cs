@@ -39,11 +39,7 @@ namespace NDLC.CLI.DLC
 			if (name is null)
 				throw new CommandOptionRequiredException("name");
 
-			var psbtStr = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("psbt")?.Trim();
-			if (psbtStr is null)
-				throw new CommandOptionRequiredException("psbt");
-			if (!PSBT.TryParse(psbtStr, Network, out var psbt) || psbt is null)
-				throw new CommandException("psbt", "Invalid PSBT");
+			var psbt = context.ParsePSBT(Network);
 			if (await Repository.GetDLC(name) != null)
 				throw new CommandException("name", "This DLC already exists");
 			if (offer.OracleInfo is null)
@@ -52,7 +48,6 @@ namespace NDLC.CLI.DLC
 				throw new CommandException("offer", "Missing timeouts");
 			if (offer.ContractInfo is null)
 				throw new CommandException("offer", "Missing contractInfos");
-
 
 			var oracle = await Repository.GetOracle(offer.OracleInfo.PubKey);
 			if (oracle is null)

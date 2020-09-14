@@ -37,6 +37,8 @@ namespace NDLC.CLI
 			public JObject? Accept { get; set; }
 			public JObject? Sign { get; set; }
 
+			public PSBT? Abort { get; set; }
+
 			public DLCTransactionBuilder GetBuilder(Network network)
 			{
 				if (BuilderState is null)
@@ -49,7 +51,10 @@ namespace NDLC.CLI
 				Unknown,
 				OffererFund,
 				OffererCheckSigs,
-				AcceptorCheckSigs
+				AcceptorCheckSigs,
+				OffererSignFunding,
+				OffererStarted,
+				AcceptorStarted
 			}
 			public DLCNextStep GetNextStep(Network network)
 			{
@@ -63,9 +68,17 @@ namespace NDLC.CLI
 					{
 						nextStep = DLCNextStep.OffererFund;
 					}
-					else
+					else if (Accept is null)
 					{
 						nextStep = DLCNextStep.OffererCheckSigs;
+					}
+					else if (Sign is null)
+					{
+						nextStep = DLCNextStep.OffererSignFunding;
+					}
+					else
+					{
+						nextStep = DLCNextStep.OffererStarted;
 					}
 				}
 				else
@@ -73,6 +86,10 @@ namespace NDLC.CLI
 					if (Sign is null)
 					{
 						nextStep = DLCNextStep.AcceptorCheckSigs;
+					}
+					else
+					{
+						nextStep = DLCNextStep.AcceptorStarted;
 					}
 				}
 				return nextStep;

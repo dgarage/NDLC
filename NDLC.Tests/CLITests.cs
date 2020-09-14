@@ -1,7 +1,9 @@
 ﻿using NBitcoin;
 using NBitcoin.DataEncoders;
 using NDLC.Messages;
+using NDLC.Messages.JsonConverters;
 using NDLC.Secp256k1;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -80,7 +82,8 @@ namespace NDLC.Tests
 					"dlc", "show", "BetWithBob", 
 				});
 
-			var offerFunding = CreateOfferFunding(Money.Coins(1.2m));
+			var aliceSigner = new Key();
+			var offerFunding = CreateOfferFunding(Money.Coins(1.2m), aliceSigner);
 			await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", alice,
@@ -108,7 +111,8 @@ namespace NDLC.Tests
 					"--datadir", bob,
 					"dlc", "review", offer
 				});
-			var acceptFunding = CreateOfferFunding(Money.Coins(1.0m));
+			var bobSigner = new Key();
+			var acceptFunding = CreateOfferFunding(Money.Coins(1.0m), bobSigner);
 			await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", bob,
@@ -143,12 +147,65 @@ namespace NDLC.Tests
 					"--datadir", alice,
 					"dlc", "show", "BetWithBob"
 				});
+
+			var funding = PSBT.Parse(aliceFunding, Network.Main);
+			funding.SignWithKeys(aliceSigner);
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", alice,
+					"dlc", "countersign", "BetWithBob", funding.ToBase64()
+				});
+			var signMessage = Tester.GetLastOutput();
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", alice,
+					"dlc", "show", "BetWithBob"
+				});
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", alice,
+					"dlc", "show", "--refund", "BetWithBob"
+				});
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", bob,
+					"dlc", "show", "--refund", "BetWithAlice"
+				});
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", bob,
+					"dlc", "checksigs", signMessage
+				});
+			var fundingPSBT = Tester.GetLastOutput();
+			var psbt = PSBT.Parse(fundingPSBT, Network.Main);
+			psbt.SignWithKeys(bobSigner);
+			psbt.Finalize();
+			psbt.ExtractTransaction();
+			// Ready!
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", bob,
+					"dlc", "show", "BetWithAlice"
+				});
+
+			// Olivia attest NicolasDorier to be the coolest guy
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+					"--datadir", olivia,
+					"event", "attest", "sign", "olivia/coolestguy", "NicolasDorier"
+			});
+			var attestation = Tester.GetLastOutput();
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+					"--datadir", bob,
+					"dlc", "execute", "BetWithAlice", attestation
+			});
 		}
 
-		private string CreateOfferFunding(Money money)
+		private string CreateOfferFunding(Money money, Key signer)
 		{
 			TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
-			builder.AddCoins(new Coin(new OutPoint(RandomUtils.GetUInt256(), 0), new TxOut(Money.Coins(50.0m), new Key().PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit))));
+			builder.AddCoins(new Coin(new OutPoint(RandomUtils.GetUInt256(), 0), new TxOut(Money.Coins(50.0m), signer.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit))));
 			builder.Send(new Key().PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), money);
 			builder.SetChange(new Key().PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
 			builder.SendEstimatedFees(new FeeRate(10.0m));

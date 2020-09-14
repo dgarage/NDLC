@@ -6,7 +6,7 @@ using System.Text;
 
 namespace NDLC.Messages.JsonConverters
 {
-	public class DLCOutcomeJsonConverter : JsonConverter<DiscreteOutcome>
+	public class DiscreteOutcomeJsonConverter : JsonConverter<DiscreteOutcome>
 	{
 		public override DiscreteOutcome ReadJson(JsonReader reader, Type objectType, [AllowNull] DiscreteOutcome existingValue, bool hasExistingValue, JsonSerializer serializer)
 		{

@@ -164,17 +164,6 @@ namespace NDLC.Tests
 		}
 
 		[Fact]
-		public void CheckCalculateProperHash()
-		{
-			var ci = new ContractInfo("Trump", Money.Coins(1.0m));
-			var jobj = JObject.Parse(JsonConvert.SerializeObject(ci, Settings));
-			var aa = jobj["sha256"].Value<string>();
-			Assert.Equal("56249f725ea0650368f09d857958628ead35a12361fe0023ddba9f062f79daa2", aa);
-			aa = jobj["outcome"].Value<string>();
-			Assert.Equal("Trump", aa);
-		}
-
-		[Fact]
 		public void CanGenerateSchnorrNonce()
 		{
 			for (int i = 0; i < 30; i++)

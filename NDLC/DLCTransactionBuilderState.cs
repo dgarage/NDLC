@@ -1,6 +1,7 @@
 ﻿using NBitcoin;
 using NBitcoin.Crypto;
 using NDLC.Messages;
+using NDLC.Messages.JsonConverters;
 using NDLC.Secp256k1;
 using Newtonsoft.Json;
 using System;
@@ -17,6 +18,7 @@ namespace NDLC
 			public PubKey? FundPubKey { get; set; } 
 			public Money? Collateral { get; set; }
 			public ECDSASignature? RefundSig { get; set; }
+			[JsonConverter(typeof(OutcomeSigs2JsonConverter))]
 			public Dictionary<DiscreteOutcome, SecpECDSAAdaptorSignature>? OutcomeSigs;
 			public Script? PayoutDestination;
 		}

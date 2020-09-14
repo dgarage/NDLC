@@ -71,6 +71,26 @@ namespace NDLC.CLI.DLC
 				throw new CommandException("signed", $"Invalid signatures. ({ex.Message})");
 			}
 		}
+		private async Task HandleSign(InvocationContext context, string signedMessageBase64)
+		{
+			var sign = Parse<Sign>(signedMessageBase64);
+			var dlc = await GetDLC(sign.AcceptorContractId);
+			if (dlc.GetNextStep(Network) != Repository.DLCState.DLCNextStep.AcceptorCheckSigs || dlc.BuilderState is null)
+				throw new CommandException("signed", "The DLC is not in a state requiring to check signatures of the offerer");
+			var builder = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
+			try
+			{
+				builder.Finalize1(sign);
+				dlc.Sign = JObject.FromObject(sign, JsonSerializer.Create(Repository.JsonSettings));
+				dlc.BuilderState = builder.ExportStateJObject();
+				await Repository.SaveDLC(dlc);
+				context.Console.Out.Write(builder.GetFundingPSBT().ToBase64());
+			}
+			catch (Exception ex)
+			{
+				throw new CommandException("signed", $"Invalid signatures. ({ex.Message})");
+			}
+		}
 
 		private async Task<Repository.DLCState> GetDLC(uint256? contractId)
 		{
@@ -86,11 +106,6 @@ namespace NDLC.CLI.DLC
 					throw new CommandException("signed", "This accept message does not match any of our DLC");
 				return dlc;
 			}
-		}
-
-		private Task HandleSign(InvocationContext context, string signedMessageBase64)
-		{
-			throw new NotImplementedException();
 		}
 
 		private T Parse<T>(string base64)
