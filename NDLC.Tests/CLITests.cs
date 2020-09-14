@@ -200,11 +200,12 @@ namespace NDLC.Tests
 					"--datadir", bob,
 					"dlc", "execute", "BetWithAlice", attestation
 			});
-			// Can also add event attestation, then execute
+			var cet = Tester.GetLastOutput();
+			// Can Alice extract the attestation through CET?
 			await Tester.AssertInvokeSuccess(new string[]
 			{
 					"--datadir", alice,
-					"event", "attest", "add", "olivia/coolestguy", attestation
+					"dlc", "extract", "BetWithBob", cet
 			});
 			await Tester.AssertInvokeSuccess(new string[]
 			{

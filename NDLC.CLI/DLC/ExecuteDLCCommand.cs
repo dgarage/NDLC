@@ -71,7 +71,6 @@ namespace NDLC.CLI.DLC
 				var execution = builder.Execute(key, oracleKey);
 				if (evt is Repository.Event)
 				{
-					var outcome = evt.Outcomes.First(o => o == execution.Outcome?.OutcomeString);
 					await Repository.AddAttestation(dlc.OracleInfo, oracleKey);
 				}
 				context.Console.Out.Write(execution.CET.ToHex());

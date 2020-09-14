@@ -65,6 +65,7 @@ namespace NDLC.CLI
 					CheckSignatureDLCCommand.CreateCommand(),
 					CounterSignDLCCommand.CreateCommand(),
 					ExecuteDLCCommand.CreateCommand(),
+					ExtractDLCCommand.CreateCommand(),
 					ShowDLCCommand.CreateCommand()
 				}
 			};

@@ -63,6 +63,43 @@ namespace NDLC.Messages
 			s.Funding = new FundingParameters(offerer, acceptor, s.FeeRate, transactionOverride).Build(network);
 		}
 
+		public Key ExtractAttestation(Transaction tx)
+		{
+			if (State.OracleInfo is null ||
+				State.Remote?.OutcomeSigs is null ||
+				State.Us?.OutcomeSigs is null ||
+				State.Funding is null)
+				throw new InvalidOperationException("Invalid state");
+			foreach (var input in tx.Inputs)
+			{
+				if (input.PrevOut != State.Funding.FundCoin.Outpoint)
+					continue;
+				foreach (var data in input.WitScript.Pushes)
+				{
+					if (data.Length == 0)
+						continue;
+					if (!SecpECDSASignature.TryCreateFromDer(data.AsSpan(0, data.Length - 1), out var sig) || sig is null)
+						continue;
+
+					var outcomeSigsByOutcome = 
+						State.Remote.OutcomeSigs
+						.Concat(State.Us.OutcomeSigs)
+						.GroupBy(c => c.Key, c => c.Value);
+					foreach (var outcomeSigs in outcomeSigsByOutcome)
+					{
+						if (!State.OracleInfo.TryComputeSigpoint(outcomeSigs.Key, out var sigpoint) || sigpoint is null)
+							continue;
+						foreach (var outcomeSig in outcomeSigs)
+						{
+							if (outcomeSig.TryExtractSecret(sig, sigpoint, out var key) && key is ECPrivKey)
+								return new Key(key.ToBytes());
+						}
+					}
+				}
+			}
+			throw new InvalidOperationException("No attestation to extract from this transaction");
+		}
+
 		public void FillStateFrom(Offer? offer)
 		{
 			if (offer is null)
@@ -158,7 +195,7 @@ namespace NDLC.Messages
 			return s.Offerer.Collateral;
 		}
 
-		(Coin[] Coins, BitcoinAddress PayoutAddress, BitcoinAddress? ChangeAddress) 
+		(Coin[] Coins, BitcoinAddress PayoutAddress, BitcoinAddress? ChangeAddress)
 			ExtractFundingInformation(PSBT psbt, Money expectedCollateral)
 		{
 			var payoutAddress = psbt.Outputs.Where(o => o.Value == expectedCollateral).Select(c => c.ScriptPubKey).FirstOrDefault();
@@ -276,7 +313,7 @@ namespace NDLC.Messages
 			collateral ??= minimumCollateral;
 			if (collateral < minimumCollateral)
 				throw new ArgumentException($"The accept collateral should be at least {minimumCollateral.ToString(false, false)}");
-			
+
 			var acceptor = new FundingParty(
 			collateral,
 			accept.FundingInputs.Select(c => new Coin(c.Outpoint, c.Output)).ToArray(),
@@ -401,6 +438,8 @@ namespace NDLC.Messages
 							  .ToDictionary(kv => kv.Outcome, kv => kv.Item2),
 				RefundSig = new PartialSignature(fundKey.PubKey, signature)
 			};
+			State.Us ??= new Party();
+			State.Us.OutcomeSigs = cetSig.OutcomeSigs.ToDictionary(kv => kv.Key, kv => kv.Value.Signature);
 			return cetSig;
 		}
 

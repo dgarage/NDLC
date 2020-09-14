@@ -223,7 +223,10 @@ namespace NDLC.Tests
 			var sig = oracleInfo.RValue.CreateSchnorrSignature(oracleSecret.ToECPrivKey());
 			Assert.True(oracleInfo.PubKey.SigVerifyBIP340(sig, new DiscreteOutcome("Republicans").Hash));
 
-			initiator.Execute(offerKey, oracleSecret);
+			var execution = initiator.Execute(offerKey, oracleSecret);
+			// Can extract?
+			initiator.ExtractAttestation(execution.CET);
+			acceptor.ExtractAttestation(execution.CET);
 
 			this.testOutputHelper.WriteLine("----Final state------");
 			testOutputHelper.WriteLine(JObject.Parse(initiator.ExportState()).ToString(Formatting.Indented));
