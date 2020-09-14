@@ -417,7 +417,7 @@ namespace NDLC.Messages
 			return new AdaptorSignature(sig, proof);
 		}
 
-		public Transaction BuildSignedCET(Key fundKey, Key oracleSecret)
+		public DLCExecution Execute(Key fundKey, Key oracleSecret)
 		{
 			if (s.OffererPayoffs is null ||
 				s.Remote?.OutcomeSigs is null ||
@@ -444,7 +444,7 @@ namespace NDLC.Messages
 				builder.SignTransactionInPlace(cet);
 				if (!builder.Verify(cet, out var err))
 					throw new InvalidOperationException("This CET is not fully signed");
-				return cet;
+				return new DLCExecution(cet, outcome);
 			}
 			throw new InvalidOperationException("This oracle key is not valid");
 		}

@@ -6,6 +6,15 @@ namespace NDLC.CLI.Events
 {
 	public class EventFullName
 	{
+
+		private static readonly EventFullName _Empty = new EventFullName("","");
+		public static EventFullName Empty
+		{
+			get
+			{
+				return _Empty;
+			}
+		}
 		public EventFullName(string oracleName, string name)
 		{
 			OracleName = oracleName;

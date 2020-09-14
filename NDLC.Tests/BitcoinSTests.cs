@@ -223,7 +223,7 @@ namespace NDLC.Tests
 			var sig = oracleInfo.RValue.CreateSchnorrSignature(oracleSecret.ToECPrivKey());
 			Assert.True(oracleInfo.PubKey.SigVerifyBIP340(sig, new DiscreteOutcome("Republicans").Hash));
 
-			initiator.BuildSignedCET(offerKey, oracleSecret);
+			initiator.Execute(offerKey, oracleSecret);
 
 			this.testOutputHelper.WriteLine("----Final state------");
 			testOutputHelper.WriteLine(JObject.Parse(initiator.ExportState()).ToString(Formatting.Indented));
@@ -412,10 +412,10 @@ namespace NDLC.Tests
 
 			if (data.OracleAttestation != null)
 			{
-				var outcomeSigned = data.Builder.BuildSignedCET(myKey, data.OracleAttestation);
+				var outcomeSigned = data.Builder.Execute(myKey, data.OracleAttestation);
 
 				testOutputHelper.WriteLine("---Signed CET---");
-				testOutputHelper.WriteLine(outcomeSigned.ToHex());
+				testOutputHelper.WriteLine(outcomeSigned.CET.ToHex());
 				testOutputHelper.WriteLine("--------------------");
 			}
 		}

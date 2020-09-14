@@ -258,6 +258,16 @@ namespace NDLC.CLI
 			public RootedKeyPath? RootedKeyPath { get; set; }
 		}
 
+		public async Task<DiscreteOutcome?> AddAttestation(OracleInfo oracleInfo, Key oracleAttestation)
+		{
+			var oracle = await GetOracle(oracleInfo.PubKey);
+			if (oracle is null)
+				return null;
+			var evt = await GetEvent(oracleInfo.PubKey, oracleInfo.RValue);
+			if (evt is null)
+				return null;
+			return await AddAttestation(new EventFullName(oracle.Name, evt.Name), oracleAttestation);
+		}
 		public async Task<DiscreteOutcome?> AddAttestation(EventFullName name, Key oracleAttestation)
 		{
 			var oracles = await GetOracles();

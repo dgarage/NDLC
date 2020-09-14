@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,7 +18,10 @@ namespace NDLC.CLI.DLC
 		{
 			Command command = new Command("execute", "Execute a DLC with the Oracle's attestation");
 			command.Add(new Argument<string>("name", "The name of the DLC"));
-			command.Add(new Argument<string>("attestation", "The oracle's attestation"));
+			command.Add(new Argument<string>("attestation", "The oracle's attestation")
+			{
+				Arity =	ArgumentArity.ZeroOrOne
+			});
 			command.Handler = new ExecuteDLCCommand();
 			return command;
 		}
@@ -28,17 +32,32 @@ namespace NDLC.CLI.DLC
 			if (name is null)
 				throw new CommandOptionRequiredException("name");
 			var dlc = await Repository.GetDLC(name);
-			if (dlc is null)
+			if (dlc?.OracleInfo is null)
 				throw new CommandException("name", "This DLC does not exist");
 			if (dlc.BuilderState is null || dlc.FundKeyPath is null)
 				throw new CommandException("name", "This DLC is not in the right state to get executed");
+
+			var evt = await Repository.GetEvent(dlc.OracleInfo.PubKey, dlc.OracleInfo.RValue);
+
 			var attestation = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("attestation")?.Trim();
-			if (attestation is null)
-				throw new CommandOptionRequiredException("attestation");
 			Key oracleKey;
 			try
 			{
-				oracleKey = new Key(Encoders.Hex.DecodeData(attestation));
+				if (attestation is null)
+				{
+					var k = evt?.Attestations?.Select(o => o.Value).FirstOrDefault();
+					if (k is null)
+						throw new CommandOptionRequiredException("attestation");
+					oracleKey = k;
+				}
+				else
+				{
+					oracleKey = new Key(Encoders.Hex.DecodeData(attestation));
+				}
+			}
+			catch (CommandOptionRequiredException)
+			{
+				throw;
 			}
 			catch
 			{
@@ -49,7 +68,13 @@ namespace NDLC.CLI.DLC
 			var key = await Repository.GetKey(dlc.FundKeyPath);
 			try
 			{
-				context.Console.Out.Write(builder.BuildSignedCET(key, oracleKey).ToHex());
+				var execution = builder.Execute(key, oracleKey);
+				if (evt is Repository.Event)
+				{
+					var outcome = evt.Outcomes.First(o => o == execution.Outcome?.OutcomeString);
+					await Repository.AddAttestation(dlc.OracleInfo, oracleKey);
+				}
+				context.Console.Out.Write(execution.CET.ToHex());
 			}
 			catch (Exception ex)
 			{

@@ -200,6 +200,22 @@ namespace NDLC.Tests
 					"--datadir", bob,
 					"dlc", "execute", "BetWithAlice", attestation
 			});
+			// Can also add event attestation, then execute
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+					"--datadir", alice,
+					"event", "attest", "add", "olivia/coolestguy", attestation
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+					"--datadir", alice,
+					"dlc", "execute", "BetWithBob"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+					"--datadir", bob,
+					"dlc", "execute", "BetWithAlice"
+			});
 		}
 
 		private string CreateOfferFunding(Money money, Key signer)
