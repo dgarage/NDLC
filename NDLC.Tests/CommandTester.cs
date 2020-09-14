@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.Text;
 using System.Threading.Tasks;
+using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace NDLC.Tests
 {
@@ -30,7 +32,15 @@ namespace NDLC.Tests
 			SpyConsole.Clear();
 			var command = Program.CreateCommand();
 			Log.WriteLine("Command: " + string.Join(' ', args));
-			await command.AssertInvoke(args, SpyConsole, expectedResult);
+			var errorCode = await command.InvokeAsync(args, SpyConsole);
+			if (errorCode != expectedResult)
+			{
+				if (expectedResult == 0)
+					throw new XunitException($"Should have succeed: { SpyConsole.GetError() }");
+				else
+					Assert.Equal(expectedResult, errorCode);
+			}
+			Assert.Equal(expectedResult, errorCode);
 			var result = command.Parse(args);
 			LastCommand = (CommandBase)((Command)result.CommandResult.Command).Handler;
 			Log.WriteLine("------------------------------------");

@@ -79,6 +79,7 @@ namespace NDLC.Messages
 			{
 				s.OffererPayoffs = DiscretePayoffs.CreateFromContractInfo(offer.ContractInfo, offer.TotalCollateral);
 			}
+			s.Offerer.ContractId = offer.OffererContractId;
 			s.Offerer.Collateral = offer.TotalCollateral ?? s.OffererPayoffs?.CalculateMinimumCollateral();
 			s.Offerer.FundPubKey = offer.PubKeys?.FundingKey;
 			s.Offerer.PayoutDestination = offer.PubKeys?.PayoutAddress?.ScriptPubKey;
@@ -95,6 +96,7 @@ namespace NDLC.Messages
 			if (accept is null)
 				return;
 			s.Acceptor ??= new Party();
+			s.Acceptor.ContractId = accept.AcceptorContractId;
 			s.Acceptor.FundPubKey = accept.PubKeys?.FundingKey;
 			s.Acceptor.OutcomeSigs = accept.CetSigs?.OutcomeSigs.ToDictionary(kv => kv.Key, kv => kv.Value.Signature);
 			s.Acceptor.RefundSig = accept.CetSigs?.RefundSig?.Signature.Signature;
@@ -239,7 +241,8 @@ namespace NDLC.Messages
 					FundingKey = fundKey.PubKey,
 					PayoutAddress = fundingInfo.PayoutAddress
 				},
-				FundingInputs = fundingInfo.Coins.Select(c => new FundingInput(c)).ToArray()
+				FundingInputs = fundingInfo.Coins.Select(c => new FundingInput(c)).ToArray(),
+				OffererContractId = s.Offerer.ContractId
 			};
 			FillStateFrom(accept);
 			s.Funding = new FundingParameters(
@@ -302,6 +305,7 @@ namespace NDLC.Messages
 			Sign sign = new Sign();
 			sign.CetSigs = CreateCetSigs(fundKey);
 			sign.FundingSigs = new Dictionary<OutPoint, List<PartialSignature>>();
+			sign.AcceptorContractId = s.Acceptor?.ContractId;
 			foreach (var input in signedFunding.Inputs)
 			{
 				if (!sign.FundingSigs.TryGetValue(input.PrevOut, out var sigs))

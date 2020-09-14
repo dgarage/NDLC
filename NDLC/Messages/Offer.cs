@@ -31,6 +31,8 @@ namespace NDLC.Messages
 		public Timeouts? Timeouts { get; set; }
 		[JsonProperty(Order = 104, DefaultValueHandling = DefaultValueHandling.Ignore)]
 		public string? EventId { get; set; }
+		[JsonProperty(Order = 105, DefaultValueHandling = DefaultValueHandling.Ignore)]
+		public uint256? OffererContractId { get; set; }
 
 		public DiscretePayoffs ToDiscretePayoffs()
 		{

@@ -13,6 +13,7 @@ namespace NDLC
 	{
 		public class Party
 		{
+			public uint256? ContractId { get; set; }
 			public PubKey? FundPubKey { get; set; } 
 			public Money? Collateral { get; set; }
 			public ECDSASignature? RefundSig { get; set; }

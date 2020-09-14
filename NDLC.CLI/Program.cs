@@ -62,6 +62,7 @@ namespace NDLC.CLI
 					OfferDLCCommand.CreateCommand(),
 					ReviewDLCCommand.CreateCommand(),
 					AcceptDLCCommand.CreateCommand(),
+					CheckSignatureDLCCommand.CreateCommand(),
 					ShowDLCCommand.CreateCommand()
 				}
 			};

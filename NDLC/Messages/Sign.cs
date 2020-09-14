@@ -15,6 +15,8 @@ namespace NDLC.Messages
 		[JsonConverter(typeof(FundingSigsJsonConverter))]
 		public Dictionary<OutPoint, List<PartialSignature>>? FundingSigs { get; set; }
 
+		[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+		public uint256? AcceptorContractId { get; set; }
 		[JsonExtensionData]
 		public Dictionary<string,JToken>? AdditionalData { get; set; }
 	}

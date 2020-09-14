@@ -49,6 +49,7 @@ namespace NDLC.CLI.DLC
 			try
 			{
 				var offer = builder.FundOffer(key.PrivateKey, psbt);
+				offer.OffererContractId = dlc.Id;
 				dlc.FundKeyPath = key.KeyPath;
 				dlc.BuilderState = builder.ExportStateJObject();
 				dlc.Offer = JObject.FromObject(offer, JsonSerializer.Create(Repository.JsonSettings));

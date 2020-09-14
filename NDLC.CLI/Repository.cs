@@ -24,7 +24,10 @@ namespace NDLC.CLI
 	{
 		public class DLCState
 		{
+			[JsonIgnore]
 			public string Name { get; set; } = string.Empty;
+			[JsonIgnore]
+			public uint256 Id { get; set; } = uint256.Zero;
 			[JsonConverter(typeof(KeyPathJsonConverter))]
 			public RootedKeyPath? FundKeyPath { get; set; }
 			public JObject? BuilderState { get; set; }
@@ -39,6 +42,40 @@ namespace NDLC.CLI
 				if (BuilderState is null)
 					throw new InvalidOperationException("The builder is not created yet");
 				return new DLCTransactionBuilder(BuilderState.ToString(), network);
+			}
+
+			public enum DLCNextStep
+			{
+				Unknown,
+				OffererFund,
+				OffererCheckSigs,
+				AcceptorCheckSigs
+			}
+			public DLCNextStep GetNextStep(Network network)
+			{
+				if (BuilderState is null)
+					throw new InvalidOperationException("BuilderState not set");
+				var builder = new DLCTransactionBuilder(BuilderState.ToString(), network);
+				DLCNextStep nextStep = DLCNextStep.Unknown;
+				if (builder.State.IsInitiator)
+				{
+					if (FundKeyPath is null)
+					{
+						nextStep = DLCNextStep.OffererFund;
+					}
+					else
+					{
+						nextStep = DLCNextStep.OffererCheckSigs;
+					}
+				}
+				else
+				{
+					if (Sign is null)
+					{
+						nextStep = DLCNextStep.AcceptorCheckSigs;
+					}
+				}
+				return nextStep;
 			}
 		}
 
@@ -118,22 +155,47 @@ namespace NDLC.CLI
 			var dir = Path.Combine(DataDirectory, "dlcs");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
-			var file = GetDLCFilePath(name);
 			var s = new DLCState() 
 			{ 
 				OracleInfo = oracleInfo,
 				BuilderState = builder.ExportStateJObject(),
-				Name = name
+				Name = name,
+				Id = RandomUtils.GetUInt256()
 			};
+			await AddDLCMapping(s.Id, name);
+			var file = GetDLCFilePath(s.Id);
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(s, JsonSettings));
 			return s;
 		}
+
+		private async Task AddDLCMapping(uint256 id, string name)
+		{
+			var dlcs = Path.Combine(DataDirectory, "dlcs-mapping.json");
+			JObject mapping = File.Exists(dlcs) ? JObject.Parse(await File.ReadAllTextAsync(dlcs))
+												: new JObject();
+			mapping[name] = id.ToString();
+			await File.WriteAllTextAsync(dlcs, mapping.ToString(Formatting.Indented));
+		}
+		private async Task<(uint256 Id, string Name)?> GetDLCId(string name)
+		{
+			var dlcs = Path.Combine(DataDirectory, "dlcs-mapping.json");
+			if (!File.Exists(dlcs))
+				return null;
+			var jobj = JObject.Parse(await File.ReadAllTextAsync(dlcs));
+			var prop = jobj.Property(name, StringComparison.OrdinalIgnoreCase);
+			if (prop is null)
+				return null;
+			return (new uint256(prop.Value.Value<string>()), prop.Name);
+		}
+
 		public async Task SaveDLC(DLCState dlc)
 		{
 			var dir = Path.Combine(DataDirectory, "dlcs");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
-			var file = GetDLCFilePath(dlc.Name);
+			var file = GetDLCFilePath(dlc.Id);
+			if (!File.Exists(file))
+				throw new InvalidOperationException("This DLC does not exists");
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(dlc, JsonSettings));
 		}
 
@@ -142,15 +204,32 @@ namespace NDLC.CLI
 			var dir = Path.Combine(DataDirectory, "dlcs");
 			if (!Directory.Exists(dir))
 				return null;
-			var file = GetDLCFilePath(name);
+
+			var mapping = await GetDLCId(name);
+			if (mapping is null)
+				return null;
+			var state = await GetDLC(mapping.Value.Id);
+			if (state is null)
+				return null;
+			state.Name = mapping.Value.Name;
+			return state;
+		}
+		public async Task<DLCState?> GetDLC(uint256 id)
+		{
+			var file = GetDLCFilePath(id);
 			if (!File.Exists(file))
 				return null;
-			return JsonConvert.DeserializeObject<DLCState>(await File.ReadAllTextAsync(file), JsonSettings);
+			var state = JsonConvert.DeserializeObject<DLCState>(await File.ReadAllTextAsync(file), JsonSettings);
+			if (state is null)
+				return null;
+			state.Id = id;
+			return state;
 		}
 
-		string GetDLCFilePath(string name)
+		string GetDLCFilePath(uint256 contractId)
 		{
-			return Path.Combine(DataDirectory, "dlcs", $"{name}.json");
+			var fileName = Encoders.Base58.EncodeData(contractId.ToBytes(false));
+			return Path.Combine(DataDirectory, "dlcs", $"{fileName}.json");
 		}
 
 		public class Oracle

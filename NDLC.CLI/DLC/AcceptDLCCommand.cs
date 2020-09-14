@@ -79,6 +79,7 @@ namespace NDLC.CLI.DLC
 				var k = await Repository.CreatePrivateKey();
 				var accept = builder.FundAccept(k.PrivateKey, psbt);
 				var dlc = await Repository.NewDLC(name, offer.OracleInfo, builder);
+				accept.AcceptorContractId = dlc.Id;
 				dlc.FundKeyPath = k.KeyPath;
 				dlc.BuilderState = builder.ExportStateJObject();
 				dlc.Offer = JObject.FromObject(offer, JsonSerializer.Create(Repository.JsonSettings));

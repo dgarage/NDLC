@@ -114,10 +114,34 @@ namespace NDLC.Tests
 					"--datadir", bob,
 					"dlc", "accept", "BetWithAlice", offer, acceptFunding
 				});
+			var acceptorSigs = Tester.GetLastOutput();
 			await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", bob,
 					"dlc", "show", "BetWithAlice"
+				});
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", alice,
+					"dlc", "checksigs", acceptorSigs
+				});
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", alice,
+					"dlc", "show", "BetWithBob", "--funding"
+				});
+			var aliceFunding = Tester.GetLastOutput();
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", bob,
+					"dlc", "show", "BetWithAlice", "--funding"
+				});
+			var bobFunding = Tester.GetLastOutput();
+			Assert.Equal(aliceFunding, bobFunding);
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", alice,
+					"dlc", "show", "BetWithBob"
 				});
 		}
 

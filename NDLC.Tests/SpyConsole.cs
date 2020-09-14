@@ -54,6 +54,10 @@ namespace NDLC.Tests
 		{
 			return outWriter.Logs.ToString();
 		}
+		internal string GetError()
+		{
+			return errWriter.Logs.ToString();
+		}
 
 		public IStandardStreamWriter Out => outWriter;
 

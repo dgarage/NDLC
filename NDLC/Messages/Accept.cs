@@ -15,6 +15,10 @@ namespace NDLC.Messages
 		public CetSigs? CetSigs { get; set; }
 		[JsonProperty(Order = 101)]
 		public string? EventId { get; set; }
+		[JsonProperty(Order = 102, DefaultValueHandling = DefaultValueHandling.Ignore)]
+		public uint256? OffererContractId { get; set; }
+		[JsonProperty(Order = 103, DefaultValueHandling = DefaultValueHandling.Ignore)]
+		public uint256? AcceptorContractId { get; set; }
 	}
 
 	public class CetSigs
