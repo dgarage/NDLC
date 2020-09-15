@@ -69,7 +69,7 @@ namespace NDLC.Tests
 			await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", alice,
-					"dlc", "generate",
+					"dlc", "offer",
 					"BetWithBob", "olivia/coolestguy",
 					"Ninja:-0.4",
 					"cowboy:-1.2",
@@ -87,7 +87,7 @@ namespace NDLC.Tests
 			await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", alice,
-					"dlc", "offer", "BetWithBob", offerFunding
+					"dlc", "setup", "BetWithBob", offerFunding
 				});
 			await Tester.AssertInvokeSuccess(new string[]
 				{
@@ -111,13 +111,22 @@ namespace NDLC.Tests
 					"--datadir", bob,
 					"dlc", "review", offer
 				});
-			var bobSigner = new Key();
-			var acceptFunding = CreateOfferFunding(Money.Coins(1.0m), bobSigner);
+
 			await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", bob,
-					"dlc", "accept", "BetWithAlice", offer, acceptFunding
+					"dlc", "accept", "BetWithAlice", offer
 				});
+
+			var bobSigner = new Key();
+			var acceptFunding = CreateOfferFunding(Money.Coins(1.0m), bobSigner);
+
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", bob,
+					"dlc", "setup", "BetWithAlice", acceptFunding
+				});
+
 			var acceptorSigs = Tester.GetLastOutput();
 			await Tester.AssertInvokeSuccess(new string[]
 				{

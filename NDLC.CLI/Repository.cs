@@ -80,7 +80,11 @@ namespace NDLC.CLI
 				}
 				else
 				{
-					if (Sign is null || builder.State.Funding is null)
+					if (builder.State.Funding is null)
+					{
+						nextStep = DLCNextStep.Setup;
+					}
+					else if (Sign is null)
 					{
 						nextStep = DLCNextStep.CheckSigs;
 					}

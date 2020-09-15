@@ -25,10 +25,6 @@ namespace NDLC.CLI.DLC
 			{
 				Arity = ArgumentArity.ExactlyOne
 			});
-			command.Add(new Argument<string>("setuppsbt")
-			{
-				Arity = ArgumentArity.ExactlyOne
-			});
 			command.Handler = new AcceptDLCCommand();
 			return command;
 		}
@@ -38,8 +34,6 @@ namespace NDLC.CLI.DLC
 			var name = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.Trim();
 			if (name is null)
 				throw new CommandOptionRequiredException("name");
-
-			var psbt = context.ParsePSBT("setuppsbt", Network);
 			if (await Repository.GetDLC(name) != null)
 				throw new CommandException("name", "This DLC already exists");
 			if (offer.OracleInfo is null)
@@ -71,17 +65,11 @@ namespace NDLC.CLI.DLC
 			{
 				var builder = new DLCTransactionBuilder(false, null, null, null, Network);
 				builder.Accept(offer);
-				var k = await Repository.CreatePrivateKey();
-				var accept = builder.FundAccept(k.PrivateKey, psbt);
 				var dlc = await Repository.NewDLC(name, offer.OracleInfo, builder);
-				accept.AcceptorContractId = dlc.Id;
-				dlc.FundKeyPath = k.KeyPath;
 				dlc.BuilderState = builder.ExportStateJObject();
 				dlc.Offer = JObject.FromObject(offer, JsonSerializer.Create(Repository.JsonSettings));
 				await Repository.SaveDLC(dlc);
-				dlc.Accept = JObject.FromObject(accept, JsonSerializer.Create(Repository.JsonSettings));
-				await Repository.SaveDLC(dlc);
-				context.WriteObject(accept, Repository.JsonSettings);
+				context.Console.Out.Write($"Contract accepted, you now need to setup the DLC. For more information, run `dlc show \"{name}\"`.");
 			}
 			catch (Exception ex)
 			{

@@ -27,14 +27,14 @@ namespace NDLC.CLI.DLC
 		{
 			if (currentState.BuilderState is null)
 				throw new CommandException(optionName, "The DLC is in an invalid state for this action");
-			var isOfferer = new DLCTransactionBuilder(currentState.BuilderState.ToString(), network).State.IsInitiator;
+			var isOfferer = currentState.GetBuilder(network).State.IsInitiator;
 			if (isOfferer && !expectedOfferer)
 					throw new CommandException(optionName, "This action must be run by the acceptor, but you are the offerer of the DLC");
 			if (!isOfferer && expectedOfferer)
 				throw new CommandException(optionName, "This action must be run by the offerer, but you are the acceptor of the DLC");
 			var actualStep = currentState.GetNextStep(network);
 			if (actualStep != expectedState)
-				throw new CommandException(optionName, $"The DLC is in an invalid state for this action. The expected state is '{expectedState}' but your state is '{actualStep}'");
+				throw new CommandException(optionName, $"The DLC is in an invalid state for this action. The expected state is '{expectedState}' but your state is '{actualStep}'.");
 		}
 
 		public static void WriteTransaction(this InvocationContext ctx, Transaction tx, Network network)
