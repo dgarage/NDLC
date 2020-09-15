@@ -1,5 +1,5 @@
 # Documentation
-## General Concepts
+# Introduction
 
 A DLC can be seen as a smart contract involving two `parties`, a future `event`, a set of outcomes and a `payoff function`.
 An `outcome` can be `attested` by an `oracle`. The `oracle` does not need to interact with either party, and its only role is to `attest` the outcome of the event.
@@ -10,6 +10,24 @@ The `oracle` roles is to define the `event` and `attest` a single outcome of the
 
 Let's call Alice and Bob the two parties of the contract, and Olivia the oracle.
 
+A DLC will show two transactions on the chain:
+* The Funding Transaction
+* The Contract Execution Transaction (CET)
+
+The `Funding Transaction` is a transaction built by the two parties of the contract, locking their collateral for the contract.
+
+The `Contract Execution Transaction` (or `CET`) is the transaction distributing the locked collateral according to the `payoff function` for the outcome attested by the oracle.
+
+## Prerequisite
+
+This project is still experimental and subject to break without warning. We will not attempt to make backward compatible changes at this stage.
+
+In order to prevent less technical savvy people from making DLC at this stage, we require you to build the project by yourself.
+
+You need:
+
+* .NET Core SDK 3.1 to build this project.
+* A wallet with PSBT features (for example BTCPayServer, Wasabi Wallet, Electrum, Bitcoin Core)
 
 ## How to run this project?
 
@@ -39,6 +57,10 @@ dotnet run -c Release --no-build -- info
 ```
 
 ## About the CLI
+
+The CLI saves its state in a data directory, and do not requires you to have a full node. It interacts with your favorite wallet by exchanging PSBTs as part of the workflow.
+
+An example of wallets supporting PSBT includes: BTCPay Server, Wasabi Wallet, Electrum, Bitcoin Core.
 
 By default, the CLI assumes you are using Bitcoin mainnet and the location of a data directory where it will store its state.
 ```bash
@@ -77,6 +99,7 @@ For example:
 --datadir Olivia oracle list
 ```
 
+# A typical DLC workflow
 ## How to create an oracle
 
 <p align="center">
@@ -313,3 +336,6 @@ dlc execute <Attestation>
 
 This will output a fully signed transaction which will send the funds according to the payoff function of the DLC for the attested outcome.
 
+# Additional features
+
+## Extract the attestation from a 
