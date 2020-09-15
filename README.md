@@ -75,6 +75,7 @@ Thanks to the contribution of cryptographers for their work on the low level mat
 * Andrew Poelstra for the idea of [adaptor signatures](https://download.wpsoftware.net/bitcoin/wizardry/mw-slides/2018-05-18-l2/slides.pdf).
 * Nadav Kohen for the idea of [payment points](https://diyhpl.us/wiki/transcripts/lightning-conference/2019/2019-10-20-nadav-kohen-payment-points/).
 * Jonas Nick for the implementation of [adaptor signature](https://github.com/jonasnick/secp256k1/pull/14).
+* Thanks to Ruben Somsen for explaining me in human language what [adaptor sigs](https://www.youtube.com/watch?v=TlCxpdNScCA&feature=youtu.be) are.
 
 And thanks to those who are working on a specification which will make it possible for several implementation to talk to each other and who helped me Thibaut Le Guilly, Ben Carman, Chris Stewart, Ichiro Kuwahara.
 
