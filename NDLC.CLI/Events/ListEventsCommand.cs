@@ -28,13 +28,14 @@ namespace NDLC.CLI.Events
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
 			var oracleName = context.ParseResult.ValueForOption<string>("oracle");
-			foreach (var oracle in (await Repository.ListOracles()).OrderBy(o => o.Name))
+			var oracles = await NameRepository.AsOracleNameRepository().GetIds();
+			foreach (var oracle in oracles.OrderBy(o => o.Key))
 			{
-				if (oracleName is string && !oracle.Name.Equals(oracleName, StringComparison.OrdinalIgnoreCase))
+				if (oracleName is string && !oracle.Key.Equals(oracleName, StringComparison.OrdinalIgnoreCase))
 					continue;
-				foreach (var evts in (await Repository.ListEvents(oracle.Name)).OrderBy(o => o.Name))
+				foreach (var evts in (await Repository.ListEvents(oracle.Key)).OrderBy(o => o.Name))
 				{
-					var fullName = new EventFullName(oracle.Name, evts.Name);
+					var fullName = new EventFullName(oracle.Key, evts.Name);
 					context.Console.Out.WriteLine(fullName.ToString());
 				}
 			}

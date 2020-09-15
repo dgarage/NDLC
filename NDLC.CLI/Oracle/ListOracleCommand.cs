@@ -21,11 +21,11 @@ namespace NDLC.CLI
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
 			byte[] buf = new byte[32];
-			foreach (var o in (await Repository.ListOracles()).OrderBy(o => o.Name))
+
+			var names = await NameRepository.AsOracleNameRepository().GetIds();
+			foreach (var o in names.OrderBy(n => n.Key))
 			{
-				o.PubKey.WriteToSpan(buf);
-				var hex = Encoders.Hex.EncodeData(buf);
-				context.Console.Out.WriteLine($"{o.Name}\t{hex}");
+				context.Console.Out.WriteLine($"{o.Key}\t{o.Value}");
 			}
 		}
 	}

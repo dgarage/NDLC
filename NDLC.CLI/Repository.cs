@@ -102,10 +102,53 @@ namespace NDLC.CLI
 			}
 		}
 
-		public async Task<Oracle> GetOracle(ECXOnlyPubKey pubKey)
+		public async Task<Oracle?> GetOracle(ECXOnlyPubKey pubKey)
 		{
-			var oracles = await GetOracles();
-			return oracles.FirstOrDefault(o => o.PubKey == pubKey);
+			var dir = Path.Combine(RepositoryDirectory, "Oracles");
+			if (!Directory.Exists(dir))
+				return null;
+			var path = GetOracleFilePath(pubKey);
+			if (!File.Exists(path))
+				return null;
+			return JsonConvert.DeserializeObject<Oracle>(await File.ReadAllTextAsync(path), JsonSettings);
+		}
+		public async Task<Oracle?> GetOracle(string oracleName)
+		{
+			var id = await NameRepository.GetId(Scopes.Oracles, oracleName);
+			if (id is null)
+				return null;
+			if (!ECXOnlyPubKey.TryCreate(Encoders.Hex.DecodeData(id), Context.Instance, out var pubkey)
+				|| pubkey is null)
+				return null;
+			return await GetOracle(pubkey);
+		}
+
+		private string GetOracleFilePath(ECXOnlyPubKey pubKey)
+		{
+			return Path.Combine(Path.Combine(RepositoryDirectory, "Oracles"), Encoders.Base58.EncodeData(pubKey.ToBytes()) + ".json");
+		}
+
+		async Task SaveOracle(Oracle oracle)
+		{
+			if (oracle.PubKey is null)
+				throw new ArgumentException("Oracle PubKey should not be null");
+			var dir = Path.Combine(RepositoryDirectory, "Oracles");
+			if (!Directory.Exists(dir))
+				Directory.CreateDirectory(dir);
+			var path = GetOracleFilePath(oracle.PubKey);
+			await File.WriteAllTextAsync(path, JsonConvert.SerializeObject(oracle, JsonSettings));
+		}
+		public Task<bool> RemoveOracle(ECXOnlyPubKey? pubkey)
+		{
+			if (pubkey is null)
+				return Task.FromResult(false);
+			var path = GetOracleFilePath(pubkey);
+			if (File.Exists(path))
+			{
+				File.Delete(path);
+				return Task.FromResult(true);
+			}
+			return Task.FromResult(false);
 		}
 
 		public class Event
@@ -257,7 +300,6 @@ namespace NDLC.CLI
 
 		public class Oracle
 		{
-			public string Name { get; set; } = string.Empty;
 			[JsonConverter(typeof(ECXOnlyPubKeyJsonConverter))]
 			public ECXOnlyPubKey? PubKey { get; set; }
 			[JsonConverter(typeof(NBitcoin.JsonConverters.KeyPathJsonConverter))]
@@ -272,12 +314,12 @@ namespace NDLC.CLI
 			var evt = await GetEvent(oracleInfo.PubKey, oracleInfo.RValue);
 			if (evt is null)
 				return null;
-			return await AddAttestation(new EventFullName(oracle.Name, evt.Name), oracleAttestation);
+			var oracleName = await NameRepository.GetName(Scopes.Oracles, new OracleId(oracleInfo.PubKey).ToString());
+			return await AddAttestation(new EventFullName(oracleName, evt.Name), oracleAttestation);
 		}
 		public async Task<DiscreteOutcome?> AddAttestation(EventFullName name, Key oracleAttestation)
 		{
-			var oracles = await GetOracles();
-			var oracle = GetOracle(name.OracleName, oracles);
+			var oracle = await GetOracle(name.OracleName);
 			if (oracle?.PubKey is null)
 				return null;
 			var events = await GetEvents(oracle);
@@ -310,7 +352,7 @@ namespace NDLC.CLI
 						throw new InvalidOperationException("Could not recover the private key of the oracle, this should never happen");
 					var k = new Key(extracted.ToBytes());
 					oracle.RootedKeyPath = new RootedKeyPath(k.PubKey.GetHDFingerPrint(), new KeyPath());
-					await SaveOracles(oracles);
+					await SaveOracle(oracle);
 					if (!KeySetExists(k.PubKey.GetHDFingerPrint()))
 						await SaveKeyset(k.PubKey.GetHDFingerPrint(), new Keyset() { SingleKey = k });
 				}
@@ -400,17 +442,6 @@ namespace NDLC.CLI
 			return keyset.GetKey(keyPath);
 		}
 
-		public async Task<List<(string Name, ECXOnlyPubKey PubKey)>> ListOracles()
-		{
-			List<(string Name, ECXOnlyPubKey PubKey)> r = new List<(string Name, ECXOnlyPubKey PubKey)>();
-			foreach (var oracle in await GetOracles())
-			{
-				if (oracle.Name is string && oracle.PubKey is ECXOnlyPubKey)
-					r.Add((oracle.Name, oracle.PubKey));
-			}
-			return r;
-		}
-
 		public async Task<(RootedKeyPath KeyPath, Key PrivateKey)> CreatePrivateKey()
 		{
 			var settings = await this.GetSettings();
@@ -459,15 +490,8 @@ namespace NDLC.CLI
 			return File.Exists(keyset);
 		}
 
-		public async Task<Oracle?> GetOracle(string oracleName)
-		{
-			var oracle = GetOracle(oracleName, await GetOracles());
-			if (oracle is null)
-				return null;
-			return oracle;
-		}
-
 		public JsonSerializerSettings JsonSettings { get; }
+		public NameRepository NameRepository { get; }
 		public Repository(string? dataDirectory, Network network)
 		{
 			Network = network;
@@ -478,6 +502,7 @@ namespace NDLC.CLI
 			RepositoryDirectory = Path.Combine(dataDirectory, GetSubDirectory(network));
 			if (!Directory.Exists(RepositoryDirectory))
 				Directory.CreateDirectory(RepositoryDirectory);
+			NameRepository = new NameRepository(Path.Combine(RepositoryDirectory, "names.json"));
 			JsonSettings = new JsonSerializerSettings()
 			{
 				Formatting = Formatting.Indented,
@@ -497,7 +522,7 @@ namespace NDLC.CLI
 
 		public async Task<bool> OracleExists(string oracleName)
 		{
-			return GetOracle(oracleName, await GetOracles()) is Oracle;
+			return await GetOracle(oracleName) is Oracle;
 		}
 
 		public string RepositoryDirectory
@@ -519,55 +544,22 @@ namespace NDLC.CLI
 			return settings ?? new Settings();
 		}
 
-		async Task<List<Oracle>> GetOracles()
-		{
-			var file = Path.Combine(RepositoryDirectory, "oracles.json");
-			if (!File.Exists(file))
-				return new List<Oracle>();
-			var oracles = JsonConvert.DeserializeObject<List<Oracle>>(await File.ReadAllTextAsync(file), JsonSettings);
-			return oracles?.Where(o => !string.IsNullOrWhiteSpace(o.Name) && o.PubKey != null).ToList()
-				?? new List<Oracle>();
-		}
-		async Task SaveOracles(List<Oracle> oracles)
-		{
-			var file = Path.Combine(RepositoryDirectory, "oracles.json");
-			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(oracles, JsonSettings));
-		}
 		private async Task SaveSettings(Settings settings)
 		{
 			var file = Path.Combine(RepositoryDirectory, "settings.json");
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(settings, JsonSettings));
 		}
-		public async Task SetOracle(string oracleName, ECXOnlyPubKey pubKey, RootedKeyPath? rootedKeyPath = null)
+		public async Task<bool> AddOracle(ECXOnlyPubKey pubKey, RootedKeyPath? rootedKeyPath = null)
 		{
-			var oracles = await GetOracles();
-			var oracle = GetOracle(oracleName, oracles);
-			if (oracle is null)
-			{
-				oracle = new Oracle() { Name = oracleName };
-				oracles.Add(oracle);
-			}
+			var oracle = await GetOracle(pubKey);
+			if (oracle is Oracle)
+				return false;
+			oracle = new Oracle();
 			oracle.PubKey = pubKey;
 			oracle.RootedKeyPath = rootedKeyPath;
-			await SaveOracles(oracles);
-		}
-
-		private static Oracle GetOracle(string oracleName, IEnumerable<Oracle> oracles)
-		{
-			return oracles.Where(o => oracleName.Equals(o.Name, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-		}
-
-		public async Task<bool> RemoveOracle(string oracleName)
-		{
-			var oracles = await GetOracles();
-			var oracle = GetOracle(oracleName, oracles);
-			if (oracle is null)
-				return false;
-			oracles.Remove(oracle);
-			await SaveOracles(oracles);
+			await SaveOracle(oracle);
 			return true;
 		}
-
 		private string GetSubDirectory(Network network)
 		{
 			return Enum.GetName(typeof(NetworkType), network.NetworkType) ?? throw new NotSupportedException(network.NetworkType.ToString());

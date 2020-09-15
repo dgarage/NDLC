@@ -21,11 +21,12 @@ namespace NDLC.CLI
 		}
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
-			var oracleName = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.ToLowerInvariant().Trim();
-			if (oracleName is null)
+			var name = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name");
+			if (name is null)
 				throw new CommandOptionRequiredException("name");
-			if (!await Repository.RemoveOracle(oracleName))
-				throw new CommandException("name", "The oracle does not exists");
+			var oracle = await GetOracle("name", name);
+			await NameRepository.RemoveMapping(Scopes.Oracles, name);
+			await Repository.RemoveOracle(oracle.PubKey);
 		}
 	}
 }

@@ -9,6 +9,7 @@ using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.Text;
 using System.Threading.Tasks;
+using static NDLC.CLI.Repository;
 
 namespace NDLC.CLI
 {
@@ -28,11 +29,12 @@ namespace NDLC.CLI
 			var oracleName = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.ToLowerInvariant().Trim();
 			if (oracleName is null)
 				throw new CommandOptionRequiredException("name");
-			if (await Repository.OracleExists(oracleName))
+			if (await TryGetOracle(oracleName) is Oracle)
 				throw new CommandException("name", "This oracle already exists");
 			var key = await Repository.CreatePrivateKey();
 			var pubkey = key.PrivateKey.PubKey.ToECPubKey().ToXOnlyPubKey(out _);
-			await Repository.SetOracle(oracleName, pubkey, key.KeyPath);
+			await NameRepository.SetMapping(Scopes.Oracles, oracleName, Encoders.Hex.EncodeData(pubkey.ToBytes()));
+			await Repository.AddOracle(pubkey, key.KeyPath);
 			context.Console.Out.Write(Helpers.ToString(pubkey));
 		}
 	}

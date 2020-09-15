@@ -67,10 +67,12 @@ namespace NDLC.CLI.DLC
 				throw new CommandException("name", "This DLC does not exist");
 
 			var oracle = await Repository.GetOracle(dlc.OracleInfo.PubKey);
-			var oracleName = oracle?.Name;
+			string? oracleName = null;
+
 			string? eventName = null;
 			if (oracle != null)
 			{
+				oracleName = await NameRepository.GetName(Scopes.Oracles, new OracleId(dlc.OracleInfo.PubKey).ToString());
 				var ev = await Repository.GetEvent(dlc.OracleInfo.PubKey, dlc.OracleInfo.RValue);
 				eventName = ev?.Name;
 			}

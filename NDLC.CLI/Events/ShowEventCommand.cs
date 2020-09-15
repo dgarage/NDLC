@@ -29,7 +29,6 @@ namespace NDLC.CLI.Events
 			if (oracle is null)
 				throw new CommandException("name", "Event not found");
 			context.Console.Out.WriteLine($"Full Name: {evtName}");
-			context.Console.Out.WriteLine($"Oracle: {oracle.Name}");
 			context.Console.Out.WriteLine($"Name: {evtName.Name}");
 			context.Console.Out.WriteLine($"Nonce: {evt.Nonce}");
 			context.Console.Out.WriteLine($"Can reveal: {oracle.RootedKeyPath is RootedKeyPath}");

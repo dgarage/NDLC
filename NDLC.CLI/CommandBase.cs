@@ -1,5 +1,7 @@
 ﻿using NBitcoin;
+using NBitcoin.DataEncoders;
 using NBitcoin.JsonConverters;
+using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.CommandLine.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static NDLC.CLI.Repository;
 
 namespace NDLC.CLI
 {
@@ -34,8 +37,26 @@ namespace NDLC.CLI
 
 		Repository? _Repository;
 		public Repository Repository => _Repository ?? throw new InvalidOperationException("Repository is not set");
-
+		public NameRepository NameRepository => Repository.NameRepository;
 		protected abstract Task InvokeAsyncBase(InvocationContext context);
+
+		public async Task<Oracle> GetOracle(string optionName, string oracleName)
+		{
+			var oracle = await TryGetOracle(oracleName);
+			if (oracle is null)
+				throw new CommandException(optionName, "This oracle does not exists");
+			return oracle;
+		}
+		public async Task<Oracle?> TryGetOracle(string oracleName)
+		{
+			var id = await NameRepository.GetId(Scopes.Oracles, oracleName);
+			if (id is null)
+				return null;
+			ECXOnlyPubKey.TryCreate(Encoders.Hex.DecodeData(id), Context.Instance, out var pubkey);
+			if (pubkey is null)
+				return null;
+			return await Repository.GetOracle(pubkey);
+		}
 
 		private NetworkType GetNetworkType(string networkType)
 		{

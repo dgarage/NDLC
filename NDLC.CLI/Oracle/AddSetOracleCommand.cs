@@ -7,6 +7,7 @@ using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Text;
 using System.Threading.Tasks;
+using static NDLC.CLI.Repository;
 
 namespace NDLC.CLI
 {
@@ -44,24 +45,23 @@ namespace NDLC.CLI
 			var pubkey = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("pubkey")?.ToLowerInvariant()?.Trim();
 			if (pubkey is null)
 				throw new CommandOptionRequiredException("pubkey");
-			var exists = await Repository.OracleExists(oracleName);
-
-			if (exists && !Set)
-				throw new CommandException("name", "This oracle already exists");
-			if (!exists && Set)
-				throw new CommandException("name", "This oracle does not exists");
-
-			ECXOnlyPubKey? pubkeyObj;
-			try
-			{
-				if (!ECXOnlyPubKey.TryCreate(Encoders.Hex.DecodeData(pubkey), Context.Instance, out pubkeyObj) || pubkeyObj is null)
-					throw new CommandException("pubkey", "Invalid pubkey");
-			}
-			catch (FormatException)
-			{
+			if (!OracleId.TryParse(pubkey, out var oracleId))
 				throw new CommandException("pubkey", "Invalid pubkey");
+
+			if (Set)
+			{
+				var oracle = await GetOracle("name", oracleName);
+				await Repository.RemoveOracle(oracle.PubKey);
+				await Repository.AddOracle(oracleId.PubKey);
 			}
-			await Repository.SetOracle(oracleName, pubkeyObj);
+			else
+			{
+				var oracle = await TryGetOracle(oracleName);
+				if (oracle is Oracle)
+					throw new CommandException("name", "This oracle already exists");
+				await Repository.AddOracle(oracleId.PubKey);
+			}
+			await NameRepository.SetMapping(Scopes.Oracles, oracleName, oracleId.ToString());
 		}
 	}
 }

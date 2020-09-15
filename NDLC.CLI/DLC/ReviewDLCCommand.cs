@@ -33,8 +33,10 @@ namespace NDLC.CLI.DLC
 			if (offer.ContractInfo is null)
 				throw new CommandException("offer", "Missing contractInfos");
 			var oracle = await Repository.GetOracle(offer.OracleInfo.PubKey);
-			if (oracle is null)
+			var oracleName = await NameRepository.GetName(Scopes.Oracles, new OracleId(offer.OracleInfo.PubKey).ToString());
+			if (oracle is null || oracleName is null)
 				throw new CommandException("offer", "Unknown oracle");
+
 			var evt = await Repository.GetEvent(offer.OracleInfo.PubKey, offer.OracleInfo.RValue);
 			if (evt is null)
 				throw new CommandException("offer", "Unknown event");
@@ -53,7 +55,7 @@ namespace NDLC.CLI.DLC
 			try
 			{
 				var review = new OfferReview(offer);
-				context.Console.Out.WriteLine($"Event: {new EventFullName(oracle.Name, evt.Name)}");
+				context.Console.Out.WriteLine($"Event: {new EventFullName(oracleName, evt.Name)}");
 				context.Console.Out.WriteLine($"The payoff function if you accept:");
 				PrintPayoffs(context, review.AcceptorPayoffs);
 				context.Console.Out.WriteLine($"Your expected collateral: {review.AcceptorCollateral.ToString(false, false)}");

@@ -33,7 +33,7 @@ namespace NDLC.CLI
 			var o = await Repository.GetOracle(oracleName);
 			if (o is null)
 				throw new CommandException("name", "This oracle does not exists");
-			context.Console.Out.WriteLine($"Name: {o.Name}");
+			context.Console.Out.WriteLine($"Name: {oracleName}");
 			if (o.PubKey is ECXOnlyPubKey)
 				context.Console.Out.WriteLine($"Pubkey: {Helpers.ToString(o.PubKey)}");
 			if (o.RootedKeyPath is RootedKeyPath)
