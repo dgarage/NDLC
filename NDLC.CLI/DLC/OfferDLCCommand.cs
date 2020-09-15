@@ -18,6 +18,8 @@ namespace NDLC.CLI.DLC
 		public static Command CreateCommand()
 		{
 			Command command = new Command("offer", "Offer a new DLC");
+			command.Add(new Option<uint>("--cetlocktime", "The locktime of the CET transaction (Default: 0, the CET is valid as soon as it can be signed)"));
+			command.Add(new Option<uint>("--refundlocktime", "The locktime of the CET transaction (Default: 499999999, the refund will never be valid)"));
 			command.Add(new Argument<string>("name", "The local name given to this DLC")
 			{
 				Arity = ArgumentArity.ExactlyOne
@@ -51,11 +53,21 @@ namespace NDLC.CLI.DLC
 			var payoffs = CreatePayoffs(payoffsStr);
 			FixCasing(evt, payoffs);
 			var builder = new DLCTransactionBuilder(true, null, null, null, Network);
-			builder.Offer(oracle.PubKey, evt.EventId!.RValue, payoffs, new Timeouts()
+
+			var timeout = new Timeouts()
 			{
 				ContractMaturity = 0,
 				ContractTimeout = Constants.NeverLockTime
-			});
+			};
+			if (context.ParseResult.HasOption("cetlocktime"))
+			{
+				timeout.ContractMaturity = new LockTime(context.ParseResult.ValueForOption<uint>("cetlocktime"));
+			}
+			if (context.ParseResult.HasOption("refundlocktime"))
+			{
+				timeout.ContractTimeout = new LockTime(context.ParseResult.ValueForOption<uint>("refundlocktime"));
+			}
+			builder.Offer(oracle.PubKey, evt.EventId!.RValue, payoffs, timeout);
 			var dlc = await Repository.NewDLC(evt.EventId, builder);
 			await NameRepository.AsDLCNameRepository().SetMapping(name, dlc.Id);
 			context.Console.Out.Write($"Offer created, you now need to setup the DLC. For more information, run `dlc show \"{name}\"`.");
