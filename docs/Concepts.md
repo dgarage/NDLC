@@ -340,9 +340,9 @@ This will output a fully signed transaction which will send the funds according 
 
 ## The death of the Oracle
 
-When an Oracle creates a new event, he commits to attest only a single outcome. Should he be tempted to attest two outcomes, it is possible for users to steal his private key, and thus its identity.
+When an Oracle creates a new event, it commits to attest only a single outcome. Should he be tempted to attest two outcomes, it is possible for users to steal his private key, and thus its identity.
 
-For example, if the Olivia is malicious, she may have an attested an outcome publicly, but what if Alice notices that Bob broadcasted a `CET` different from the one expected one? This means Olivia colluded with Bob to selectively scam her.
+For example, if Olivia is malicious, she may have an attested an outcome publicly, but what if Alice notices that Bob broadcasted a `CET` different from the one expected one? This means Olivia colluded with Bob to selectively scam her.
 
 In that case Alice can steal Olivia's private key.
 ```bash

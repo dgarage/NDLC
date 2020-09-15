@@ -78,7 +78,7 @@ Thanks to the contribution of cryptographers for their work on the low level mat
 
 And thanks to those who are working on a specification which will make it possible for several implementation to talk to each other and who helped me Thibaut Le Guilly, Ben Carman, Chris Stewart, Ichiro Kuwahara.
 
-Thanks to all, I could focus solely on the making those idea real rather than research and protocol design.
+Thanks to all, I could focus solely on development rather than research and protocol design.
 
 ## Licence
 
