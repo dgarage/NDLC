@@ -175,7 +175,7 @@ namespace NDLC.CLI
 		public async Task<DLCState> NewDLC(string name, OracleInfo oracleInfo, DLCTransactionBuilder builder)
 		{
 			name = name.Trim();
-			var dir = Path.Combine(DataDirectory, "dlcs");
+			var dir = Path.Combine(RepositoryDirectory, "dlcs");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
 			var s = new DLCState() 
@@ -193,7 +193,7 @@ namespace NDLC.CLI
 
 		private async Task AddDLCMapping(uint256 id, string name)
 		{
-			var dlcs = Path.Combine(DataDirectory, "dlcs-mapping.json");
+			var dlcs = Path.Combine(RepositoryDirectory, "dlcs-mapping.json");
 			JObject mapping = File.Exists(dlcs) ? JObject.Parse(await File.ReadAllTextAsync(dlcs))
 												: new JObject();
 			mapping[name] = id.ToString();
@@ -201,7 +201,7 @@ namespace NDLC.CLI
 		}
 		private async Task<(uint256 Id, string Name)?> GetDLCId(string name)
 		{
-			var dlcs = Path.Combine(DataDirectory, "dlcs-mapping.json");
+			var dlcs = Path.Combine(RepositoryDirectory, "dlcs-mapping.json");
 			if (!File.Exists(dlcs))
 				return null;
 			var jobj = JObject.Parse(await File.ReadAllTextAsync(dlcs));
@@ -213,7 +213,7 @@ namespace NDLC.CLI
 
 		public async Task SaveDLC(DLCState dlc)
 		{
-			var dir = Path.Combine(DataDirectory, "dlcs");
+			var dir = Path.Combine(RepositoryDirectory, "dlcs");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
 			var file = GetDLCFilePath(dlc.Id);
@@ -224,7 +224,7 @@ namespace NDLC.CLI
 
 		public async Task<DLCState?> GetDLC(string name)
 		{
-			var dir = Path.Combine(DataDirectory, "dlcs");
+			var dir = Path.Combine(RepositoryDirectory, "dlcs");
 			if (!Directory.Exists(dir))
 				return null;
 
@@ -252,7 +252,7 @@ namespace NDLC.CLI
 		string GetDLCFilePath(uint256 contractId)
 		{
 			var fileName = Encoders.Base58.EncodeData(contractId.ToBytes(false));
-			return Path.Combine(DataDirectory, "dlcs", $"{fileName}.json");
+			return Path.Combine(RepositoryDirectory, "dlcs", $"{fileName}.json");
 		}
 
 		public class Oracle
@@ -352,7 +352,7 @@ namespace NDLC.CLI
 		{
 			if (oracle.PubKey is null)
 				throw new InvalidOperationException("This oracle's pubkey is not set");
-			var dir = Path.Combine(DataDirectory, "events");
+			var dir = Path.Combine(RepositoryDirectory, "events");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
 			// base58, help keeping filename small to make windows happy
@@ -373,7 +373,7 @@ namespace NDLC.CLI
 		}
 		private async Task<List<Event>> GetEvents(ECXOnlyPubKey oracle)
 		{
-			var dir = Path.Combine(DataDirectory, "events");
+			var dir = Path.Combine(RepositoryDirectory, "events");
 			if (!Directory.Exists(dir))
 				return new List<Event>();
 			// base58, help keeping filename small to make windows happy
@@ -434,7 +434,7 @@ namespace NDLC.CLI
 
 		private async Task SaveKeyset(HDFingerprint fingerprint, Keyset v)
 		{
-			var dir = Path.Combine(DataDirectory, "keysets");
+			var dir = Path.Combine(RepositoryDirectory, "keysets");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
 			var keyset = Path.Combine(dir, $"{fingerprint}.json");
@@ -443,7 +443,7 @@ namespace NDLC.CLI
 
 		private async Task<Keyset> OpenKeyset(HDFingerprint fingerprint)
 		{
-			var dir = Path.Combine(DataDirectory, "keysets");
+			var dir = Path.Combine(RepositoryDirectory, "keysets");
 			if (!Directory.Exists(dir))
 				throw new FormatException("Invalid keyset file");
 			var keyset = Path.Combine(dir, $"{fingerprint}.json");
@@ -452,7 +452,7 @@ namespace NDLC.CLI
 		}
 		private bool KeySetExists(HDFingerprint fingerprint)
 		{
-			var dir = Path.Combine(DataDirectory, "keysets");
+			var dir = Path.Combine(RepositoryDirectory, "keysets");
 			if (!Directory.Exists(dir))
 				return false;
 			var keyset = Path.Combine(dir, $"{fingerprint}.json");
@@ -471,8 +471,13 @@ namespace NDLC.CLI
 		public Repository(string? dataDirectory, Network network)
 		{
 			Network = network;
-			dataDirectory ??= GetDefaultDataDirectory("ndlc", GetSubDirectory(network));
+			dataDirectory ??= GetDefaultDataDirectory("ndlc");
+			if (!Directory.Exists(dataDirectory))
+				Directory.CreateDirectory(dataDirectory);
 			DataDirectory = dataDirectory;
+			RepositoryDirectory = Path.Combine(dataDirectory, GetSubDirectory(network));
+			if (!Directory.Exists(RepositoryDirectory))
+				Directory.CreateDirectory(RepositoryDirectory);
 			JsonSettings = new JsonSerializerSettings()
 			{
 				Formatting = Formatting.Indented,
@@ -495,6 +500,10 @@ namespace NDLC.CLI
 			return GetOracle(oracleName, await GetOracles()) is Oracle;
 		}
 
+		public string RepositoryDirectory
+		{
+			get;
+		}
 		public string DataDirectory
 		{
 			get;
@@ -503,7 +512,7 @@ namespace NDLC.CLI
 
 		public async Task<Settings> GetSettings()
 		{
-			var file = Path.Combine(DataDirectory, "settings.json");
+			var file = Path.Combine(RepositoryDirectory, "settings.json");
 			if (!File.Exists(file))
 				return new Settings();
 			var settings = JsonConvert.DeserializeObject<Settings>(await File.ReadAllTextAsync(file), JsonSettings);
@@ -512,7 +521,7 @@ namespace NDLC.CLI
 
 		async Task<List<Oracle>> GetOracles()
 		{
-			var file = Path.Combine(DataDirectory, "oracles.json");
+			var file = Path.Combine(RepositoryDirectory, "oracles.json");
 			if (!File.Exists(file))
 				return new List<Oracle>();
 			var oracles = JsonConvert.DeserializeObject<List<Oracle>>(await File.ReadAllTextAsync(file), JsonSettings);
@@ -521,12 +530,12 @@ namespace NDLC.CLI
 		}
 		async Task SaveOracles(List<Oracle> oracles)
 		{
-			var file = Path.Combine(DataDirectory, "oracles.json");
+			var file = Path.Combine(RepositoryDirectory, "oracles.json");
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(oracles, JsonSettings));
 		}
 		private async Task SaveSettings(Settings settings)
 		{
-			var file = Path.Combine(DataDirectory, "settings.json");
+			var file = Path.Combine(RepositoryDirectory, "settings.json");
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(settings, JsonSettings));
 		}
 		public async Task SetOracle(string oracleName, ECXOnlyPubKey pubKey, RootedKeyPath? rootedKeyPath = null)
@@ -564,7 +573,7 @@ namespace NDLC.CLI
 			return Enum.GetName(typeof(NetworkType), network.NetworkType) ?? throw new NotSupportedException(network.NetworkType.ToString());
 		}
 
-		static string GetDefaultDataDirectory(string appDirectory, string subDirectory, bool createIfNotExists = true)
+		static string GetDefaultDataDirectory(string appDirectory)
 		{
 			string? directory = null;
 			var home = Environment.GetEnvironmentVariable("HOME");
@@ -581,29 +590,8 @@ namespace NDLC.CLI
 					directory = localAppData;
 					directory = Path.Combine(directory, appDirectory);
 				}
-				else if (createIfNotExists)
-				{
-					throw new DirectoryNotFoundException("Could not find suitable datadir environment variables HOME or APPDATA are not set");
-				}
 				else
 					return string.Empty;
-			}
-
-			if (createIfNotExists)
-			{
-				if (!Directory.Exists(directory))
-				{
-					Directory.CreateDirectory(directory);
-				}
-				directory = Path.Combine(directory, subDirectory);
-				if (!Directory.Exists(directory))
-				{
-					Directory.CreateDirectory(directory);
-				}
-			}
-			else
-			{
-				directory = Path.Combine(directory, subDirectory);
 			}
 			return directory;
 		}
