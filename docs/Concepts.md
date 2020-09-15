@@ -356,6 +356,6 @@ dlc extract MyFirstDLC "<fraudulous CET>"
 
 By doing so, Alice now holds Olivia's private key as shown by
 ```bash
-oracle show Olivia
+oracle show --show-sensitive Olivia
 ```
 With the private key in her hands, publishing it online would prove to people trusting Olivia that she should not be trusted.
