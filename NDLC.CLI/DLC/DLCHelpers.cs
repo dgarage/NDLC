@@ -99,21 +99,5 @@ namespace NDLC.CLI.DLC
 				throw new CommandException("offer", "Invalid offer");
 			}
 		}
-
-		public static bool FillOutcomes(ContractInfo[] contractInfos, Repository.Event evt)
-		{
-			var unspecifiedOutcomes = evt.Outcomes.Select(e => new DiscreteOutcome(e)).ToHashSet();
-			for (int i = 0; i < contractInfos.Length; i++)
-			{
-				if (!unspecifiedOutcomes.TryGetValue(contractInfos[i].Outcome, out var outcome) ||
-					outcome?.OutcomeString is null)
-					return false;
-				unspecifiedOutcomes.Remove(outcome);
-				contractInfos[i] = new ContractInfo(outcome, contractInfos[i].Payout);
-			}
-			if (unspecifiedOutcomes.Count != 0)
-				return false;
-			return true;
-		}
 	}
 }

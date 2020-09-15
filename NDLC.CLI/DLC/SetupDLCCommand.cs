@@ -28,7 +28,7 @@ namespace NDLC.CLI.DLC
 			if (name is null)
 				throw new CommandOptionRequiredException("name");
 
-			var dlc = await Repository.GetDLC(name);
+			var dlc = await GetDLC("name", name);
 			if (dlc is null)
 				throw new CommandException("name", "This DLC does not exist");
 

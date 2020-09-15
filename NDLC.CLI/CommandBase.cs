@@ -47,6 +47,22 @@ namespace NDLC.CLI
 				throw new CommandException(optionName, "This oracle does not exists");
 			return oracle;
 		}
+		public async Task<DLCState> GetDLC(string optionName, string dlcName)
+		{
+			var dlc = await TryGetDLC(dlcName);
+			if (dlc is null)
+				throw new CommandException(optionName, "This DLC does not exists");
+			return dlc;
+		}
+
+		public async Task<DLCState?> TryGetDLC(string dlcName)
+		{
+			var id = await NameRepository.AsDLCNameRepository().GetId(dlcName);
+			if (id is null)
+				return null;
+			return await Repository.GetDLC(id);
+		}
+
 		public async Task<Oracle?> TryGetOracle(string oracleName)
 		{
 			var id = await NameRepository.GetId(Scopes.Oracles, oracleName);

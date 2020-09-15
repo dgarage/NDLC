@@ -12,14 +12,16 @@ namespace NDLC
 {
 	public class DiscretePayoffs : IEnumerable<DiscretePayoff>, IList<DiscretePayoff>
 	{
-		public static DiscretePayoffs CreateFromContractInfo(ContractInfo[] contractInfos, Money collateral)
+		public static DiscretePayoffs CreateFromContractInfo(ContractInfo[] contractInfos, Money collateral, DiscreteOutcome[]? preimages = null)
 		{
+			var hashsetPreimages = (preimages ?? Array.Empty<DiscreteOutcome>()).ToHashSet();
 			var payoffs = new DiscretePayoffs();
 			foreach (var i in contractInfos)
 			{
 				if (i.Outcome is DiscreteOutcome && i.Payout is Money)
 				{
-					payoffs.Add(i.Outcome, i.Payout - collateral);
+					hashsetPreimages.TryGetValue(i.Outcome, out var preimage);
+					payoffs.Add(preimage ?? i.Outcome, i.Payout - collateral);
 				}
 			}
 			return payoffs;

@@ -10,6 +10,8 @@ namespace NDLC.Messages.JsonConverters
 	{
 		public override OracleInfo ReadJson(JsonReader reader, Type objectType, [AllowNull] OracleInfo existingValue, bool hasExistingValue, JsonSerializer serializer)
 		{
+			if (reader.TokenType is JsonToken.Null)
+				return null!;
 			if (reader.TokenType != JsonToken.String)
 				throw new FormatException("Expected string for oracleInfo");
 			if (!OracleInfo.TryParse((string)reader.Value!, out var oracle) || oracle is null)

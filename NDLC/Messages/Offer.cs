@@ -1,7 +1,7 @@
 ﻿using NBitcoin.DataEncoders;
 using NDLC.Messages.JsonConverters;
 using NDLC.Secp256k1;
-using NBitcoin.Policy;
+using System.Linq;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -39,6 +39,28 @@ namespace NDLC.Messages
 			if (ContractInfo is null || ContractInfo.Length is 0)
 				throw new InvalidOperationException("contractInfo is required");
 			return base.ToDiscretePayoffs(ContractInfo);
+		}
+
+		public bool SetContractPreimages(params string[] outcomes)
+		{
+			return SetContractPreimages(outcomes.Select(c => new DiscreteOutcome(c)).ToArray());
+		}
+		public bool SetContractPreimages(params DiscreteOutcome[] outcomes)
+		{
+			if (ContractInfo is null)
+				return false;
+			var unspecifiedOutcomes = outcomes.ToHashSet();
+			for (int i = 0; i < ContractInfo.Length; i++)
+			{
+				if (!unspecifiedOutcomes.TryGetValue(ContractInfo[i].Outcome, out var outcome) ||
+					outcome?.OutcomeString is null)
+					return false;
+				unspecifiedOutcomes.Remove(outcome);
+				ContractInfo[i] = new ContractInfo(outcome, ContractInfo[i].Payout);
+			}
+			if (unspecifiedOutcomes.Count != 0)
+				return false;
+			return true;
 		}
 	}
 

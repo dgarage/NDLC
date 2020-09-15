@@ -26,7 +26,7 @@ namespace NDLC.CLI.DLC
 			var name = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.Trim();
 			if (name is null)
 				throw new CommandOptionRequiredException("name");
-			var dlc = await Repository.GetDLC(name);
+			var dlc = await GetDLC("name", name);
 			if (dlc?.OracleInfo is null || dlc?.BuilderState is null)
 				throw new CommandException("name", "This DLC does not exist");
 			var str = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("transaction")?.Trim();

@@ -38,7 +38,7 @@ namespace NDLC.CLI.DLC
 			var name = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.Trim();
 			if (name is null)
 				throw new CommandOptionRequiredException("name");
-			if (await Repository.GetDLC(name) != null)
+			if (await this.TryGetDLC(name) != null)
 				throw new CommandException("name", "This DLC already exists");
 			EventFullName evtName = context.GetEventName();
 			var oracle = await Repository.GetOracle(evtName.OracleName);
@@ -58,7 +58,8 @@ namespace NDLC.CLI.DLC
 				ContractMaturity = 0,
 				ContractTimeout = Constants.NeverLockTime
 			});
-			await Repository.NewDLC(name, evt.EventId, builder);
+			var dlc = await Repository.NewDLC(evt.EventId, builder);
+			await NameRepository.AsDLCNameRepository().SetMapping(name, dlc.Id);
 			context.Console.Out.Write($"Offer created, you now need to setup the DLC. For more information, run `dlc show \"{name}\"`.");
 		}
 

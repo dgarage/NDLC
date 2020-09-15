@@ -61,7 +61,7 @@ namespace NDLC.CLI.DLC
 			if (name is null)
 				throw new CommandOptionRequiredException("name");
 
-			var dlc = await Repository.GetDLC(name);
+			var dlc = await GetDLC("name", name);
 			if (dlc?.BuilderState is null ||
 				dlc?.OracleInfo is null)
 				throw new CommandException("name", "This DLC does not exist");
@@ -76,11 +76,10 @@ namespace NDLC.CLI.DLC
 				var ev = await Repository.GetEvent(dlc.OracleInfo);
 				eventName = await NameRepository.AsEventRepository().ResolveName(dlc.OracleInfo) ?? eventName;
 			}
-
 			var shown = ParseShownItem(context);
 			if (shown == ShowOption.DLC)
 			{
-				context.Console.Out.WriteLine($"Name: {dlc.Name}");
+				context.Console.Out.WriteLine($"Name: {name}");
 				context.Console.Out.WriteLine($"Local Id: {dlc.Id}");
 				var builder = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
 				var role = builder.State.IsInitiator ? "Offerer" : "Acceptor";
@@ -89,7 +88,7 @@ namespace NDLC.CLI.DLC
 				var nextStep = dlc.GetNextStep(Network);
 				context.Console.Out.WriteLine($"Next step: {nextStep}");
 				context.Console.Out.WriteLine($"Next step explanation:");
-				context.Console.Out.Write($"{Explain(nextStep, dlc.Name, builder.State)}");
+				context.Console.Out.Write($"{Explain(nextStep, name, builder.State)}");
 			}
 			else if (shown == ShowOption.Offer)
 			{

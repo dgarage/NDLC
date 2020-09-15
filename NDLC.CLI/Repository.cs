@@ -25,9 +25,7 @@ namespace NDLC.CLI
 	{
 		public class DLCState
 		{
-			[JsonIgnore]
-			public string Name { get; set; } = string.Empty;
-			[JsonIgnore]
+			[JsonConverter(typeof(UInt256JsonConverter))]
 			public uint256 Id { get; set; } = uint256.Zero;
 			[JsonConverter(typeof(KeyPathJsonConverter))]
 			public RootedKeyPath? FundKeyPath { get; set; }
@@ -216,9 +214,8 @@ namespace NDLC.CLI
 			}
 		}
 
-		public async Task<DLCState> NewDLC(string name, OracleInfo oracleInfo, DLCTransactionBuilder builder)
+		public async Task<DLCState> NewDLC(OracleInfo oracleInfo, DLCTransactionBuilder builder)
 		{
-			name = name.Trim();
 			var dir = Path.Combine(RepositoryDirectory, "dlcs");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
@@ -226,33 +223,11 @@ namespace NDLC.CLI
 			{ 
 				OracleInfo = oracleInfo,
 				BuilderState = builder.ExportStateJObject(),
-				Name = name,
 				Id = RandomUtils.GetUInt256()
 			};
-			await AddDLCMapping(s.Id, name);
 			var file = GetDLCFilePath(s.Id);
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(s, JsonSettings));
 			return s;
-		}
-
-		private async Task AddDLCMapping(uint256 id, string name)
-		{
-			var dlcs = Path.Combine(RepositoryDirectory, "dlcs-mapping.json");
-			JObject mapping = File.Exists(dlcs) ? JObject.Parse(await File.ReadAllTextAsync(dlcs))
-												: new JObject();
-			mapping[name] = id.ToString();
-			await File.WriteAllTextAsync(dlcs, mapping.ToString(Formatting.Indented));
-		}
-		private async Task<(uint256 Id, string Name)?> GetDLCId(string name)
-		{
-			var dlcs = Path.Combine(RepositoryDirectory, "dlcs-mapping.json");
-			if (!File.Exists(dlcs))
-				return null;
-			var jobj = JObject.Parse(await File.ReadAllTextAsync(dlcs));
-			var prop = jobj.Property(name, StringComparison.OrdinalIgnoreCase);
-			if (prop is null)
-				return null;
-			return (new uint256(prop.Value.Value<string>()), prop.Name);
 		}
 
 		public async Task SaveDLC(DLCState dlc)
@@ -266,21 +241,6 @@ namespace NDLC.CLI
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(dlc, JsonSettings));
 		}
 
-		public async Task<DLCState?> GetDLC(string name)
-		{
-			var dir = Path.Combine(RepositoryDirectory, "dlcs");
-			if (!Directory.Exists(dir))
-				return null;
-
-			var mapping = await GetDLCId(name);
-			if (mapping is null)
-				return null;
-			var state = await GetDLC(mapping.Value.Id);
-			if (state is null)
-				return null;
-			state.Name = mapping.Value.Name;
-			return state;
-		}
 		public async Task<DLCState?> GetDLC(uint256 id)
 		{
 			var file = GetDLCFilePath(id);

@@ -120,7 +120,8 @@ namespace NDLC.Tests
 			var initiator = new DLCTransactionBuilder(true, null, null, null, Network.RegTest);
 			var requiredFund = initiator.Offer(offerExample.OracleInfo.PubKey,
 								  offerExample.OracleInfo.RValue,
-								  DiscretePayoffs.CreateFromContractInfo(offerExample.ContractInfo, offerExample.TotalCollateral),
+								  DiscretePayoffs.CreateFromContractInfo(offerExample.ContractInfo, offerExample.TotalCollateral,
+								  new[] { new DiscreteOutcome("Republicans_win"), new DiscreteOutcome("Democrats_win"), new DiscreteOutcome("other") }),
 								  offerExample.Timeouts);
 			var fund1 = GetFundingPSBT(initiatorInputKey, requiredFund);
 			var offer = initiator.FundOffer(offerKey, fund1);
@@ -250,9 +251,13 @@ namespace NDLC.Tests
 		public void CanCreateAccept()
 		{
 			var offer = Parse<Messages.Offer>("Data/Offer2.json");
+			offer.SetContractPreimages(
+				new DiscreteOutcome("Republicans_win"),
+				new DiscreteOutcome("Democrats_win"),
+				new DiscreteOutcome("other")
+				);
 			var builder = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 			var fundingInputKey = new Key();
-
 			var payoffs = builder.Accept(offer);
 			PSBT fundPSBT = GetFundingPSBT(fundingInputKey, payoffs.CalculateMinimumCollateral());
 			var accept = builder.FundAccept(new Key(), fundPSBT);

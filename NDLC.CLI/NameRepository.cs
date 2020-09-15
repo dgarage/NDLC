@@ -123,6 +123,10 @@ namespace NDLC.CLI
 		{
 			return new EventNameRepository(this);
 		}
+		public DLCNameRepository AsDLCNameRepository()
+		{
+			return new DLCNameRepository(this);
+		}
 	}
 
 	public class Scopes

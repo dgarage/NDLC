@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -34,7 +35,7 @@ namespace NDLC.CLI.DLC
 			var name = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.Trim();
 			if (name is null)
 				throw new CommandOptionRequiredException("name");
-			if (await Repository.GetDLC(name) != null)
+			if (await this.TryGetDLC(name) != null)
 				throw new CommandException("name", "This DLC already exists");
 			if (offer.OracleInfo is null)
 				throw new CommandException("offer", "Missing oracleInfo");
@@ -60,14 +61,15 @@ namespace NDLC.CLI.DLC
 					throw new CommandException("offer", "The refund should not be valid faster than the contract execution transactions");
 			}
 
-			DLCHelpers.FillOutcomes(offer.ContractInfo, evt);
+			offer.SetContractPreimages(evt.Outcomes);
 			try
 			{
 				var builder = new DLCTransactionBuilder(false, null, null, null, Network);
 				builder.Accept(offer);
-				var dlc = await Repository.NewDLC(name, offer.OracleInfo, builder);
+				var dlc = await Repository.NewDLC(offer.OracleInfo, builder);
 				dlc.BuilderState = builder.ExportStateJObject();
 				dlc.Offer = JObject.FromObject(offer, JsonSerializer.Create(Repository.JsonSettings));
+				await NameRepository.AsDLCNameRepository().SetMapping(name, dlc.Id);
 				await Repository.SaveDLC(dlc);
 				context.Console.Out.Write($"Contract accepted, you now need to setup the DLC. For more information, run `dlc show \"{name}\"`.");
 			}

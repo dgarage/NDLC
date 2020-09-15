@@ -50,7 +50,7 @@ namespace NDLC.CLI.DLC
 				if (refund.EstimatedRemainingBlocks < maturity.EstimatedRemainingBlocks)
 					throw new CommandException("offer", "The refund should not be valid faster than the contract execution transactions");
 			}
-			if (!DLCHelpers.FillOutcomes(offer.ContractInfo, evt))
+			if (!offer.SetContractPreimages(evt.Outcomes))
 				throw new CommandException("offer", "The contract info of the offer does not match the specification of the event");
 			try
 			{
