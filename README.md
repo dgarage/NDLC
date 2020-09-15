@@ -66,6 +66,20 @@ We will make that easier when the protocol and this repository stabilizes.
 
 Please go to our [Documentation page](docs/Concepts.md).
 
+## Special thanks
+
+Thanks to the contribution of cryptographers for their work on the low level mathematic requirements necessary to make that DLC with adaptor sigs a reality.
+
+* Thaddeus Dryja for the idea of [Discreet Log Contracts](https://adiabat.github.io/dlc.pdf).
+* LLoyd Fournier and Andrew Poelstra for their work on [adaptor signatures](https://github.com/LLFourn/one-time-VES/blob/master/main.pdf).
+* Andrew Poelstra for the idea of [adaptor signatures](https://download.wpsoftware.net/bitcoin/wizardry/mw-slides/2018-05-18-l2/slides.pdf).
+* Nadav Kohen for the idea of [payment points](https://diyhpl.us/wiki/transcripts/lightning-conference/2019/2019-10-20-nadav-kohen-payment-points/).
+* Jonas Nick for the implementation of [adaptor signature](https://github.com/jonasnick/secp256k1/pull/14).
+
+And thanks to those who are working on a specification which will make it possible for several implementation to talk to each other and who helped me Thibaut Le Guilly, Ben Carman, Chris Stewart, Ichiro Kuwahara.
+
+Thanks to all, I could focus solely on the making those idea real rather than research and protocol design.
+
 ## Licence
 
 MIT
