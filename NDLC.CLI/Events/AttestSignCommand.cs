@@ -45,14 +45,9 @@ namespace NDLC.CLI.Events
 			var evtId = await NameRepository.AsEventRepository().GetEventId(evt);
 			if (evtId is null)
 				throw new CommandException("eventfullname", "This event's full name does not exist");
-			var oracle = await Repository.GetOracle(evt.OracleName);
-			if (oracle is null)
-				throw new CommandException("eventfullname", "This oracle does not exists");
-
+			var oracle = await GetOracle("eventfullname", evt.OracleName);
 			var discreteOutcome = new DiscreteOutcome(outcome);
-			var evtObj = await Repository.GetEvent(evt);
-			if (evtObj?.EventId is null)
-				throw new CommandException("eventfullname", "This event does not exists");
+			var evtObj = await GetEvent("eventfullname", evt);
 			if (evtObj?.NonceKeyPath is null)
 				throw new CommandException("eventfullname", "You did not generated this event");
 			outcome = evtObj.Outcomes.FirstOrDefault(o => o.Equals(outcome, StringComparison.OrdinalIgnoreCase));

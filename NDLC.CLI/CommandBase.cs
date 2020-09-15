@@ -2,11 +2,14 @@
 using NBitcoin.DataEncoders;
 using NBitcoin.JsonConverters;
 using NBitcoin.Secp256k1;
+using NDLC.CLI.Events;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +27,7 @@ namespace NDLC.CLI
 			{
 				Network = Bitcoin.Instance.GetNetwork(GetNetworkType(context.ParseResult.RootCommandResult.ValueForOption("network") as string ?? "mainnet"));
 				_Repository = new Repository(context.ParseResult.RootCommandResult.ValueForOption<string>("datadir"), Network);
+				_NameRepository = new NameRepository(Path.Combine(_Repository.RepositoryDirectory, "names.json"));
 				NDLC.Messages.Serializer.Configure(JsonSerializerSettings, Network);
 				await InvokeAsyncBase(context);
 				return 0;
@@ -37,7 +41,8 @@ namespace NDLC.CLI
 
 		Repository? _Repository;
 		public Repository Repository => _Repository ?? throw new InvalidOperationException("Repository is not set");
-		public NameRepository NameRepository => Repository.NameRepository;
+		NameRepository? _NameRepository;
+		public NameRepository NameRepository => _NameRepository ?? throw new InvalidOperationException("Repository is not set");
 		protected abstract Task InvokeAsyncBase(InvocationContext context);
 
 		public async Task<Oracle> GetOracle(string optionName, string oracleName)
@@ -61,6 +66,21 @@ namespace NDLC.CLI
 			if (id is null)
 				return null;
 			return await Repository.GetDLC(id);
+		}
+
+		public async Task<Event> GetEvent(string optionName, EventFullName eventFullName)
+		{
+			var evt = await TryGetEvent(eventFullName);
+			if (evt is null)
+				throw new CommandException(optionName, "This event's full name does not exists");
+			return evt;
+		}
+		public async Task<Event?> TryGetEvent(EventFullName eventFullName)
+		{
+			var id = await NameRepository.AsEventRepository().GetEventId(eventFullName);
+			if (id is null)
+				return null;
+			return await Repository.GetEvent(id);
 		}
 
 		public async Task<Oracle?> TryGetOracle(string oracleName)

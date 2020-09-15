@@ -30,9 +30,7 @@ namespace NDLC.CLI
 			var oracleName = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.ToLowerInvariant().Trim();
 			if (oracleName is null)
 				throw new CommandOptionRequiredException("name");
-			var o = await Repository.GetOracle(oracleName);
-			if (o is null)
-				throw new CommandException("name", "This oracle does not exists");
+			var o = await GetOracle("name", oracleName);
 			context.Console.Out.WriteLine($"Name: {oracleName}");
 			if (o.PubKey is ECXOnlyPubKey)
 				context.Console.Out.WriteLine($"Pubkey: {Helpers.ToString(o.PubKey)}");

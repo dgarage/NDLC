@@ -111,16 +111,6 @@ namespace NDLC.CLI
 				return null;
 			return JsonConvert.DeserializeObject<Oracle>(await File.ReadAllTextAsync(path), JsonSettings);
 		}
-		public async Task<Oracle?> GetOracle(string oracleName)
-		{
-			var id = await NameRepository.GetId(Scopes.Oracles, oracleName);
-			if (id is null)
-				return null;
-			if (!ECXOnlyPubKey.TryCreate(Encoders.Hex.DecodeData(id), Context.Instance, out var pubkey)
-				|| pubkey is null)
-				return null;
-			return await GetOracle(pubkey);
-		}
 
 		private string GetOracleFilePath(ECXOnlyPubKey pubKey)
 		{
@@ -159,17 +149,6 @@ namespace NDLC.CLI
 			public string[] Outcomes { get; set; } = Array.Empty<string>();
 			[JsonProperty(ItemConverterType = typeof(KeyJsonConverter))]
 			public Dictionary<string, Key>? Attestations { get; set; }
-		}
-
-		public async Task<Event?> GetEvent(EventFullName evtName)
-		{
-			var oracle = await GetOracle(evtName.OracleName);
-			if (oracle is null)
-				return null;
-			var id = await NameRepository.AsEventRepository().GetEventId(evtName);
-			if (id is null)
-				return null;
-			return await GetEvent(id);
 		}
 		public Task<Event?> GetEvent(ECXOnlyPubKey oraclePubKey, SchnorrNonce nonce)
 		{
@@ -418,7 +397,6 @@ namespace NDLC.CLI
 		}
 
 		public JsonSerializerSettings JsonSettings { get; }
-		public NameRepository NameRepository { get; }
 		public Repository(string? dataDirectory, Network network)
 		{
 			Network = network;
@@ -429,7 +407,6 @@ namespace NDLC.CLI
 			RepositoryDirectory = Path.Combine(dataDirectory, GetSubDirectory(network));
 			if (!Directory.Exists(RepositoryDirectory))
 				Directory.CreateDirectory(RepositoryDirectory);
-			NameRepository = new NameRepository(Path.Combine(RepositoryDirectory, "names.json"));
 			JsonSettings = new JsonSerializerSettings()
 			{
 				Formatting = Formatting.Indented,
@@ -443,13 +420,6 @@ namespace NDLC.CLI
 				DefaultValueHandling = DefaultValueHandling.Ignore
 			};
 			NDLC.Messages.Serializer.Configure(JsonSettings, network);
-		}
-
-		
-
-		public async Task<bool> OracleExists(string oracleName)
-		{
-			return await GetOracle(oracleName) is Oracle;
 		}
 
 		public string RepositoryDirectory

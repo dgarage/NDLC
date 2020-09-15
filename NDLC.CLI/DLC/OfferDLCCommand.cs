@@ -41,19 +41,17 @@ namespace NDLC.CLI.DLC
 			if (await this.TryGetDLC(name) != null)
 				throw new CommandException("name", "This DLC already exists");
 			EventFullName evtName = context.GetEventName();
-			var oracle = await Repository.GetOracle(evtName.OracleName);
+			var oracle = await GetOracle("eventfullname", evtName.OracleName);
 			if (oracle?.PubKey is null)
 				throw new CommandException("eventfullname", "The specified oracle does not exists");
-			var evt = await Repository.GetEvent(evtName);
-			if (evt?.EventId is null)
-				throw new CommandException("eventfullname", "The specified event does not exists");
+			var evt = await GetEvent("eventfullname", evtName);
 			var payoffsStr = context.ParseResult.CommandResult.GetArgumentValueOrDefault<List<string>>("payoff");
 			if (payoffsStr is null || payoffsStr.Count == 0)
 				throw new CommandOptionRequiredException("payoff");
 			var payoffs = CreatePayoffs(payoffsStr);
 			FixCasing(evt, payoffs);
 			var builder = new DLCTransactionBuilder(true, null, null, null, Network);
-			builder.Offer(oracle.PubKey, evt.EventId.RValue, payoffs, new Timeouts()
+			builder.Offer(oracle.PubKey, evt.EventId!.RValue, payoffs, new Timeouts()
 			{
 				ContractMaturity = 0,
 				ContractTimeout = Constants.NeverLockTime

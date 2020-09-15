@@ -33,7 +33,7 @@ namespace NDLC.CLI.Events
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
 			EventFullName evt = context.GetEventName();
-			if (await Repository.GetEvent(evt) is Event)
+			if (await TryGetEvent(evt) is Event)
 				throw new CommandException("eventfullname", "This event already exists");
 			var outcomes = context.GetOutcomes();
 			var oracle = await this.GetOracle("eventfullname", evt.OracleName);
