@@ -1,0 +1,1766 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="115.92409mm"
+   height="74.420242mm"
+   viewBox="0 0 115.92409 74.42024"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="Diagrams.svg"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)">
+  <defs
+     id="defs2">
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker7703"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path7701" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker7693"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path7691" />
+    </marker>
+    <marker
+       inkscape:collect="always"
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker7254"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path7252" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker7244"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path7242" />
+    </marker>
+    <marker
+       inkscape:collect="always"
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker5724"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path5722"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker5714"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path5712"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker5704"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path5702"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <marker
+       inkscape:collect="always"
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1800"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1798" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1632"
+       style="overflow:visible"
+       inkscape:isstock="true"
+       inkscape:collect="always">
+      <path
+         id="path1630"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1997"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path1995"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1643"
+       style="overflow:visible"
+       inkscape:isstock="true"
+       inkscape:collect="always">
+      <path
+         id="path1641"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <linearGradient
+       id="linearGradient1607"
+       inkscape:collect="always">
+      <stop
+         id="stop1603"
+         offset="0"
+         style="stop-color:#ffc0c8;stop-opacity:1" />
+      <stop
+         style="stop-color:#ffc0c8;stop-opacity:1"
+         offset="0.5"
+         id="stop1609" />
+      <stop
+         id="stop1611"
+         offset="0.5"
+         style="stop-color:#a9def9;stop-opacity:1" />
+      <stop
+         id="stop1605"
+         offset="1"
+         style="stop-color:#a9def9;stop-opacity:1" />
+    </linearGradient>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1406"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend"
+       inkscape:collect="always">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1404" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1237"
+       style="overflow:visible"
+       inkscape:isstock="true"
+       inkscape:collect="always">
+      <path
+         id="path1235"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker2762"
+       style="overflow:visible"
+       inkscape:isstock="true"
+       inkscape:collect="always">
+      <path
+         id="path2760"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker2556"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend"
+       inkscape:collect="always">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path2554" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker2546"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path2544" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker2536"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path2534" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker2526"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path2524" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker2516"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path2514" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker2159"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path2157"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker2001"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend"
+       inkscape:collect="always">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1999" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1747"
+       style="overflow:visible"
+       inkscape:isstock="true"
+       inkscape:collect="always">
+      <path
+         id="path1745"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1737"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path1735"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker1727"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path1725"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="scale(-0.6)" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1479"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend"
+       inkscape:collect="always">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1477" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1469"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend"
+       inkscape:collect="always">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1467" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1459"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend"
+       inkscape:collect="always">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path1457" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1405"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path1403" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1395"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path1393" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker1385"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path1383" />
+    </marker>
+    <rect
+       x="46.297756"
+       y="-146.71825"
+       width="238.66167"
+       height="125.19956"
+       id="rect181" />
+    <rect
+       x="1.6138183"
+       y="74.005096"
+       width="171.29527"
+       height="39.19273"
+       id="rect55" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1607"
+       id="linearGradient1601"
+       gradientUnits="userSpaceOnUse"
+       x1="363.97324"
+       y1="-104.45992"
+       x2="363.97324"
+       y2="-89.579636"
+       gradientTransform="translate(188.35594,-34.183762)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient1607"
+       id="linearGradient1626"
+       gradientUnits="userSpaceOnUse"
+       x1="358.12271"
+       y1="-84.91346"
+       x2="358.12274"
+       y2="-73.962547"
+       gradientTransform="translate(192.36208,-34.183762)" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.66522528"
+     inkscape:cx="396.63155"
+     inkscape:cy="573.79305"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     showguides="false"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1">
+    <inkscape:grid
+       originy="-24.100023"
+       originx="-372.15661"
+       type="xygrid"
+       id="grid196" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-372.15656,-24.100013)"
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker1800)"
+       d="M 309.77386,46.838234 V 64.749398"
+       id="path1796"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker1632)"
+       d="m 563.41736,-50.159652 v 14.53203"
+       id="path1628"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker1997)"
+       d="m 460.02135,-49.799312 58.41656,0.16883"
+       id="path1993"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0" />
+    <path
+       transform="rotate(127.40123,288.35197,21.114015)"
+       inkscape:transform-center-y="-6.6216749"
+       inkscape:transform-center-x="-1.99211"
+       inkscape:randomized="0"
+       inkscape:rounded="0"
+       inkscape:flatsided="false"
+       sodipodi:arg2="-0.020013509"
+       sodipodi:arg1="-0.64833204"
+       sodipodi:r2="39.155464"
+       sodipodi:r1="16.755594"
+       sodipodi:cy="-85.543434"
+       sodipodi:cx="132.55904"
+       sodipodi:sides="5"
+       id="path1809"
+       style="fill:#fcf696;fill-opacity:1;stroke:none;stroke-width:0.626709;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+       sodipodi:type="star"
+       d="m 145.91479,-95.661429 25.79187,9.334409 -25.39768,10.359028 -0.90743,27.414018 -17.70034,-20.953516 -26.35269,7.608386 14.45828,-23.309014 -15.37944,-22.711782 26.63605,6.54776 16.84767,-21.64504 z" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1643)"
+       d="M 467.88231,-131.87832 V -107.074"
+       id="path1639"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0" />
+    <rect
+       style="fill:url(#linearGradient1626);fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
+       id="rect259"
+       width="84.149094"
+       height="10.835637"
+       x="510.25464"
+       y="-119.09721" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="527.23853"
+       y="-112.37542"
+       id="text177"><tspan
+         sodipodi:role="line"
+         id="tspan175"
+         x="527.23853"
+         y="-112.37542"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke-width:0.264583">Broadcast the refund when valid</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker1406)"
+       d="m 552.32918,-131.87833 v 12.25195"
+       id="path1401"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1237)"
+       d="m 485.99519,-131.34916 h 36.70047"
+       id="path290"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0" />
+    <text
+       id="text43"
+       y="96.702965"
+       x="17.606186"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         y="96.702965"
+         x="17.606186"
+         id="tspan41"
+         sodipodi:role="line" /></text>
+    <text
+       xml:space="preserve"
+       id="text53"
+       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect55);fill:#000000;fill-opacity:1;stroke:none;" />
+    <ellipse
+       style="fill:#fcf696;fill-opacity:1;stroke:none;stroke-width:0.357;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+       id="ellipse942"
+       cx="478.89438"
+       cy="157.70854"
+       rx="26.628004"
+       ry="10.951" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="461.98328"
+       y="158.59911"
+       id="text111"><tspan
+         sodipodi:role="line"
+         id="tspan109"
+         x="461.98328"
+         y="158.59911"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">oracle generate Olivia</tspan></text>
+    <path
+       d="m 145.91479,-95.661429 25.79187,9.334409 -25.39768,10.359028 -0.90743,27.414018 -17.70034,-20.953516 -26.35269,7.608386 14.45828,-23.309014 -15.37944,-22.711782 26.63605,6.54776 16.84767,-21.64504 z"
+       sodipodi:type="star"
+       style="fill:#fcf696;fill-opacity:1;stroke:none;stroke-width:0.626709;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+       id="path964"
+       sodipodi:sides="5"
+       sodipodi:cx="132.55904"
+       sodipodi:cy="-85.543434"
+       sodipodi:r1="16.755594"
+       sodipodi:r2="39.155464"
+       sodipodi:arg1="-0.64833204"
+       sodipodi:arg2="-0.020013509"
+       inkscape:flatsided="false"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       inkscape:transform-center-x="-1.99211"
+       inkscape:transform-center-y="-6.6216749"
+       transform="rotate(127.40123,232.26768,148.60848)" />
+    <text
+       id="text111-4"
+       y="206.61983"
+       x="478.80569"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         sodipodi:role="line"
+         id="tspan994"
+         x="478.80569"
+         y="206.61983">My oracle key is</tspan><tspan
+         sodipodi:role="line"
+         x="478.80569"
+         y="211.02956"
+         id="tspan1243">&lt;OliviaPubKey&gt;</tspan></text>
+    <ellipse
+       style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.452242;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+       id="path113"
+       cx="430.13406"
+       cy="269.6413"
+       rx="32.737457"
+       ry="14.29391" />
+    <text
+       id="text47"
+       y="270.62659"
+       x="404.22006"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         y="270.62659"
+         x="404.22006"
+         id="tspan45"
+         sodipodi:role="line">oracle add Olivia &lt;OliviaPubKey&gt;</tspan></text>
+    <ellipse
+       ry="14.29391"
+       rx="32.737457"
+       cy="269.6413"
+       cx="527.65479"
+       id="ellipse1021"
+       style="fill:#a9def9;fill-opacity:1;stroke:none;stroke-width:0.452242;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000" />
+    <g
+       aria-label="oracle add Olivia &lt;OliviaPubKey&gt;"
+       id="text1025"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       transform="translate(692.8483,131.65899)">
+      <path
+         d="m -190.08433,139.00896 q -0.39102,0 -0.62529,-0.24632 -0.23254,-0.24805 -0.23254,-0.65629 0,-0.44442 0.24288,-0.69419 0.24287,-0.24977 0.65629,-0.24977 0.39446,0 0.61495,0.24288 0.22221,0.24288 0.22221,0.67352 0,0.42202 -0.23944,0.67696 -0.23771,0.25321 -0.63906,0.25321 z m 0.0207,-1.60886 q -0.27217,0 -0.43064,0.18604 -0.15848,0.18431 -0.15848,0.50987 0,0.31351 0.1602,0.49437 0.1602,0.18087 0.42892,0.18087 0.27388,0 0.4203,-0.17742 0.14814,-0.17742 0.14814,-0.50471 0,-0.33073 -0.14814,-0.50987 -0.14642,-0.17915 -0.4203,-0.17915 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1041" />
+      <path
+         d="m -187.83469,137.48967 q -0.0741,-0.0568 -0.21359,-0.0568 -0.18087,0 -0.30317,0.17053 -0.12058,0.17053 -0.12058,0.46509 v 0.89917 h -0.2825 v -1.76389 h 0.2825 v 0.36346 h 0.007 q 0.0603,-0.18604 0.18431,-0.28939 0.12403,-0.10508 0.27733,-0.10508 0.11025,0 0.16881,0.0241 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1043" />
+      <path
+         d="m -186.26544,138.96762 h -0.2825 v -0.27561 h -0.007 q -0.18431,0.31695 -0.54261,0.31695 -0.26355,0 -0.41341,-0.13952 -0.14814,-0.13953 -0.14814,-0.37035 0,-0.49437 0.58223,-0.57533 l 0.52882,-0.0741 q 0,-0.44959 -0.36346,-0.44959 -0.31867,0 -0.57533,0.21704 v -0.28939 q 0.2601,-0.16536 0.59945,-0.16536 0.62184,0 0.62184,0.65801 z m -0.2825,-0.89228 -0.42547,0.0586 q -0.19637,0.0276 -0.29628,0.0982 -0.0999,0.0689 -0.0999,0.24633 0,0.12919 0.0913,0.21187 0.093,0.081 0.24632,0.081 0.21015,0 0.34623,-0.14642 0.13781,-0.14814 0.13781,-0.37379 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1045" />
+      <path
+         d="m -184.52739,138.88666 q -0.20326,0.1223 -0.48232,0.1223 -0.37723,0 -0.60978,-0.2446 -0.23082,-0.24632 -0.23082,-0.63734 0,-0.43581 0.24977,-0.69936 0.24977,-0.26527 0.66663,-0.26527 0.23254,0 0.40996,0.0861 v 0.28939 q -0.19637,-0.13781 -0.4203,-0.13781 -0.27044,0 -0.44442,0.19465 -0.17225,0.19292 -0.17225,0.50815 0,0.31006 0.16192,0.48921 0.16364,0.17914 0.43753,0.17914 0.23082,0 0.43408,-0.15331 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1047" />
+      <path
+         d="m -183.81426,138.96762 h -0.28249 v -2.61138 h 0.28249 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1049" />
+      <path
+         d="m -181.82471,138.1563 h -1.24541 q 0.007,0.29456 0.15848,0.45475 0.15158,0.1602 0.41686,0.1602 0.298,0 0.54777,-0.19637 v 0.26527 q -0.23255,0.16881 -0.61495,0.16881 -0.3738,0 -0.58739,-0.23943 -0.2136,-0.24116 -0.2136,-0.67696 0,-0.41169 0.23255,-0.67008 0.23426,-0.2601 0.58049,-0.2601 0.34624,0 0.53572,0.22393 0.18948,0.22393 0.18948,0.62184 z m -0.28939,-0.23943 q -0.002,-0.24461 -0.11886,-0.38069 -0.11541,-0.13608 -0.32211,-0.13608 -0.19982,0 -0.33935,0.14297 -0.13952,0.14297 -0.17225,0.3738 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1051" />
+      <path
+         d="m -179.16854,138.96762 h -0.2825 v -0.27561 h -0.007 q -0.18431,0.31695 -0.5426,0.31695 -0.26355,0 -0.41342,-0.13952 -0.14814,-0.13953 -0.14814,-0.37035 0,-0.49437 0.58223,-0.57533 l 0.52882,-0.0741 q 0,-0.44959 -0.36346,-0.44959 -0.31867,0 -0.57533,0.21704 v -0.28939 q 0.2601,-0.16536 0.59945,-0.16536 0.62184,0 0.62184,0.65801 z m -0.2825,-0.89228 -0.42547,0.0586 q -0.19637,0.0276 -0.29628,0.0982 -0.0999,0.0689 -0.0999,0.24633 0,0.12919 0.0913,0.21187 0.093,0.081 0.24632,0.081 0.21015,0 0.34624,-0.14642 0.1378,-0.14814 0.1378,-0.37379 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1053" />
+      <path
+         d="m -177.12732,138.96762 h -0.2825 v -0.29972 h -0.007 q -0.19637,0.34106 -0.60634,0.34106 -0.33245,0 -0.53226,-0.23599 -0.1981,-0.23771 -0.1981,-0.64595 0,-0.43753 0.22049,-0.70108 0.22048,-0.26355 0.58739,-0.26355 0.36346,0 0.52882,0.28594 h 0.007 v -1.09209 h 0.2825 z m -0.2825,-0.79754 v -0.2601 q 0,-0.2136 -0.14125,-0.36174 -0.14125,-0.14814 -0.35829,-0.14814 -0.25838,0 -0.40652,0.18948 -0.14814,0.18948 -0.14814,0.52366 0,0.30489 0.14125,0.48231 0.14297,0.1757 0.38241,0.1757 0.23598,0 0.3824,-0.17053 0.14814,-0.17053 0.14814,-0.43064 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1055" />
+      <path
+         d="m -175.04648,138.96762 h -0.2825 v -0.29972 h -0.007 q -0.19637,0.34106 -0.60634,0.34106 -0.33245,0 -0.53227,-0.23599 -0.19809,-0.23771 -0.19809,-0.64595 0,-0.43753 0.22049,-0.70108 0.22048,-0.26355 0.58739,-0.26355 0.36345,0 0.52882,0.28594 h 0.007 v -1.09209 h 0.2825 z m -0.2825,-0.79754 v -0.2601 q 0,-0.2136 -0.14125,-0.36174 -0.14125,-0.14814 -0.35829,-0.14814 -0.25838,0 -0.40652,0.18948 -0.14814,0.18948 -0.14814,0.52366 0,0.30489 0.14125,0.48231 0.14297,0.1757 0.3824,0.1757 0.23599,0 0.38241,-0.17053 0.14814,-0.17053 0.14814,-0.43064 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1057" />
+      <path
+         d="m -172.47299,139.00896 q -0.52538,0 -0.84233,-0.34623 -0.31523,-0.34623 -0.31523,-0.90089 0,-0.59601 0.32212,-0.95085 0.32212,-0.35485 0.87678,-0.35485 0.51159,0 0.82337,0.34451 0.31351,0.34451 0.31351,0.9009 0,0.60461 -0.3204,0.95601 -0.32039,0.3514 -0.85782,0.3514 z m 0.0207,-2.29099 q -0.3893,0 -0.63218,0.28078 -0.24288,0.28077 -0.24288,0.73725 0,0.45647 0.23599,0.73553 0.23771,0.27733 0.6184,0.27733 0.40652,0 0.64078,-0.26528 0.23427,-0.26527 0.23427,-0.74241 0,-0.48921 -0.22738,-0.7562 -0.22737,-0.267 -0.627,-0.267 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1059" />
+      <path
+         d="m -170.56441,138.96762 h -0.2825 v -2.61138 h 0.2825 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1061" />
+      <path
+         d="m -169.84783,136.75587 q -0.0758,0 -0.12919,-0.0517 -0.0534,-0.0517 -0.0534,-0.13091 0,-0.0792 0.0534,-0.13092 0.0534,-0.0534 0.12919,-0.0534 0.0775,0 0.13091,0.0534 0.0551,0.0517 0.0551,0.13092 0,0.0758 -0.0551,0.12919 -0.0534,0.0534 -0.13091,0.0534 z m 0.1378,2.21175 h -0.28249 v -1.76389 h 0.28249 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1063" />
+      <path
+         d="m -167.75149,137.20373 -0.7028,1.76389 h -0.27733 l -0.66835,-1.76389 h 0.31006 l 0.44786,1.28158 q 0.05,0.14125 0.062,0.24632 h 0.007 q 0.0172,-0.13263 0.0551,-0.23943 l 0.46853,-1.28847 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1065" />
+      <path
+         d="m -167.30535,136.75587 q -0.0758,0 -0.12919,-0.0517 -0.0534,-0.0517 -0.0534,-0.13091 0,-0.0792 0.0534,-0.13092 0.0534,-0.0534 0.12919,-0.0534 0.0775,0 0.13091,0.0534 0.0551,0.0517 0.0551,0.13092 0,0.0758 -0.0551,0.12919 -0.0534,0.0534 -0.13091,0.0534 z m 0.1378,2.21175 h -0.28249 v -1.76389 h 0.28249 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1067" />
+      <path
+         d="m -165.33303,138.96762 h -0.2825 v -0.27561 h -0.007 q -0.18431,0.31695 -0.5426,0.31695 -0.26355,0 -0.41341,-0.13952 -0.14814,-0.13953 -0.14814,-0.37035 0,-0.49437 0.58222,-0.57533 l 0.52882,-0.0741 q 0,-0.44959 -0.36346,-0.44959 -0.31867,0 -0.57533,0.21704 v -0.28939 q 0.26011,-0.16536 0.59945,-0.16536 0.62184,0 0.62184,0.65801 z m -0.2825,-0.89228 -0.42547,0.0586 q -0.19637,0.0276 -0.29628,0.0982 -0.0999,0.0689 -0.0999,0.24633 0,0.12919 0.0913,0.21187 0.093,0.081 0.24633,0.081 0.21015,0 0.34623,-0.14642 0.1378,-0.14814 0.1378,-0.37379 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1069" />
+      <path
+         d="m -162.16871,138.74886 -1.48139,-0.74414 v -0.10163 l 1.48139,-0.83027 v 0.25838 l -1.10587,0.61323 v 0.007 l 1.10587,0.54088 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1071" />
+      <path
+         d="m -160.38759,139.00896 q -0.52538,0 -0.84233,-0.34623 -0.31523,-0.34623 -0.31523,-0.90089 0,-0.59601 0.32212,-0.95085 0.32212,-0.35485 0.87678,-0.35485 0.5116,0 0.82338,0.34451 0.3135,0.34451 0.3135,0.9009 0,0.60461 -0.32039,0.95601 -0.3204,0.3514 -0.85783,0.3514 z m 0.0207,-2.29099 q -0.3893,0 -0.63218,0.28078 -0.24288,0.28077 -0.24288,0.73725 0,0.45647 0.23599,0.73553 0.23771,0.27733 0.6184,0.27733 0.40652,0 0.64079,-0.26528 0.23426,-0.26527 0.23426,-0.74241 0,-0.48921 -0.22737,-0.7562 -0.22738,-0.267 -0.62701,-0.267 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1073" />
+      <path
+         d="m -158.47901,138.96762 h -0.2825 v -2.61138 h 0.2825 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1075" />
+      <path
+         d="m -157.76243,136.75587 q -0.0758,0 -0.12919,-0.0517 -0.0534,-0.0517 -0.0534,-0.13091 0,-0.0792 0.0534,-0.13092 0.0534,-0.0534 0.12919,-0.0534 0.0775,0 0.13092,0.0534 0.0551,0.0517 0.0551,0.13092 0,0.0758 -0.0551,0.12919 -0.0534,0.0534 -0.13092,0.0534 z m 0.13781,2.21175 h -0.2825 v -1.76389 h 0.2825 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1077" />
+      <path
+         d="m -155.66609,137.20373 -0.7028,1.76389 h -0.27733 l -0.66834,-1.76389 h 0.31005 l 0.44787,1.28158 q 0.0499,0.14125 0.062,0.24632 h 0.007 q 0.0172,-0.13263 0.0551,-0.23943 l 0.46853,-1.28847 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1079" />
+      <path
+         d="m -155.21994,136.75587 q -0.0758,0 -0.1292,-0.0517 -0.0534,-0.0517 -0.0534,-0.13091 0,-0.0792 0.0534,-0.13092 0.0534,-0.0534 0.1292,-0.0534 0.0775,0 0.13091,0.0534 0.0551,0.0517 0.0551,0.13092 0,0.0758 -0.0551,0.12919 -0.0534,0.0534 -0.13091,0.0534 z m 0.1378,2.21175 h -0.2825 v -1.76389 h 0.2825 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1081" />
+      <path
+         d="m -153.24763,138.96762 h -0.2825 v -0.27561 h -0.007 q -0.18431,0.31695 -0.5426,0.31695 -0.26355,0 -0.41341,-0.13952 -0.14814,-0.13953 -0.14814,-0.37035 0,-0.49437 0.58222,-0.57533 l 0.52882,-0.0741 q 0,-0.44959 -0.36345,-0.44959 -0.31868,0 -0.57534,0.21704 v -0.28939 q 0.26011,-0.16536 0.59945,-0.16536 0.62184,0 0.62184,0.65801 z m -0.2825,-0.89228 -0.42547,0.0586 q -0.19637,0.0276 -0.29627,0.0982 -0.0999,0.0689 -0.0999,0.24633 0,0.12919 0.0913,0.21187 0.093,0.081 0.24633,0.081 0.21015,0 0.34623,-0.14642 0.1378,-0.14814 0.1378,-0.37379 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1083" />
+      <path
+         d="m -152.38463,138.034 v 0.93362 h -0.28939 v -2.47013 h 0.67869 q 0.39618,0 0.61322,0.19292 0.21877,0.19293 0.21877,0.54433 0,0.3514 -0.24288,0.57533 -0.24116,0.22393 -0.65285,0.22393 z m 0,-1.27469 v 1.01286 h 0.30317 q 0.29972,0 0.45648,-0.13608 0.15847,-0.1378 0.15847,-0.38757 0,-0.48921 -0.57878,-0.48921 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1085" />
+      <path
+         d="m -149.30816,138.96762 h -0.28249 v -0.27905 h -0.007 q -0.1757,0.32039 -0.54432,0.32039 -0.63045,0 -0.63045,-0.75103 v -1.0542 h 0.28077 v 1.00941 q 0,0.55811 0.42719,0.55811 0.20671,0 0.33935,-0.15158 0.13436,-0.15331 0.13436,-0.39964 v -1.0163 h 0.28249 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1087" />
+      <path
+         d="m -148.44689,138.71268 h -0.007 v 0.25494 h -0.28249 v -2.61138 h 0.28249 v 1.15755 h 0.007 q 0.20843,-0.3514 0.60979,-0.3514 0.33934,0 0.53054,0.23771 0.19293,0.23599 0.19293,0.6339 0,0.44269 -0.21532,0.70969 -0.21532,0.26527 -0.58911,0.26527 -0.34968,0 -0.52883,-0.29628 z m -0.007,-0.71141 v 0.24633 q 0,0.21876 0.14125,0.37207 0.14297,0.15158 0.36174,0.15158 0.25666,0 0.40135,-0.19637 0.14642,-0.19637 0.14642,-0.54605 0,-0.29455 -0.13608,-0.46164 -0.13608,-0.16709 -0.36863,-0.16709 -0.24632,0 -0.39618,0.17226 -0.14987,0.17053 -0.14987,0.42891 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1089" />
+      <path
+         d="m -144.90532,138.96762 h -0.40308 l -0.95429,-1.12999 q -0.0534,-0.0637 -0.0655,-0.0861 h -0.007 v 1.21612 h -0.28939 v -2.47013 h 0.28939 v 1.16099 h 0.007 q 0.0241,-0.0379 0.0655,-0.0844 l 0.92329,-1.07659 h 0.36001 l -1.05937,1.18511 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1091" />
+      <path
+         d="m -143.24651,138.1563 h -1.2454 q 0.007,0.29456 0.15847,0.45475 0.15159,0.1602 0.41686,0.1602 0.298,0 0.54777,-0.19637 v 0.26527 q -0.23254,0.16881 -0.61495,0.16881 -0.37379,0 -0.58739,-0.23943 -0.21359,-0.24116 -0.21359,-0.67696 0,-0.41169 0.23254,-0.67008 0.23427,-0.2601 0.5805,-0.2601 0.34623,0 0.53571,0.22393 0.18948,0.22393 0.18948,0.62184 z m -0.28938,-0.23943 q -0.002,-0.24461 -0.11886,-0.38069 -0.11541,-0.13608 -0.32212,-0.13608 -0.19981,0 -0.33934,0.14297 -0.13953,0.14297 -0.17225,0.3738 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1093" />
+      <path
+         d="m -141.41372,137.20373 -0.81132,2.04639 q -0.21704,0.54777 -0.60978,0.54777 -0.11024,0 -0.18431,-0.0224 v -0.25322 q 0.0913,0.031 0.16708,0.031 0.2136,0 0.3204,-0.25494 l 0.14125,-0.33417 -0.68902,-1.76045 h 0.3135 l 0.47715,1.35737 q 0.009,0.0258 0.0362,0.13436 h 0.0103 q 0.009,-0.0413 0.0344,-0.13092 l 0.50126,-1.36081 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1095" />
+      <path
+         d="m -139.44484,138.00472 -1.48139,0.74414 v -0.25666 l 1.10932,-0.53744 v -0.0103 l -1.10932,-0.61323 v -0.25838 l 1.48139,0.83027 z"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         id="path1097" />
+    </g>
+    <g
+       id="g1981"
+       transform="translate(414.32083,134.42554)">
+      <ellipse
+         ry="7.5984726"
+         rx="36.49073"
+         cy="-43.042664"
+         cx="-104.54697"
+         id="ellipse81"
+         style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.348118;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000" />
+      <text
+         id="text85"
+         y="-42.13316"
+         x="-130.01314"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         xml:space="preserve"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+           y="-42.13316"
+           x="-130.01314"
+           id="tspan83"
+           sodipodi:role="line">dlc setup MyFirstDLC &lt;setuppsbt&gt;</tspan></text>
+    </g>
+    <g
+       id="g1976"
+       transform="translate(414.32083,134.42554)">
+      <rect
+         y="-69.146973"
+         x="-146.62152"
+         height="10.835637"
+         width="84.149094"
+         id="rect1957"
+         style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="-134.65378"
+         y="-62.819649"
+         id="text95"><tspan
+           sodipodi:role="line"
+           id="tspan93"
+           x="-134.65378"
+           y="-62.819649"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">Create a PSBT sending 0.6 BTC to herself...</tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="275.17819"
+       y="178.34416"
+       id="text123"><tspan
+         sodipodi:role="line"
+         id="tspan121"
+         x="275.17819"
+         y="178.34416"
+         style="stroke-width:0.264583" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="467.60965"
+       y="-42.472862"
+       id="text135"><tspan
+         sodipodi:role="line"
+         id="tspan1635"
+         x="467.60965"
+         y="-42.472862">I attest Republicans victory</tspan><tspan
+         sodipodi:role="line"
+         id="tspan1637"
+         x="467.60965"
+         y="-38.063148">&lt;Attestation&gt;</tspan></text>
+    <ellipse
+       style="fill:#fcf696;fill-opacity:1;stroke:none;stroke-width:0.400001;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+       id="ellipse137"
+       cx="467.88232"
+       cy="-95.593819"
+       rx="33.429096"
+       ry="10.951" />
+    <text
+       id="text143"
+       y="-96.898659"
+       x="468.28192"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         y="-96.898659"
+         x="468.28192"
+         id="tspan139"
+         sodipodi:role="line">event attest sign Olivia/elections </tspan><tspan
+         y="-92.488937"
+         x="468.28192"
+         id="tspan141"
+         sodipodi:role="line">&quot;Republicans&quot;</tspan></text>
+    <g
+       id="g1986"
+       transform="translate(268.98161,0.54215802)">
+      <rect
+         y="-35.640614"
+         x="252.36121"
+         height="10.835637"
+         width="84.149094"
+         id="rect1981"
+         style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="275.71854"
+         y="-28.937773"
+         id="text159"><tspan
+           sodipodi:role="line"
+           id="tspan157"
+           x="275.71854"
+           y="-28.937773"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">Broadcast the execution</tspan></text>
+    </g>
+    <ellipse
+       style="fill:url(#linearGradient1601);fill-opacity:1;stroke:none;stroke-width:0.312034;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+       id="ellipse167"
+       cx="552.32916"
+       cy="-131.34915"
+       rx="29.317839"
+       ry="7.5984726" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="528.7406"
+       y="-130.43964"
+       id="text171"><tspan
+         sodipodi:role="line"
+         id="tspan169"
+         x="528.7406"
+         y="-130.43964"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke-width:0.264583">dlc show --refund  MyFirstDLC</tspan></text>
+    <text
+       xml:space="preserve"
+       id="text179"
+       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect181);fill:#000000;fill-opacity:1;stroke:none;" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1459)"
+       d="m 478.89438,168.65954 10e-6,4.11575"
+       id="path1107"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#ellipse942"
+       inkscape:connection-end="#path964" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1469)"
+       d="m 458.12746,234.21511 -17.31618,21.91396"
+       id="path1109"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#path964"
+       inkscape:connection-end="#path113" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1479)"
+       d="m 499.12668,233.53844 17.85088,22.59063"
+       id="path1111"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#path964"
+       inkscape:connection-end="#ellipse1021" />
+    <ellipse
+       ry="11.203536"
+       rx="30.086185"
+       cy="155.40309"
+       cx="305.06311"
+       id="ellipse1637"
+       style="fill:#fcf696;fill-opacity:1;stroke:none;stroke-width:0.383825;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000" />
+    <text
+       id="text1641"
+       y="154.09825"
+       x="305.46274"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         sodipodi:role="line"
+         id="tspan1881"
+         x="305.46274"
+         y="154.09825">event generate Olivia/elections </tspan><tspan
+         sodipodi:role="line"
+         id="tspan1883"
+         x="305.46274"
+         y="158.50798">&quot;Republicans&quot; &quot;Democrats&quot;</tspan></text>
+    <path
+       transform="rotate(127.40123,145.92174,104.50053)"
+       inkscape:transform-center-y="-6.6216749"
+       inkscape:transform-center-x="-1.99211"
+       inkscape:randomized="0"
+       inkscape:rounded="0"
+       inkscape:flatsided="false"
+       sodipodi:arg2="-0.020013509"
+       sodipodi:arg1="-0.64833204"
+       sodipodi:r2="39.155464"
+       sodipodi:r1="16.755594"
+       sodipodi:cy="-85.543434"
+       sodipodi:cx="132.55904"
+       sodipodi:sides="5"
+       id="path1643"
+       style="fill:#fcf696;fill-opacity:1;stroke:none;stroke-width:0.626709;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+       sodipodi:type="star"
+       d="m 145.91479,-95.661429 25.79187,9.334409 -25.39768,10.359028 -0.90743,27.414018 -17.70034,-20.953516 -26.35269,7.608386 14.45828,-23.309014 -15.37944,-22.711782 26.63605,6.54776 16.84767,-21.64504 z" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="305.12946"
+       y="193.68451"
+       id="text1649"><tspan
+         sodipodi:role="line"
+         id="tspan1927"
+         x="305.12946"
+         y="193.68451">New bet!</tspan><tspan
+         sodipodi:role="line"
+         id="tspan1929"
+         x="305.12946"
+         y="198.09424">&lt;Nonce&gt;</tspan><tspan
+         sodipodi:role="line"
+         id="tspan1931"
+         x="305.12946"
+         y="202.50395">---</tspan><tspan
+         sodipodi:role="line"
+         id="tspan1933"
+         x="305.12946"
+         y="206.91368">Who wins elections?</tspan><tspan
+         sodipodi:role="line"
+         id="tspan1935"
+         x="305.12946"
+         y="211.32341">&quot;Republicans&quot;</tspan><tspan
+         sodipodi:role="line"
+         id="tspan1937"
+         x="305.12946"
+         y="215.73314">or</tspan><tspan
+         sodipodi:role="line"
+         id="tspan1939"
+         x="305.12946"
+         y="220.14285">&quot;Democrats&quot;</tspan><tspan
+         sodipodi:role="line"
+         id="tspan1941"
+         x="305.12946"
+         y="224.55258" /></text>
+    <ellipse
+       ry="14.29391"
+       rx="32.737457"
+       cy="267.33585"
+       cx="256.30276"
+       id="ellipse1651"
+       style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.452242;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="256.4509"
+       y="266.03104"
+       id="text1655"><tspan
+         sodipodi:role="line"
+         id="tspan1885"
+         x="256.4509"
+         y="266.03104">event add Olivia/elections &lt;Nonce&gt;</tspan><tspan
+         sodipodi:role="line"
+         id="tspan1887"
+         x="256.4509"
+         y="270.44077">&quot;Republicans&quot; &quot;Democrats&quot;</tspan></text>
+    <ellipse
+       style="fill:#a9def9;fill-opacity:1;stroke:none;stroke-width:0.452242;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+       id="ellipse1657"
+       cx="353.82352"
+       cy="267.33585"
+       rx="32.737457"
+       ry="14.29391" />
+    <g
+       transform="translate(-71.440564,-0.46109511)"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       id="g1717"
+       aria-label="oracle add Olivia &lt;OliviaPubKey&gt;" />
+    <path
+       inkscape:connector-curvature="0"
+       inkscape:connector-type="polyline"
+       id="path1719"
+       d="m 305.0631,166.35409 v 4.11574"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1747)" />
+    <path
+       inkscape:connector-curvature="0"
+       inkscape:connector-type="polyline"
+       id="path1721"
+       d="m 284.29617,231.90966 -17.31619,21.91398"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1737)" />
+    <path
+       inkscape:connector-curvature="0"
+       inkscape:connector-type="polyline"
+       id="path1723"
+       d="m 325.29539,231.233 17.85089,22.59064"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker1727)" />
+    <text
+       id="text1897"
+       y="266.03104"
+       x="353.97165"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         y="266.03104"
+         x="353.97165"
+         id="tspan1893"
+         sodipodi:role="line">event add Olivia/elections &lt;Nonce&gt;</tspan><tspan
+         y="270.44077"
+         x="353.97165"
+         id="tspan1895"
+         sodipodi:role="line">&quot;Republicans&quot; &quot;Democrats&quot;</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="427.3092"
+       y="133.82025"
+       id="text1945"><tspan
+         sodipodi:role="line"
+         id="tspan1943"
+         x="427.3092"
+         y="133.82025"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">Olivia wants to become an oracle</tspan></text>
+    <text
+       id="text1949"
+       y="133.82025"
+       x="258.04614"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         y="133.82025"
+         x="258.04614"
+         id="tspan1947"
+         sodipodi:role="line">Olivia wants to attest an event</tspan></text>
+    <text
+       id="text1965"
+       y="29.859663"
+       x="269.97955"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         y="29.859663"
+         x="269.97955"
+         id="tspan1963"
+         sodipodi:role="line">Alice wants to offer a DLC</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker2001)"
+       d="m 309.77386,76.114204 0,7.6702"
+       id="path1987"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#g1976"
+       inkscape:connection-end="#g1981" />
+    <g
+       id="g1971"
+       transform="translate(412.19445,134.42554)">
+      <ellipse
+         style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.408064;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+         id="ellipse940"
+         cx="-102.42059"
+         cy="-87.058136"
+         rx="40.803226"
+         ry="9.337182" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="-102.43006"
+         y="-88.362968"
+         id="text68"><tspan
+           y="-88.362968"
+           x="-102.43006"
+           id="tspan1959"
+           sodipodi:role="line">dlc offer MyFirstDLC Olivia/elections</tspan><tspan
+           y="-83.953247"
+           x="-102.43006"
+           id="tspan1961"
+           sodipodi:role="line">&quot;Republicans:0.6&quot;  &quot;Democrats:-0.4&quot;</tspan></text>
+    </g>
+    <g
+       id="g5677">
+      <ellipse
+         style="fill:#a9def9;fill-opacity:1;stroke:none;stroke-width:0.348118;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+         id="ellipse2123"
+         cx="430.11859"
+         cy="104.68013"
+         rx="36.49073"
+         ry="7.5984726" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="403.23306"
+         y="105.58964"
+         id="text2127"><tspan
+           y="105.58964"
+           x="403.23306"
+           id="tspan2427"
+           sodipodi:role="line">dlc setup MyFirstDLC &lt;setuppsbt&gt;</tspan></text>
+    </g>
+    <g
+       transform="translate(7.6293945e-6,0.63374411)"
+       id="g5682">
+      <rect
+         style="fill:#a9def9;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
+         id="rect2131"
+         width="84.149094"
+         height="10.835637"
+         x="388.04404"
+         y="78.575821" />
+      <text
+         id="text2135"
+         y="84.903145"
+         x="397.31955"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         xml:space="preserve"><tspan
+           y="84.903145"
+           x="397.31955"
+           id="tspan2423"
+           sodipodi:role="line">Create a PSBT sending 0.6 BTC to himself...</tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="371.50888"
+       y="29.398573"
+       id="text2141"><tspan
+         sodipodi:role="line"
+         id="tspan2139"
+         x="371.50888"
+         y="29.398573"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">Bob wants to accept the offer of Alice</tspan></text>
+    <g
+       id="g5692">
+      <ellipse
+         ry="6.0767765"
+         rx="26.555346"
+         cy="46.906311"
+         cx="430.11859"
+         id="ellipse2147"
+         style="fill:#a9def9;fill-opacity:1;stroke:none;stroke-width:0.265574;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000" />
+      <text
+         id="text2153"
+         y="48.210281"
+         x="430.26672"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         xml:space="preserve"><tspan
+           y="48.210281"
+           x="430.26672"
+           id="tspan2425"
+           sodipodi:role="line">dlc review &lt;offer&gt;</tspan></text>
+    </g>
+    <text
+       id="text2431"
+       y="-152.87108"
+       x="279.29904"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         y="-152.87108"
+         x="279.29904"
+         id="tspan2429"
+         sodipodi:role="line">Alice starts the contract</tspan></text>
+    <rect
+       y="65.278564"
+       x="267.69931"
+       height="10.835637"
+       width="84.149094"
+       id="rect2433"
+       style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="279.66705"
+       y="71.605888"
+       id="text2437"><tspan
+         sodipodi:role="line"
+         id="tspan2435"
+         x="279.66705"
+         y="71.605888"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">Create a PSBT sending 0.4 BTC to herself...</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker2762)"
+       d="m 287.5627,-63.008092 h 47.64991"
+       id="path2758"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker2516)"
+       d="m 288.89123,-119.55625 v 14.67851"
+       id="path2512"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0" />
+    <g
+       id="g2471"
+       transform="translate(299.0632,10.346348)">
+      <rect
+         y="-132.80069"
+         x="-52.246513"
+         height="10.835637"
+         width="84.149094"
+         id="rect2444"
+         style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000" />
+      <text
+         id="text1265"
+         y="-126.47337"
+         x="-31.243046"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         xml:space="preserve"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+           y="-126.47337"
+           x="-31.243046"
+           id="tspan1263"
+           sodipodi:role="line">Sign the final funding PSBT</tspan></text>
+    </g>
+    <rect
+       y="-48.397442"
+       x="323.11069"
+       height="10.835637"
+       width="84.149094"
+       id="rect2446"
+       style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="350.13531"
+       y="-42.089054"
+       id="text1301"><tspan
+         sodipodi:role="line"
+         id="tspan1299"
+         x="350.13531"
+         y="-42.089054"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">Sign and broadcast</tspan></text>
+    <path
+       inkscape:connection-start="#g2476"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker2526)"
+       d="m 288.89124,-137.13286 -10e-6,14.67852"
+       id="path2482"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-end="#g2471" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker2536)"
+       d="m 288.89123,-90.929222 v 8.28101"
+       id="path2500"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker2546)"
+       d="m 288.89123,-50.389582 v 13.90524"
+       id="path2504"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0" />
+    <path
+       inkscape:connection-start="#g2456"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker2556)"
+       d="m 365.44036,-55.477878 -0.25526,7.080447"
+       id="path2506"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0" />
+    <rect
+       style="fill:#a9def9;fill-opacity:1;stroke:none;stroke-width:0.358021;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+       id="rect1279"
+       width="39.644115"
+       height="39.644115"
+       x="80.551117"
+       y="-249.93222"
+       transform="matrix(0.87414765,0.48566026,-0.87414765,0.48566026,0,0)" />
+    <text
+       id="text1283"
+       y="-62.098598"
+       x="263.06592"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         y="-62.098598"
+         x="263.06592"
+         id="tspan2480"
+         sodipodi:role="line">Is Bob broadcasting the funding?</tspan></text>
+    <ellipse
+       style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.301444;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+       id="ellipse1267"
+       cx="288.89124"
+       cy="-96.940193"
+       rx="27.361595"
+       ry="7.5984726" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="272.90942"
+       y="-96.030685"
+       id="text1271"><tspan
+         sodipodi:role="line"
+         id="tspan1269"
+         x="272.90942"
+         y="-96.030685"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">dlc start &lt;fundpsbt&gt;</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="290.58142"
+       y="-40.020943"
+       id="text2740"><tspan
+         sodipodi:role="line"
+         id="tspan2738"
+         x="290.58142"
+         y="-40.020943"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">Yes</tspan></text>
+    <text
+       id="text3333"
+       y="-157.18729"
+       x="467.03876"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         y="-157.18729"
+         x="467.03876"
+         id="tspan3331"
+         sodipodi:role="line">The elections result are known</tspan></text>
+    <g
+       id="g282"
+       transform="translate(196.59542,-34.708382)">
+      <rect
+         style="fill:#fcf696;fill-opacity:1;stroke:none;stroke-width:0.358021;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+         id="rect3498"
+         width="39.644115"
+         height="39.644115"
+         x="35.855965"
+         y="-274.48849"
+         transform="matrix(0.87414765,0.48566026,-0.87414765,0.48566026,0,0)" />
+      <text
+         id="text165"
+         y="-95.74073"
+         x="255.59015"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         xml:space="preserve"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+           y="-95.74073"
+           x="255.59015"
+           id="tspan163"
+           sodipodi:role="line">Is Olivia responsive?</tspan></text>
+    </g>
+    <text
+       id="text3502"
+       y="-65.12606"
+       x="326.44586"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         sodipodi:role="line"
+         id="tspan257"
+         x="326.44586"
+         y="-65.12606">No</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="510.82178"
+       y="-132.12738"
+       id="text1391"><tspan
+         sodipodi:role="line"
+         id="tspan1393"
+         x="510.82178"
+         y="-132.12738">No</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="470.07571"
+       y="-109.16026"
+       id="text1979"><tspan
+         id="tspan1977"
+         sodipodi:role="line"
+         x="470.07571"
+         y="-109.16026">Yes</tspan></text>
+    <g
+       id="g1991"
+       transform="translate(271.95053,2.658818)">
+      <ellipse
+         style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.384337;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+         id="ellipse149"
+         cx="291.46683"
+         cy="-52.289307"
+         rx="44.478722"
+         ry="7.5984726" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="262.12491"
+         y="-51.39875"
+         id="text153"><tspan
+           sodipodi:role="line"
+           id="tspan151"
+           x="262.12491"
+           y="-51.39875"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">dlc execute MyFirstDLC &lt;Attestation&gt;</tspan></text>
+    </g>
+    <g
+       id="g2476"
+       transform="translate(298.67998,9.179628)">
+      <ellipse
+         style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.301444;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+         id="ellipse126"
+         cx="-9.788743"
+         cy="-146.31248"
+         rx="27.361595"
+         ry="7.5984726" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="-27.789379"
+         y="-145.42192"
+         id="text130"><tspan
+           sodipodi:role="line"
+           id="tspan128"
+           x="-27.789379"
+           y="-145.42192"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">dlc checksigs &lt;accept&gt;</tspan></text>
+    </g>
+    <g
+       transform="translate(0,1.7274988)"
+       id="g5687">
+      <ellipse
+         style="fill:#a9def9;fill-opacity:1;stroke:none;stroke-width:0.265574;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+         id="ellipse5668"
+         cx="430.11859"
+         cy="64.368828"
+         rx="26.555346"
+         ry="6.0767765" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="430.26672"
+         y="65.672798"
+         id="text5672"><tspan
+           sodipodi:role="line"
+           id="tspan5670"
+           x="430.26672"
+           y="65.672798">dlc accept &lt;offer&gt;</tspan></text>
+    </g>
+    <path
+       inkscape:connection-end="#g5687"
+       inkscape:connection-start="#g5692"
+       inkscape:connector-curvature="0"
+       inkscape:connector-type="polyline"
+       id="path5696"
+       d="M 430.11859,52.983088 V 60.01955"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;marker-end:url(#marker5724)" />
+    <path
+       inkscape:connection-end="#g5682"
+       inkscape:connection-start="#g5687"
+       inkscape:connector-curvature="0"
+       inkscape:connector-type="polyline"
+       id="path5698"
+       d="m 430.11859,72.173103 v 7.036462"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;marker-end:url(#marker5704)" />
+    <path
+       inkscape:connection-end="#g5677"
+       inkscape:connection-start="#g5682"
+       inkscape:connector-curvature="0"
+       inkscape:connector-type="polyline"
+       id="path5700"
+       d="m 430.11859,90.045202 0,7.036455"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none;marker-end:url(#marker5714)" />
+    <g
+       id="g2456"
+       transform="translate(373.99573,-27.943262)">
+      <ellipse
+         style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.312034;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+         id="ellipse1291"
+         cx="-8.810626"
+         cy="-35.132683"
+         rx="29.317839"
+         ry="7.5984726" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="-31.455252"
+         y="-34.242123"
+         id="text1295"><tspan
+           sodipodi:role="line"
+           id="tspan1293"
+           x="-31.455252"
+           y="-34.242123"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">dlc show --abort  MyFirstDLC</tspan></text>
+    </g>
+    <g
+       transform="translate(-88.925105,27.236917)"
+       id="g6624">
+      <rect
+         y="-63.008091"
+         x="335.74179"
+         height="10.835637"
+         width="84.149094"
+         id="rect6609"
+         style="fill:#ffc0c8;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="359.61417"
+         y="-56.699711"
+         id="text6613"><tspan
+           sodipodi:role="line"
+           id="tspan6611"
+           x="359.61417"
+           y="-56.699711"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">Wait Olivia's attestation</tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="159.4567"
+       y="-112.83485"
+       id="text6983"><tspan
+         sodipodi:role="line"
+         id="tspan6981"
+         x="159.4567"
+         y="-112.83485"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:7.05556px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">Bob starts the contract</tspan></text>
+    <rect
+       y="-79.812965"
+       x="152.88216"
+       height="10.835637"
+       width="84.149094"
+       id="rect6985"
+       style="fill:#a9def9;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000" />
+    <text
+       id="text6989"
+       y="-73.485649"
+       x="173.88562"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         y="-73.485649"
+         x="173.88562"
+         id="tspan6987"
+         sodipodi:role="line">Sign the final funding PSBT</tspan></text>
+    <path
+       inkscape:connection-start="#g6583"
+       inkscape:connection-end="#rect6985"
+       inkscape:connector-curvature="0"
+       inkscape:connector-type="polyline"
+       id="path7238"
+       d="m 194.9567,-96.282567 0,16.469602"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker7244)" />
+    <path
+       inkscape:connection-end="#ellipse6995"
+       inkscape:connection-start="#rect6985"
+       inkscape:connector-curvature="0"
+       inkscape:connector-type="polyline"
+       id="path7240"
+       d="m 194.9567,-68.977328 10e-6,9.999716"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker7254)" />
+    <g
+       transform="translate(-176.23928,-33.274468)"
+       id="g6583">
+      <ellipse
+         style="fill:#a9def9;fill-opacity:1;stroke:none;stroke-width:0.316893;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+         id="ellipse113"
+         cx="371.19598"
+         cy="-63.008099"
+         rx="35.512608"
+         ry="6.4698763" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="354.88342"
+         y="-62.117535"
+         id="text117"><tspan
+           sodipodi:role="line"
+           id="tspan115"
+           x="354.88342"
+           y="-62.117535"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">dlc checksigs &lt;Sign&gt;</tspan></text>
+    </g>
+    <g
+       id="g7685">
+      <rect
+         y="-14.772679"
+         x="152.88216"
+         height="10.835637"
+         width="84.149094"
+         id="rect7442"
+         style="fill:#a9def9;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000" />
+      <text
+         id="text7446"
+         y="-8.445363"
+         x="176.75453"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         xml:space="preserve"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+           y="-8.445363"
+           x="176.75453"
+           id="tspan7444"
+           sodipodi:role="line">Wait Olivia's attestation</tspan></text>
+    </g>
+    <rect
+       style="fill:#a9def9;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;stop-color:#000000"
+       id="rect7668"
+       width="84.149094"
+       height="10.835637"
+       x="152.88216"
+       y="-34.694489" />
+    <text
+       id="text7675"
+       y="-28.367165"
+       x="177.73466"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+         y="-28.367165"
+         x="177.73466"
+         id="tspan7673"
+         sodipodi:role="line">Broadcast the funding</tspan></text>
+    <path
+       inkscape:connection-start="#g7470"
+       inkscape:connector-curvature="0"
+       inkscape:connector-type="polyline"
+       id="path7687"
+       d="m 194.95671,-51.379139 0,16.68465"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker7693)" />
+    <path
+       inkscape:connection-end="#g7685"
+       inkscape:connector-curvature="0"
+       inkscape:connector-type="polyline"
+       id="path7689"
+       d="m 194.9567,-23.858852 0,9.086173"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker7703)" />
+    <g
+       id="g7470">
+      <ellipse
+         style="fill:#a9def9;fill-opacity:1;stroke:none;stroke-width:0.301444;stroke-miterlimit:4;stroke-dasharray:none;stop-color:#000000"
+         id="ellipse6995"
+         cx="194.95671"
+         cy="-51.379139"
+         rx="27.361595"
+         ry="7.5984726" />
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;line-height:1.25;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         x="178.9749"
+         y="-50.469631"
+         id="text6999"><tspan
+           sodipodi:role="line"
+           id="tspan6997"
+           x="178.9749"
+           y="-50.469631"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52778px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">dlc start &lt;fundpsbt&gt;</tspan></text>
+    </g>
+  </g>
+</svg>

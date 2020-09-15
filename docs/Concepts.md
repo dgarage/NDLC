@@ -79,16 +79,17 @@ For example:
 
 ## How to create an oracle
 
+![OliviaWantsToBecomeOracle](OliviaWantsToBecomeOracle.svg)
 So imagine that Olivia wants to run an oracle that other people might decide to use for their DLC.
 
 ```bash
-oracle generate "awesomeoracle"
+oracle generate "Olivia"
 ```
 
 This will output her oracle's pubkey. She can always get it back later with.
 
 ```bash
-oracle show "awesomeoracle"
+oracle show "Olivia"
 ```
 
 Or list it with
@@ -105,21 +106,23 @@ Alice and Bob knows Olivia, and they can both see that Olivia is sharing her ora
 So each of them use `oracle add <oraclename> <pubkey>`:
 
 ```bash
-oracle add "olivia" "ab291..."
+oracle add "Olivia" "ab291..."
 ```
 
 The oracle name is arbitrary and local to bob and alice. They don't have to share the same name, but they have to share the same pubkey.
 
-## Olivia decides to create a new event
+## Olivia wants to attest an event
+
+![OliviaWantsAttestAnEvent](OliviaWantsAttestAnEvent.svg)
 
 Olivia decides she will attest the winner of the US election. So she creates an `event` that she will share with Alice and Bob.
 
 So each of them use `event generate <eventfullname> <outcome1> <outcome2> <outcome...>`:
 ```bash
-event generate "awesomeoracle/USElection2020" "Republicans" "Democrats" "Others"
+event generate "Olivia/elections" "Republicans" "Democrats" "Others"
 ```
 
-The event full name is in the format `oraclename/eventname`. On Olivia's installation, the oracle's name she created was `awesomeoracle`, and event name is local and arbitrary `USElection2020`.
+The event full name is in the format `oraclename/eventname`. On Olivia's installation, the oracle's name she created was `Olivia`, and event name is local and arbitrary `elections`.
 
 The command is giving the event's `nonce`, that she can share with the world along with the outcomes.
 
@@ -127,51 +130,157 @@ She can use `event list` and `event show` to get back the information of the eve
 
 ## Alice and Bob see Olivia will attest a new event
 
-Alice and Bob can see the announcement of Olivia, so they will add this event with `event add <eventfullname> <nonce> <outcome1> <outcome2> <outcome...>`
+Alice and Bob can see the announcement of Olivia, since, they are interested, they will add this event with `event add <eventfullname> <nonce> <outcome1> <outcome2> <outcome...>`
 
 ```bash
-event add "olivia/us2020" "cd291..." "Republicans" "Democrats" "Others"
+event add "Olivia/elections" "cd291..." "Republicans" "Democrats" "Others"
 ```
 
 The event full name is in the format `oraclename/eventname`, event name is arbitrary and local to Alice/Bob.
 
-## Olivia wants to attest the election
+## Alice wants to create a DLC: How to make an offer
+
+![AliceWantsToOfferADLC](AliceWantsToOfferADLC.svg)
+
+First, Alice need to generate a new DLC with the expected payoff for any outcomes, if betting on republicans:
+
+```bash
+dlc offer MyFirstDLC Olivia/elections "Republicans:0.6" "Democrats:-0.4"
+```
+
+Her maximum loss is 0.4, so she will need to fund a collateral of 0.4 BTC.
+She creates a PSBT (but do not broadcast) with her favorite wallet sending 0.4 BTC to herself and run:
+
+```bash
+dlc setup MyFirstDLC "<setuppsbt>"
+```
+
+The setup PSBT does not need to be signed. The address which 0.4 BTC are sent to, will be used as the payout address when the contract is settled.
+
+She can send the output message (the offer) to Bob.
+
+She get this message at any time with
+
+```bash
+dlc show --offer MyFirstDLC
+```
+
+At any time, she can get more help with
+```bash
+dlc show MyFirstDLC
+```
+
+## Bob wants to accept the DLC
+
+![BobWantsToAcceptOffer](BobWantsToAcceptOffer.svg)
+
+First, Bob need to review the offer, to make sure he agrees with it:
+
+```bash
+dlc review "<offer>"
+```
+
+If he accepts, he runs:
+
+```bash
+dlc accept MyFirstDLC "<offer>"
+```
+
+His maximum loss is 0.6, so she will need to fund a collateral of 0.6 BTC.
+He creates a PSBT (but do not broadcast) with his favorite wallet sending 0.6 BTC to himself and run:
+
+```
+dlc setup MyFirstDLC "<setuppsbt>"
+```
+
+He then send the output message (the acceptation) to Alice.
+
+He can get the same message at any time with:
+```bash
+dlc show --accept MyFirstDLC
+```
+
+The PSBT does not need to be signed. The address which 0.6 BTC are sent to, will be used as the payout address when the contract is settled.
+
+At any time, he can get more help with
+```bash
+dlc show MyFirstDLC
+```
+
+## Alice starts the contract
+
+![AliceStarts](AliceStarts.svg)
+
+Now Alice will check that the accept message from Bob is correctl.
+
+```bash
+dlc checksigs <accept>
+```
+
+This command returns the funding PSBT that Alice need to sign.
+This PSBT is sending the collateral of Alice to a multi sig owned by Alice and Bob for the duration of the contract.
+
+She can get the funding transaction at any time with
+
+```bash
+dlc show --funding MyFirstDLC
+```
+
+Once she signed it, she can start the DLC.
+
+```bash
+dlc start MyFirstDLC <signed funding>
+```
+
+She can send the resulting output to Bob, so he can start the DLC on his side.
+She can see this output at any time with:
+```bash
+dlc show --sign MyFirstDLC
+```
+
+If Alice does not start the DLC by signing and broadcasting the funding transaction, Alice MUST ABORT the DLC, by spending back her collateral to herself.
+
+She can do this by retrieving the setup PSBT with:
+
+```bash
+dlc show --abort MyFirstDLC
+```
+
+Sign it and broadcast it.
+
+## Bob starts the contract
+
+![BobStarts](BobStarts.svg)
+
+## The result came: Olivia attest the election
+
+![ResultKnown](ResultKnown.svg)
 
 Now imagine Olivia wants to attest the election, she can use `event attest sign <eventfullname> <outcome>`:
 
 ```bash
-event attest sign "awesomeoracle/USElection2020" "Republicans"
+event attest sign "Olivia/elections" "Republicans"
 ```
 
 This will give back an attestation on the outcome that she can share with the world.
 
 Note if Olivia tried to cheat by attesting two outcomes, by the way DLC works, Alice and Bob would be able to steal her private key.
 
-## Alice and Bob add this attestation
+## Alice and Bob execute the DLC
 
-Alice and Bob see the attestation and can add it to their state via `event attest add <eventfullname> <attestation>`.
-
-```bash
-event attest add "olivia/us2020" "ff3ea..."
-```
-
-Note if Olivia tried to cheat by attesting two outcomes, Alice/Bob could add the second attestations in the same way.
-By doing so they will learn Olivia's private key and able to create attestations for her events.
-
-You can test this behavior, with Olivia using the `-f` option:
+In the event where Olivia disappears and never give the outcome, Alice and Bob can get a refund by signing and broadcasting the refund transaction.
 
 ```bash
-event attest sign -f "awesomeoracle/USElection2020" "Democrats"
+dlc show --refund MyFirstDLC
 ```
 
-Then Alice/Bob
+The refund DLC can be broadcasted after a timeout set in the condition of the contract.
+
+If Olivia announced her attestation, then Alice or Bob can execute the DLC contract by running
 
 ```bash
-event attest add "olivia/us2020" "ecdfa..."
+dlc execute <Attestation>
 ```
 
-Then Alice and Bob can see Olivia's private key with
+This will output a fully signed transaction which will send the funds according to the payoff function of the DLC for the attested outcome.
 
-```bash
-oracle show --show-sensitive olivia
-```

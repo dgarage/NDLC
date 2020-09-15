@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="163mm" height="153.03mm" version="1.1" viewBox="0 0 163 153.03" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <defs>
+  <marker id="marker1747" overflow="visible" orient="auto">
+   <path transform="scale(-.6)" d="m8.7186 4.0337-10.926-4.0177 10.926-4.0177c-1.7455 2.3721-1.7354 5.6175-6e-7 8.0354z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-width=".625"/>
+  </marker>
+  <marker id="marker1737" overflow="visible" orient="auto">
+   <path transform="scale(-.6)" d="m8.7186 4.0337-10.926-4.0177 10.926-4.0177c-1.7455 2.3721-1.7354 5.6175-6e-7 8.0354z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-width=".625"/>
+  </marker>
+  <marker id="marker1727" overflow="visible" orient="auto">
+   <path transform="scale(-.6)" d="m8.7186 4.0337-10.926-4.0177 10.926-4.0177c-1.7455 2.3721-1.7354 5.6175-6e-7 8.0354z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-width=".625"/>
+  </marker>
+ </defs>
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="translate(-223.57 -128.6)">
+  <g>
+   <ellipse cx="305.06" cy="155.4" rx="30.086" ry="11.204" fill="#fcf696" stop-color="#000000"/>
+   <text x="305.46274" y="154.09825" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" text-align="center" text-anchor="middle" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="305.46274" y="154.09825">event generate Olivia/elections </tspan><tspan x="305.46274" y="158.50798">"Republicans" "Democrats"</tspan></text>
+   <path transform="rotate(127.4 145.92 104.5)" d="m145.91-95.661 25.792 9.3344-25.398 10.359-0.90743 27.414-17.7-20.954-26.353 7.6084 14.458-23.309-15.379-22.712 26.636 6.5478 16.848-21.645z" fill="#fcf696" stop-color="#000000"/>
+   <text x="305.12946" y="193.68451" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" text-align="center" text-anchor="middle" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="305.12946" y="193.68451">New bet!</tspan><tspan x="305.12946" y="198.09424">&lt;Nonce&gt;</tspan><tspan x="305.12946" y="202.50395">---</tspan><tspan x="305.12946" y="206.91368">Who wins elections?</tspan><tspan x="305.12946" y="211.32341">"Republicans"</tspan><tspan x="305.12946" y="215.73314">or</tspan><tspan x="305.12946" y="220.14285">"Democrats"</tspan><tspan x="305.12946" y="224.55258"/></text>
+   <ellipse cx="256.3" cy="267.34" rx="32.737" ry="14.294" fill="#ffc0c8" stop-color="#000000"/>
+   <text x="256.4509" y="266.03104" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" text-align="center" text-anchor="middle" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="256.4509" y="266.03104">event add Olivia/elections &lt;Nonce&gt;</tspan><tspan x="256.4509" y="270.44077">"Republicans" "Democrats"</tspan></text>
+   <ellipse cx="353.82" cy="267.34" rx="32.737" ry="14.294" fill="#a9def9" stop-color="#000000"/>
+  </g>
+  <g fill="none" stroke="#000" stroke-width=".265">
+   <path d="m305.06 166.35v4.1157" marker-end="url(#marker1747)"/>
+   <path d="m284.3 231.91-17.316 21.914" marker-end="url(#marker1737)"/>
+   <path d="m325.3 231.23 17.851 22.591" marker-end="url(#marker1727)"/>
+  </g>
+  <text x="353.97165" y="266.03104" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" text-align="center" text-anchor="middle" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="353.97165" y="266.03104">event add Olivia/elections &lt;Nonce&gt;</tspan><tspan x="353.97165" y="270.44077">"Republicans" "Democrats"</tspan></text>
+  <text x="258.04614" y="133.82025" fill="#000000" font-family="'Segoe UI'" font-size="7.0556px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="258.04614" y="133.82025" font-family="'Segoe UI'" font-size="7.0556px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal">Olivia wants to attest an event</tspan></text>
+ </g>
+</svg>

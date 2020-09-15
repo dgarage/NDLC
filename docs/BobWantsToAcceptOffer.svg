@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="115.92mm" height="88.179mm" version="1.1" viewBox="0 0 115.92 88.179" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <defs>
+  <marker id="marker5724" overflow="visible" orient="auto">
+   <path transform="scale(-.6)" d="m8.7186 4.0337-10.926-4.0177 10.926-4.0177c-1.7455 2.3721-1.7354 5.6175-6e-7 8.0354z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-width=".625"/>
+  </marker>
+  <marker id="marker5714" overflow="visible" orient="auto">
+   <path transform="scale(-.6)" d="m8.7186 4.0337-10.926-4.0177 10.926-4.0177c-1.7455 2.3721-1.7354 5.6175-6e-7 8.0354z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-width=".625"/>
+  </marker>
+  <marker id="marker5704" overflow="visible" orient="auto">
+   <path transform="scale(-.6)" d="m8.7186 4.0337-10.926-4.0177 10.926-4.0177c-1.7455 2.3721-1.7354 5.6175-6e-7 8.0354z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-width=".625"/>
+  </marker>
+ </defs>
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="translate(-372.16 -24.1)">
+  <g>
+   <ellipse cx="430.12" cy="104.68" rx="36.491" ry="7.5985" fill="#a9def9" stop-color="#000000"/>
+   <text x="403.23306" y="105.58964" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="403.23306" y="105.58964">dlc setup MyFirstDLC &lt;setuppsbt&gt;</tspan></text>
+  </g>
+  <g transform="translate(7.6294e-6 .63374)">
+   <rect x="388.04" y="78.576" width="84.149" height="10.836" fill="#a9def9" stop-color="#000000"/>
+   <text x="397.31955" y="84.903145" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="397.31955" y="84.903145">Create a PSBT sending 0.6 BTC to himself...</tspan></text>
+  </g>
+  <text x="371.50888" y="29.398573" fill="#000000" font-family="'Segoe UI'" font-size="7.0556px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="371.50888" y="29.398573" font-family="'Segoe UI'" font-size="7.0556px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal">Bob wants to accept the offer of Alice</tspan></text>
+  <g>
+   <ellipse cx="430.12" cy="46.906" rx="26.555" ry="6.0768" fill="#a9def9" stop-color="#000000"/>
+   <text x="430.26672" y="48.210281" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" text-align="center" text-anchor="middle" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="430.26672" y="48.210281">dlc review &lt;offer&gt;</tspan></text>
+  </g>
+  <g transform="translate(0 1.7275)">
+   <ellipse cx="430.12" cy="64.369" rx="26.555" ry="6.0768" fill="#a9def9" stop-color="#000000"/>
+   <text x="430.26672" y="65.672798" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" text-align="center" text-anchor="middle" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="430.26672" y="65.672798">dlc accept &lt;offer&gt;</tspan></text>
+  </g>
+  <g fill="none" stroke="#000" stroke-width=".265">
+   <path d="m430.12 52.983v7.0365" marker-end="url(#marker5724)"/>
+   <path d="m430.12 72.173v7.0365" marker-end="url(#marker5704)"/>
+   <path d="m430.12 90.045v7.0365" marker-end="url(#marker5714)"/>
+  </g>
+ </g>
+</svg>

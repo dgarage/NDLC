@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="84.149mm" height="114.12mm" version="1.1" viewBox="0 0 84.149 114.12" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <defs>
+  <marker id="marker7703" overflow="visible" orient="auto">
+   <path transform="scale(-.6)" d="m8.7186 4.0337-10.926-4.0177 10.926-4.0177c-1.7455 2.3721-1.7354 5.6175-6e-7 8.0354z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-width=".625"/>
+  </marker>
+  <marker id="marker7693" overflow="visible" orient="auto">
+   <path transform="scale(-.6)" d="m8.7186 4.0337-10.926-4.0177 10.926-4.0177c-1.7455 2.3721-1.7354 5.6175-6e-7 8.0354z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-width=".625"/>
+  </marker>
+  <marker id="marker7254" overflow="visible" orient="auto">
+   <path transform="scale(-.6)" d="m8.7186 4.0337-10.926-4.0177 10.926-4.0177c-1.7455 2.3721-1.7354 5.6175-6e-7 8.0354z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-width=".625"/>
+  </marker>
+  <marker id="marker7244" overflow="visible" orient="auto">
+   <path transform="scale(-.6)" d="m8.7186 4.0337-10.926-4.0177 10.926-4.0177c-1.7455 2.3721-1.7354 5.6175-6e-7 8.0354z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-width=".625"/>
+  </marker>
+ </defs>
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g transform="translate(-152.88 118.06)">
+  <g>
+   <text x="159.4567" y="-112.83485" fill="#000000" font-family="'Segoe UI'" font-size="7.0556px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="159.4567" y="-112.83485" font-family="'Segoe UI'" font-size="7.0556px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal">Bob starts the contract</tspan></text>
+   <rect x="152.88" y="-79.813" width="84.149" height="10.836" fill="#a9def9" stop-color="#000000"/>
+   <text x="173.88562" y="-73.485649" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="173.88562" y="-73.485649" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal">Sign the final funding PSBT</tspan></text>
+  </g>
+  <path d="m194.96-96.283v16.47" fill="none" marker-end="url(#marker7244)" stroke="#000" stroke-width=".26458px"/>
+  <path d="m194.96-68.977 1e-5 9.9997" fill="none" marker-end="url(#marker7254)" stroke="#000" stroke-width=".26458px"/>
+  <g transform="translate(-176.24 -33.274)">
+   <ellipse cx="371.2" cy="-63.008" rx="35.513" ry="6.4699" fill="#a9def9" stop-color="#000000"/>
+   <text x="354.88342" y="-62.117535" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="354.88342" y="-62.117535" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal">dlc checksigs &lt;Sign&gt;</tspan></text>
+  </g>
+  <g>
+   <rect x="152.88" y="-14.773" width="84.149" height="10.836" fill="#a9def9" stop-color="#000000"/>
+   <text x="176.75453" y="-8.445363" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="176.75453" y="-8.445363" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal">Wait Olivia's attestation</tspan></text>
+  </g>
+  <rect x="152.88" y="-34.694" width="84.149" height="10.836" fill="#a9def9" stop-color="#000000"/>
+  <text x="177.73466" y="-28.367165" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="177.73466" y="-28.367165" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal">Broadcast the funding</tspan></text>
+  <path d="m194.96-51.379v16.685" fill="none" marker-end="url(#marker7693)" stroke="#000" stroke-width=".26458px"/>
+  <path d="m194.96-23.859v9.0862" fill="none" marker-end="url(#marker7703)" stroke="#000" stroke-width=".26458px"/>
+  <g>
+   <ellipse cx="194.96" cy="-51.379" rx="27.362" ry="7.5985" fill="#a9def9" stop-color="#000000"/>
+   <text x="178.9749" y="-50.469631" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="178.9749" y="-50.469631" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal">dlc start &lt;fundpsbt&gt;</tspan></text>
+  </g>
+ </g>
+</svg>
