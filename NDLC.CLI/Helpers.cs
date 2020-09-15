@@ -12,13 +12,13 @@ namespace NDLC.CLI
 {
 	public static class Helpers
 	{
-		public static PSBT ParsePSBT(this InvocationContext ctx, Network network)
+		public static PSBT ParsePSBT(this InvocationContext ctx, string argName, Network network)
 		{
-			var psbtStr = ctx.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("psbt")?.Trim();
+			var psbtStr = ctx.ParseResult.CommandResult.GetArgumentValueOrDefault<string>(argName)?.Trim();
 			if (psbtStr is null)
-				throw new CommandOptionRequiredException("psbt");
+				throw new CommandOptionRequiredException(argName);
 			if (!PSBT.TryParse(psbtStr, network, out var psbt) || psbt is null)
-				throw new CommandException("psbt", "Invalid PSBT");
+				throw new CommandException(argName, "Invalid PSBT");
 			return psbt;
 		}
 		public static string ToString(ECXOnlyPubKey pubKey)

@@ -19,6 +19,15 @@ namespace NDLC.CLI.DLC
 		public static Command CreateCommand()
 		{
 			Command command = new Command("show", "Show information about a DLC");
+
+			command.AddOption(new Option<bool>("--json", "Output in json")
+			{
+				IsRequired = false,
+			});
+			command.AddOption(new Option<bool>("--psbt", "Output transactions as PSBT")
+			{
+				IsRequired = false,
+			});
 			command.Add(new Argument<string>("name", "The name of the DLC")
 			{
 				Arity = ArgumentArity.ExactlyOne
@@ -43,7 +52,6 @@ namespace NDLC.CLI.DLC
 			{
 				IsRequired = false
 			});
-			command.Add(new Option<bool>("--json", "Output objects in json instead of Base64"));
 			command.Handler = new ShowDLCCommand();
 			return command;
 		}
@@ -123,7 +131,7 @@ namespace NDLC.CLI.DLC
 				try
 				{
 					var builder = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
-					context.Console.Out.Write(builder.BuildRefund().ToHex());
+					context.WriteTransaction(builder.BuildRefund(), Network);
 				}
 				catch
 				{
@@ -165,7 +173,7 @@ namespace NDLC.CLI.DLC
 					return $"You need to pass the accept message to the other party, and the other party needs to reply with a signed message.{Environment.NewLine}"
 						 + $"Then you need to use `dlc checksigs \"<signed message>\"`.{Environment.NewLine}"
 						 + $"You can get the accept message of this dlc with `dlc show --accept {name}`";
-				case DLCNextStep.OffererSignFunding:
+				case DLCNextStep.OffererNeedStart:
 					return $"You need to partially sign a PSBT funding the DLC. You can can get the PSBT with `dlc show --funding {name}`.{Environment.NewLine}" +
 						   $"Then you need to use `dlc countersign {name} \"<PSBT>\"` and send the signed message to the other party.";
 				case DLCNextStep.OffererStarted:

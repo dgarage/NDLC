@@ -64,7 +64,7 @@ namespace NDLC.CLI.DLC
 				dlc.BuilderState = builder.ExportStateJObject();
 				dlc.Accept = JObject.FromObject(accept, JsonSerializer.Create(Repository.JsonSettings));
 				await Repository.SaveDLC(dlc);
-				context.Console.Out.Write(builder.GetFundingPSBT().ToBase64());
+				context.WritePSBT(builder.GetFundingPSBT());
 			}
 			catch (Exception ex)
 			{
@@ -84,7 +84,7 @@ namespace NDLC.CLI.DLC
 				dlc.Sign = JObject.FromObject(sign, JsonSerializer.Create(Repository.JsonSettings));
 				dlc.BuilderState = builder.ExportStateJObject();
 				await Repository.SaveDLC(dlc);
-				context.Console.Out.Write(builder.GetFundingPSBT().ToBase64());
+				context.WritePSBT(builder.GetFundingPSBT());
 			}
 			catch (Exception ex)
 			{

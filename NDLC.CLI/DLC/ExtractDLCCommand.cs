@@ -14,7 +14,8 @@ namespace NDLC.CLI.DLC
 	{
 		public static Command CreateCommand()
 		{
-			Command command = new Command("extract", "Extract attestation from a CET");
+			Command command = new Command("extract", "Extract attestation from a CET." +
+				" If successfull, this command returns the attestation of outcome of the event's DLC.");
 			command.AddArgument(new Argument<string>("name", "The name of the DLC"));
 			command.AddArgument(new Argument<string>("transaction", "A fully signed CET"));
 			command.Handler = new ExtractDLCCommand();

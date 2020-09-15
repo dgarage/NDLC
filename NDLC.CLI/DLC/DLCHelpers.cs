@@ -20,6 +20,31 @@ namespace NDLC.CLI.DLC
 		{
 			return JObject.Parse(builder.ExportState());
 		}
+
+		public static void WriteTransaction(this InvocationContext ctx, Transaction tx, Network network)
+		{
+			if (ctx.ParseResult.ValueForOption<bool>("psbt"))
+			{
+				var psbt = PSBT.FromTransaction(tx, network);
+				for (int i = 0; i < tx.Inputs.Count; i++)
+				{
+					psbt.Inputs[i].FinalScriptSig = tx.Inputs[i].ScriptSig;
+					psbt.Inputs[i].FinalScriptWitness = tx.Inputs[i].WitScript;
+				}
+				ctx.WritePSBT(psbt);
+			}
+			else
+			{
+				if (ctx.ParseResult.ValueForOption<bool>("json"))
+				{
+					ctx.Console.Out.Write(tx.ToString());
+				}
+				else
+				{
+					ctx.Console.Out.Write(tx.ToHex());
+				}
+			}
+		}
 		public static void WriteObject(this InvocationContext ctx, object obj, JsonSerializerSettings settings)
 		{
 			var json = ctx.ParseResult.ValueForOption<bool>("json");

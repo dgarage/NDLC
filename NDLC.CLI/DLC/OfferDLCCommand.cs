@@ -19,7 +19,7 @@ namespace NDLC.CLI.DLC
 			var command = new Command("offer", "Make the offer")
 			{
 				new Argument<string>("name", "The name of the DLC"),
-				new Argument<string>("fundpsbt", "A PSBT spending your collateral of the DLC to yourself. The output receiving your collateral will be the address receivng the reward when the DLC is settled."),
+				new Argument<string>("setuppsbt", "A PSBT spending your collateral of the DLC to yourself. The output receiving your collateral will be the address receivng the reward when the DLC is settled."),
 				new Option<bool>("--json", "Output the offer in json instead of Base64")
 			};
 			command.Handler = new OfferDLCCommand();
@@ -40,11 +40,7 @@ namespace NDLC.CLI.DLC
 			if (!builder.State.IsInitiator)
 				throw new CommandException("name", "This command should be used by the offerer of the DLC");
 
-			var psbtStr = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("fundpsbt")?.Trim();
-			if (psbtStr is null)
-				throw new CommandOptionRequiredException("fundpsbt");
-			if (!PSBT.TryParse(psbtStr, Network, out var psbt) || psbt is null)
-				throw new CommandException("fundpsbt", "Invalid PSBT");
+			var psbt = context.ParsePSBT("setuppsbt", Network);
 			var key = await Repository.CreatePrivateKey();
 			try
 			{

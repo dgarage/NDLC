@@ -52,8 +52,9 @@ namespace NDLC.CLI
 				OffererFund,
 				OffererCheckSigs,
 				AcceptorCheckSigs,
-				OffererSignFunding,
+				OffererNeedStart,
 				OffererStarted,
+				AcceptorNeedStart,
 				AcceptorStarted
 			}
 			public DLCNextStep GetNextStep(Network network)
@@ -74,7 +75,7 @@ namespace NDLC.CLI
 					}
 					else if (Sign is null)
 					{
-						nextStep = DLCNextStep.OffererSignFunding;
+						nextStep = DLCNextStep.OffererNeedStart;
 					}
 					else
 					{
@@ -83,9 +84,14 @@ namespace NDLC.CLI
 				}
 				else
 				{
-					if (Sign is null)
+					if (Sign is null || builder.State.Funding is null)
 					{
 						nextStep = DLCNextStep.AcceptorCheckSigs;
+					}
+					else if (!builder.State.Funding.PSBT.CanExtractTransaction())
+					{
+						
+						nextStep = DLCNextStep.AcceptorNeedStart;
 					}
 					else
 					{

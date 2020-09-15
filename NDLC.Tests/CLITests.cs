@@ -153,7 +153,7 @@ namespace NDLC.Tests
 			await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", alice,
-					"dlc", "countersign", "BetWithBob", funding.ToBase64()
+					"dlc", "start", "BetWithBob", funding.ToBase64()
 				});
 			var signMessage = Tester.GetLastOutput();
 			await Tester.AssertInvokeSuccess(new string[]
@@ -176,11 +176,17 @@ namespace NDLC.Tests
 					"--datadir", bob,
 					"dlc", "checksigs", signMessage
 				});
-			var fundingPSBT = Tester.GetLastOutput();
-			var psbt = PSBT.Parse(fundingPSBT, Network.Main);
-			psbt.SignWithKeys(bobSigner);
-			psbt.Finalize();
-			psbt.ExtractTransaction();
+			funding = PSBT.Parse(bobFunding, Network.Main);
+			funding.SignWithKeys(bobSigner);
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+				"--datadir", bob,
+				"dlc", "start", "--psbt", "BetWithAlice", funding.ToBase64()
+			});
+			// Should be fully signed
+			var fullySigned = PSBT.Parse(Tester.GetLastOutput(), Network.Main);
+			fullySigned.Finalize();
+			fullySigned.ExtractTransaction();
 			// Ready!
 			await Tester.AssertInvokeSuccess(new string[]
 				{

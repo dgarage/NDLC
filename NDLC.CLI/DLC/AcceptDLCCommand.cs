@@ -25,7 +25,7 @@ namespace NDLC.CLI.DLC
 			{
 				Arity = ArgumentArity.ExactlyOne
 			});
-			command.Add(new Argument<string>("psbt")
+			command.Add(new Argument<string>("setuppsbt")
 			{
 				Arity = ArgumentArity.ExactlyOne
 			});
@@ -39,7 +39,7 @@ namespace NDLC.CLI.DLC
 			if (name is null)
 				throw new CommandOptionRequiredException("name");
 
-			var psbt = context.ParsePSBT(Network);
+			var psbt = context.ParsePSBT("setuppsbt", Network);
 			if (await Repository.GetDLC(name) != null)
 				throw new CommandException("name", "This DLC already exists");
 			if (offer.OracleInfo is null)

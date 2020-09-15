@@ -16,7 +16,16 @@ namespace NDLC.CLI.DLC
 	{
 		public static Command CreateCommand()
 		{
-			Command command = new Command("execute", "Execute a DLC with the Oracle's attestation");
+			Command command = new Command("execute", "Execute a DLC with the Oracle's attestation." +
+				" If successful, this command returns a fully signed Contract Execution Transaction, that you can broadcast.");
+			command.AddOption(new Option<bool>("--json", "Output in json")
+			{
+				IsRequired = false,
+			});
+			command.AddOption(new Option<bool>("--psbt", "Output the CET as a PSBT")
+			{
+				IsRequired = false,
+			});
 			command.Add(new Argument<string>("name", "The name of the DLC"));
 			command.Add(new Argument<string>("attestation", "The oracle's attestation")
 			{
@@ -73,7 +82,7 @@ namespace NDLC.CLI.DLC
 				{
 					await Repository.AddAttestation(dlc.OracleInfo, oracleKey);
 				}
-				context.Console.Out.Write(execution.CET.ToHex());
+				context.WriteTransaction(execution.CET, Network);
 			}
 			catch (Exception ex)
 			{

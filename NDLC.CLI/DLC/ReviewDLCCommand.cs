@@ -15,7 +15,7 @@ namespace NDLC.CLI.DLC
 	{
 		public static Command CreateCommand()
 		{
-			Command command = new Command("review", "Review an offer before accepting it");
+			Command command = new Command("review", "Review an offer before accepting it. This command, if successful, show a human readable summary of the DLC.");
 			command.Add(new Argument<string>("offer")
 			{
 				Arity = ArgumentArity.ExactlyOne
