@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NDLC.Messages;
 using NDLC.Secp256k1;
 using System;
 using System.Collections.Generic;
@@ -35,17 +36,16 @@ namespace NDLC.CLI.Events
 			if (await Repository.GetEvent(evt) is Event)
 				throw new CommandException("eventfullname", "This event already exists");
 			var outcomes = context.GetOutcomes();
-			var oracle = await Repository.GetOracle(evt.OracleName);
-			if (oracle is null)
-				throw new CommandException("eventfullname", "This oracle does not exists");
+			var oracle = await this.GetOracle("eventfullname", evt.OracleName);
 			if (oracle.RootedKeyPath is null)
 				throw new CommandException("eventfullname", "You do not own the keys of this oracle");
 
-
 			var k = await Repository.CreatePrivateKey();
 			var nonce = k.PrivateKey.ToECPrivKey().CreateSchnorrNonce();
-			if (!await Repository.AddEvent(evt, nonce, outcomes, k.KeyPath))
+			var evtId = new OracleInfo(oracle.PubKey!, nonce);
+			if (!await Repository.AddEvent(evtId, outcomes, k.KeyPath))
 				throw new CommandException("eventfullname", "This event already exists");
+			await NameRepository.AsEventRepository().SetMapping(evtId, evt.Name);
 			context.Console.Out.Write(nonce.ToString());
 		}
 	}

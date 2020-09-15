@@ -40,10 +40,10 @@ namespace NDLC.CLI.Events
 				throw new CommandException("attestation", "The attestation must be 32 bytes");
 			var attestationKey = new Key(bytes);
 			EventFullName evt = context.GetEventName();
-			var oracle = await Repository.GetOracle(evt.OracleName);
-			if (oracle is null)
-				throw new CommandException("eventfullname", "This oracle does not exists");
-			var outcome = await Repository.AddAttestation(evt, attestationKey);
+			var evtId = await NameRepository.AsEventRepository().GetEventId(evt);
+			if (evtId is null)
+				throw new CommandException("eventfullname", "This event's full name does not exist");
+			var outcome = await Repository.AddAttestation(evtId, attestationKey);
 			if (outcome?.OutcomeString is null)
 				throw new CommandException("attestation", "This attestation does not attest known outcomes");
 			context.Console.Out.Write(outcome.OutcomeString);

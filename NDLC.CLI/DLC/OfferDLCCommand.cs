@@ -45,7 +45,7 @@ namespace NDLC.CLI.DLC
 			if (oracle?.PubKey is null)
 				throw new CommandException("eventfullname", "The specified oracle does not exists");
 			var evt = await Repository.GetEvent(evtName);
-			if (evt?.Nonce is null)
+			if (evt?.EventId is null)
 				throw new CommandException("eventfullname", "The specified event does not exists");
 			var payoffsStr = context.ParseResult.CommandResult.GetArgumentValueOrDefault<List<string>>("payoff");
 			if (payoffsStr is null || payoffsStr.Count == 0)
@@ -53,12 +53,12 @@ namespace NDLC.CLI.DLC
 			var payoffs = CreatePayoffs(payoffsStr);
 			FixCasing(evt, payoffs);
 			var builder = new DLCTransactionBuilder(true, null, null, null, Network);
-			builder.Offer(oracle.PubKey, evt.Nonce, payoffs, new Timeouts()
+			builder.Offer(oracle.PubKey, evt.EventId.RValue, payoffs, new Timeouts()
 			{
 				ContractMaturity = 0,
 				ContractTimeout = Constants.NeverLockTime
 			});
-			await Repository.NewDLC(name, new OracleInfo(oracle.PubKey, evt.Nonce), builder);
+			await Repository.NewDLC(name, evt.EventId, builder);
 			context.Console.Out.Write($"Offer created, you now need to setup the DLC. For more information, run `dlc show \"{name}\"`.");
 		}
 

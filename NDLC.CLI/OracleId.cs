@@ -1,5 +1,7 @@
 ﻿using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
+using NDLC.Messages;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -14,6 +16,12 @@ namespace NDLC.CLI
 		{
 			this.PubKey = pubkey;
 		}
+
+		public static implicit operator OracleId(ECXOnlyPubKey pubkey)
+		{
+			return new OracleId(pubkey);
+		}
+
 		public static bool TryParse(string str, [MaybeNullWhenAttribute(false)] out OracleId id)
 		{
 			id = null;

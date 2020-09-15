@@ -4,6 +4,7 @@ using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -13,11 +14,11 @@ namespace NDLC.Secp256k1
 	{
 		public ECXOnlyPubKey PubKey { get; }
 
-		public static bool TryParse(string str, out SchnorrNonce? schnorrNonce)
+		public static bool TryParse(string str, [MaybeNullWhen(false)] out SchnorrNonce schnorrNonce)
 		{
 			return TryParse(str, Context.Instance, out schnorrNonce);
 		}
-		public static bool TryParse(string str, Context context, out SchnorrNonce? schnorrNonce)
+		public static bool TryParse(string str, Context context, [MaybeNullWhen(false)] out SchnorrNonce schnorrNonce)
 		{
 			schnorrNonce = null;
 			var bytes = Encoders.Hex.DecodeData(str);

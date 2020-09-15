@@ -69,12 +69,12 @@ namespace NDLC.CLI.DLC
 			var oracle = await Repository.GetOracle(dlc.OracleInfo.PubKey);
 			string? oracleName = null;
 
-			string? eventName = null;
+			EventFullName eventName = new EventFullName("???", "???");
 			if (oracle != null)
 			{
 				oracleName = await NameRepository.GetName(Scopes.Oracles, new OracleId(dlc.OracleInfo.PubKey).ToString());
-				var ev = await Repository.GetEvent(dlc.OracleInfo.PubKey, dlc.OracleInfo.RValue);
-				eventName = ev?.Name;
+				var ev = await Repository.GetEvent(dlc.OracleInfo);
+				eventName = await NameRepository.AsEventRepository().ResolveName(dlc.OracleInfo) ?? eventName;
 			}
 
 			var shown = ParseShownItem(context);
@@ -84,14 +84,7 @@ namespace NDLC.CLI.DLC
 				context.Console.Out.WriteLine($"Local Id: {dlc.Id}");
 				var builder = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
 				var role = builder.State.IsInitiator ? "Offerer" : "Acceptor";
-				if (oracleName is string && eventName is string)
-				{
-					context.Console.Out.WriteLine($"Event: {new EventFullName(oracleName, eventName)}");
-				}
-				else
-				{
-					context.Console.Out.WriteLine($"Event: ?");
-				}
+				context.Console.Out.WriteLine($"Event: {eventName}");
 				context.Console.Out.WriteLine($"Role: {role}");
 				var nextStep = dlc.GetNextStep(Network);
 				context.Console.Out.WriteLine($"Next step: {nextStep}");

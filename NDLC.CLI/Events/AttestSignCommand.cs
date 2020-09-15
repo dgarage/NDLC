@@ -42,13 +42,16 @@ namespace NDLC.CLI.Events
 			if (outcome is null)
 				throw new CommandOptionRequiredException("outcome");
 			EventFullName evt = context.GetEventName();
+			var evtId = await NameRepository.AsEventRepository().GetEventId(evt);
+			if (evtId is null)
+				throw new CommandException("eventfullname", "This event's full name does not exist");
 			var oracle = await Repository.GetOracle(evt.OracleName);
 			if (oracle is null)
 				throw new CommandException("eventfullname", "This oracle does not exists");
 
 			var discreteOutcome = new DiscreteOutcome(outcome);
 			var evtObj = await Repository.GetEvent(evt);
-			if (evtObj?.Nonce is null)
+			if (evtObj?.EventId is null)
 				throw new CommandException("eventfullname", "This event does not exists");
 			if (evtObj?.NonceKeyPath is null)
 				throw new CommandException("eventfullname", "You did not generated this event");
@@ -65,7 +68,7 @@ namespace NDLC.CLI.Events
 			var kValue = await Repository.GetKey(evtObj.NonceKeyPath);
 			key.ToECPrivKey().TrySignBIP140(discreteOutcome.Hash, new PrecomputedNonceFunctionHardened(kValue.ToECPrivKey().ToBytes()), out var sig);
 			var oracleAttestation = new Key(sig!.s.ToBytes());
-			if (await Repository.AddAttestation(evt, oracleAttestation) != new DiscreteOutcome(outcome))
+			if (await Repository.AddAttestation(evtId, oracleAttestation) != new DiscreteOutcome(outcome))
 				throw new InvalidOperationException("Error while validating reveal");
 			context.Console.Out.Write(oracleAttestation.ToHex());
 		}

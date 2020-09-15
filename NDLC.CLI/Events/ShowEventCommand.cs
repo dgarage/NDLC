@@ -23,14 +23,14 @@ namespace NDLC.CLI.Events
 		{
 			var evtName = context.GetEventName();
 			var evt = await Repository.GetEvent(evtName);
-			if (evt is null)
+			if (evt?.EventId is null)
 				throw new CommandException("name", "Event not found");
 			var oracle = await Repository.GetOracle(evtName.OracleName);
 			if (oracle is null)
 				throw new CommandException("name", "Event not found");
 			context.Console.Out.WriteLine($"Full Name: {evtName}");
 			context.Console.Out.WriteLine($"Name: {evtName.Name}");
-			context.Console.Out.WriteLine($"Nonce: {evt.Nonce}");
+			context.Console.Out.WriteLine($"Nonce: {evt.EventId.RValue}");
 			context.Console.Out.WriteLine($"Can reveal: {oracle.RootedKeyPath is RootedKeyPath}");
 			int i = 0;
 			foreach (var outcome in evt.Outcomes)

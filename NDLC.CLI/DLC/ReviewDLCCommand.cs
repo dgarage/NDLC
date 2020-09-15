@@ -38,7 +38,7 @@ namespace NDLC.CLI.DLC
 				throw new CommandException("offer", "Unknown oracle");
 
 			var evt = await Repository.GetEvent(offer.OracleInfo.PubKey, offer.OracleInfo.RValue);
-			if (evt is null)
+			if (evt?.EventId is null)
 				throw new CommandException("offer", "Unknown event");
 
 			var maturity = new LockTimeEstimation(offer.Timeouts.ContractMaturity, Network);
@@ -55,7 +55,8 @@ namespace NDLC.CLI.DLC
 			try
 			{
 				var review = new OfferReview(offer);
-				context.Console.Out.WriteLine($"Event: {new EventFullName(oracleName, evt.Name)}");
+				var evtName = (await NameRepository.AsEventRepository().ResolveName(evt.EventId)) ?? new EventFullName("???", "???");
+				context.Console.Out.WriteLine($"Event: {evtName}");
 				context.Console.Out.WriteLine($"The payoff function if you accept:");
 				PrintPayoffs(context, review.AcceptorPayoffs);
 				context.Console.Out.WriteLine($"Your expected collateral: {review.AcceptorCollateral.ToString(false, false)}");

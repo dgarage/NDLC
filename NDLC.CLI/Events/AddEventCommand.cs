@@ -1,4 +1,5 @@
-﻿using NDLC.Messages.JsonConverters;
+﻿using NDLC.Messages;
+using NDLC.Messages.JsonConverters;
 using NDLC.Secp256k1;
 using System;
 using System.Collections.Generic;
@@ -39,11 +40,13 @@ namespace NDLC.CLI.Events
 				throw new CommandOptionRequiredException("nonce");
 			if (!SchnorrNonce.TryParse(rNonce, out var nonce) || nonce is null)
 				throw new CommandException("nonce", "Invalid nonce");
+
+			var oracle = await GetOracle("eventfullname", evt.OracleName);
 			var outcomes = context.GetOutcomes();
-			if (!await Repository.OracleExists(evt.OracleName))
-				throw new CommandException("eventfullname", "The specified oracle do not exists");
-			if (!await Repository.AddEvent(evt, nonce, outcomes.ToArray()))
+			var evtId = new OracleInfo(oracle.PubKey!, nonce);
+			if (!await Repository.AddEvent(evtId, outcomes.ToArray()))
 				throw new CommandException("eventfullname", "The specified event already exists");
+			await NameRepository.AsEventRepository().SetMapping(evtId, evt.Name);
 		}
 	}
 }

@@ -118,6 +118,11 @@ namespace NDLC.CLI
 		{
 			return new OracleNameRepository(this);
 		}
+
+		public EventNameRepository AsEventRepository()
+		{
+			return new EventNameRepository(this);
+		}
 	}
 
 	public class Scopes

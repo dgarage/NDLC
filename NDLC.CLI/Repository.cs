@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using NBitcoin.JsonConverters;
 using NBitcoin.Secp256k1;
@@ -153,9 +154,8 @@ namespace NDLC.CLI
 
 		public class Event
 		{
-			public string Name { get; set; } = string.Empty;
-			[JsonConverter(typeof(SchnorrNonceJsonConverter))]
-			public SchnorrNonce? Nonce { get; set; }
+			[JsonConverter(typeof(OracleInfoJsonConverter))]
+			public OracleInfo? EventId { get; set; }
 			[JsonConverter(typeof(KeyPathJsonConverter))]
 			public RootedKeyPath? NonceKeyPath { get; set; }
 			public string[] Outcomes { get; set; } = Array.Empty<string>();
@@ -168,13 +168,14 @@ namespace NDLC.CLI
 			var oracle = await GetOracle(evtName.OracleName);
 			if (oracle is null)
 				return null;
-			var evts = await GetEvents(oracle);
-			return evts.FirstOrDefault(e => e.Name.Equals(evtName.Name, StringComparison.OrdinalIgnoreCase));
+			var id = await NameRepository.AsEventRepository().GetEventId(evtName);
+			if (id is null)
+				return null;
+			return await GetEvent(id);
 		}
-		public async Task<Event?> GetEvent(ECXOnlyPubKey oraclePubKey, SchnorrNonce nonce)
+		public Task<Event?> GetEvent(ECXOnlyPubKey oraclePubKey, SchnorrNonce nonce)
 		{
-			var events = await GetEvents(oraclePubKey);
-			return events?.FirstOrDefault(e => e.Nonce == nonce);
+			return GetEvent(new OracleInfo(oraclePubKey, nonce));
 		}
 
 		class Keyset
@@ -314,26 +315,14 @@ namespace NDLC.CLI
 			var evt = await GetEvent(oracleInfo.PubKey, oracleInfo.RValue);
 			if (evt is null)
 				return null;
-			var oracleName = await NameRepository.GetName(Scopes.Oracles, new OracleId(oracleInfo.PubKey).ToString());
-			return await AddAttestation(new EventFullName(oracleName, evt.Name), oracleAttestation);
-		}
-		public async Task<DiscreteOutcome?> AddAttestation(EventFullName name, Key oracleAttestation)
-		{
-			var oracle = await GetOracle(name.OracleName);
-			if (oracle?.PubKey is null)
-				return null;
-			var events = await GetEvents(oracle);
-			var evt = events.FirstOrDefault(e => e.Name.Equals(name.Name, StringComparison.OrdinalIgnoreCase));
-			if (evt?.Nonce is null)
-				return null;
 			var attestation = oracleAttestation.ToECPrivKey();
-			var sig = evt.Nonce.CreateSchnorrSignature(attestation);
+			var sig = oracleInfo.RValue.CreateSchnorrSignature(attestation);
 			if (sig is null)
 				return null;
 			foreach (var outcome in evt.Outcomes)
 			{
 				var discreteOutcome = new DiscreteOutcome(outcome);
-				if (!oracle.PubKey.SigVerifyBIP340(sig, discreteOutcome.Hash))
+				if (!oracleInfo.PubKey.SigVerifyBIP340(sig, discreteOutcome.Hash))
 					continue;
 				evt.Attestations ??= new Dictionary<string, Key>();
 				if (!evt.Attestations.TryAdd(outcome, oracleAttestation))
@@ -343,10 +332,10 @@ namespace NDLC.CLI
 				if (evt.Attestations.Count > 1 && oracle.RootedKeyPath is null)
 				{
 					var sigs = evt.Attestations.Select(kv => (Outcome: new DiscreteOutcome(kv.Key),
-												   Signature: evt.Nonce.CreateSchnorrSignature(kv.Value.ToECPrivKey()) ?? throw new InvalidOperationException("Invalid signature in attestations")))
+												   Signature: oracleInfo.RValue.CreateSchnorrSignature(kv.Value.ToECPrivKey()) ?? throw new InvalidOperationException("Invalid signature in attestations")))
 									.Take(2)
 									.ToArray();
-					if (!oracle.PubKey.TryExtractPrivateKey(
+					if (!oracleInfo.PubKey.TryExtractPrivateKey(
 													sigs[0].Outcome.Hash, sigs[0].Signature,
 													sigs[1].Outcome.Hash, sigs[1].Signature, out var extracted) || extracted is null)
 						throw new InvalidOperationException("Could not recover the private key of the oracle, this should never happen");
@@ -356,79 +345,57 @@ namespace NDLC.CLI
 					if (!KeySetExists(k.PubKey.GetHDFingerPrint()))
 						await SaveKeyset(k.PubKey.GetHDFingerPrint(), new Keyset() { SingleKey = k });
 				}
-				await SaveEvents(oracle, events);
+				await SaveEvent(evt);
 				return discreteOutcome;
 			}
 			return null;
 		}
 
-		public async Task<bool> AddEvent(EventFullName name, SchnorrNonce nonce, string[] outcomes, RootedKeyPath? nonceKeyPath = null)
+		public async Task<bool> AddEvent(OracleInfo eventId, string[] outcomes, RootedKeyPath? nonceKeyPath = null)
 		{
-			var oracle = await GetOracle(name.OracleName);
-			if (oracle is null)
-				throw new InvalidOperationException("The oracle does not exists");
-			var events = await GetEvents(oracle);
-			var evt = GetEvent(name, events);
+			var evt = await GetEvent(eventId);
 			if (evt is Event)
 				return false;
 			evt = new Event()
 			{
-				Name = name.Name,
-				Nonce = nonce,
+				EventId = eventId,
 				Outcomes = outcomes,
 				NonceKeyPath = nonceKeyPath
 			};
-			events.Add(evt);
-			await SaveEvents(oracle, events);
+			await SaveEvent(evt);
 			return true;
 		}
-		public async Task<List<Event>> ListEvents(string oracleName)
+
+		public async Task<Event?> GetEvent(OracleInfo eventFullId)
 		{
-			var oracle = await GetOracle(oracleName);
-			if (oracle is null)
-				return new List<Event>();
-			return await GetEvents(oracle);
+			var dir = Path.Combine(RepositoryDirectory, "Events");
+			if (!Directory.Exists(dir))
+				return null;
+			
+			var eventFilePath = GetEventFilePath(eventFullId);
+			if (!File.Exists(eventFilePath))
+				return null;
+			return JsonConvert.DeserializeObject<Event>(await File.ReadAllTextAsync(eventFilePath), JsonSettings);
 		}
 
-		private async Task SaveEvents(Oracle oracle, List<Event> events)
+		private async Task SaveEvent(Event evt)
 		{
-			if (oracle.PubKey is null)
-				throw new InvalidOperationException("This oracle's pubkey is not set");
-			var dir = Path.Combine(RepositoryDirectory, "events");
+			if (evt.EventId is null)
+				throw new ArgumentException("EventId of the event to be saved should be set");
+			var dir = Path.Combine(RepositoryDirectory, "Events");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
-			// base58, help keeping filename small to make windows happy
-			var eventFilePath = GetEventFilePath(oracle.PubKey, dir);
-			await File.WriteAllTextAsync(eventFilePath, JsonConvert.SerializeObject(events, JsonSettings));
+			var eventFilePath = GetEventFilePath(evt.EventId);
+			await File.WriteAllTextAsync(eventFilePath, JsonConvert.SerializeObject(evt, JsonSettings));
 		}
 
-		private static Event GetEvent(EventFullName name, List<Event> events)
+		private string GetEventFilePath(OracleInfo eventFullId)
 		{
-			return events.FirstOrDefault(ev => ev.Name?.Equals(name.Name, StringComparison.OrdinalIgnoreCase) is true);
-		}
-
-		private Task<List<Event>> GetEvents(Oracle oracle)
-		{
-			if (oracle.PubKey is null)
-				throw new InvalidOperationException("This oracle's pubkey is not set");
-			return GetEvents(oracle.PubKey);
-		}
-		private async Task<List<Event>> GetEvents(ECXOnlyPubKey oracle)
-		{
-			var dir = Path.Combine(RepositoryDirectory, "events");
-			if (!Directory.Exists(dir))
-				return new List<Event>();
-			// base58, help keeping filename small to make windows happy
-			var eventFilePath = GetEventFilePath(oracle, dir);
-			if (!File.Exists(eventFilePath))
-				return new List<Event>();
-			return JsonConvert.DeserializeObject<List<Event>>(await File.ReadAllTextAsync(eventFilePath), JsonSettings)
-					?? new List<Event>();
-		}
-
-		private static string GetEventFilePath(ECXOnlyPubKey oraclePubKey, string dir)
-		{
-			return Path.Combine(dir, Helpers.ToBase58(oraclePubKey)) + ".json";
+			var output = new byte[64];
+			eventFullId.WriteToBytes(output);
+			var hash = Hashes.SHA256(output);
+			var dir = Path.Combine(RepositoryDirectory, "Events");
+			return Path.Combine(dir, Encoders.Base58.EncodeData(hash)) + ".json";
 		}
 
 		public class Settings
