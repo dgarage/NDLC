@@ -11,6 +11,8 @@ using System.CommandLine.Parsing;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
+using static NDLC.CLI.Repository;
+using static NDLC.CLI.Repository.DLCState;
 
 namespace NDLC.CLI.DLC
 {
@@ -19,6 +21,20 @@ namespace NDLC.CLI.DLC
 		public static JObject ExportStateJObject(this DLCTransactionBuilder builder)
 		{
 			return JObject.Parse(builder.ExportState());
+		}
+
+		public static void AssertState(this InvocationContext ctx, string optionName, DLCState currentState, bool expectedOfferer, DLCNextStep expectedState, Network network)
+		{
+			if (currentState.BuilderState is null)
+				throw new CommandException(optionName, "The DLC is in an invalid state for this action");
+			var isOfferer = new DLCTransactionBuilder(currentState.BuilderState.ToString(), network).State.IsInitiator;
+			if (isOfferer && !expectedOfferer)
+					throw new CommandException(optionName, "This action must be run by the acceptor, but you are the offerer of the DLC");
+			if (!isOfferer && expectedOfferer)
+				throw new CommandException(optionName, "This action must be run by the offerer, but you are the acceptor of the DLC");
+			var actualStep = currentState.GetNextStep(network);
+			if (actualStep != expectedState)
+				throw new CommandException(optionName, $"The DLC is in an invalid state for this action. The expected state is '{expectedState}' but your state is '{actualStep}'");
 		}
 
 		public static void WriteTransaction(this InvocationContext ctx, Transaction tx, Network network)

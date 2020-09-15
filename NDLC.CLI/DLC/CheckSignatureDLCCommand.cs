@@ -14,6 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static NDLC.CLI.Repository.DLCState;
 
 namespace NDLC.CLI.DLC
 {
@@ -54,10 +55,8 @@ namespace NDLC.CLI.DLC
 		{
 			var accept = Parse<Accept>(signedMessageBase64);
 			var dlc = await GetDLC(accept.OffererContractId);
-			if (dlc.GetNextStep(Network) != Repository.DLCState.DLCNextStep.OffererCheckSigs
-				|| dlc.BuilderState is null)
-				throw new CommandException("signed", "The DLC is not in a state requiring to check signatures of the acceptor");
-			var builder = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
+			context.AssertState("signed", dlc, true, DLCNextStep.CheckSigs, Network);
+			var builder = new DLCTransactionBuilder(dlc.BuilderState!.ToString(), Network);
 			try
 			{
 				builder.Sign1(accept);
@@ -75,9 +74,8 @@ namespace NDLC.CLI.DLC
 		{
 			var sign = Parse<Sign>(signedMessageBase64);
 			var dlc = await GetDLC(sign.AcceptorContractId);
-			if (dlc.GetNextStep(Network) != Repository.DLCState.DLCNextStep.AcceptorCheckSigs || dlc.BuilderState is null)
-				throw new CommandException("signed", "The DLC is not in a state requiring to check signatures of the offerer");
-			var builder = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
+			context.AssertState("signed", dlc, false, DLCNextStep.CheckSigs, Network);
+			var builder = new DLCTransactionBuilder(dlc.BuilderState!.ToString(), Network);
 			try
 			{
 				builder.Finalize1(sign);

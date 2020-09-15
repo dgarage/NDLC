@@ -9,6 +9,7 @@ using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Text;
 using System.Threading.Tasks;
+using static NDLC.CLI.Repository.DLCState;
 
 namespace NDLC.CLI.DLC
 {
@@ -36,6 +37,9 @@ namespace NDLC.CLI.DLC
 				throw new CommandException("name", "This DLC does not exist");
 			if (dlc.FundKeyPath is RootedKeyPath || dlc.Offer is JObject)
 				throw new CommandException("name", "This DLC already issued an offer");
+
+			context.AssertState("name", dlc, true, DLCNextStep.Setup, Network);
+
 			var builder = dlc.GetBuilder(Network);
 			if (!builder.State.IsInitiator)
 				throw new CommandException("name", "This command should be used by the offerer of the DLC");

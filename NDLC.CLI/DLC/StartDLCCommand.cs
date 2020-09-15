@@ -12,6 +12,7 @@ using System.CommandLine.Parsing;
 using System.ComponentModel.Design;
 using System.Text;
 using System.Threading.Tasks;
+using static NDLC.CLI.Repository.DLCState;
 
 namespace NDLC.CLI.DLC
 {
@@ -49,8 +50,7 @@ namespace NDLC.CLI.DLC
 			
 			if (!builder.State.IsInitiator)
 			{
-				if (dlc.GetNextStep(Network) != Repository.DLCState.DLCNextStep.AcceptorNeedStart)
-					throw new CommandException("name", "The DLC is not in the required state to start");
+				context.AssertState("name", dlc, false, DLCNextStep.Fund, Network);
 				var fullySigned = builder.Finalize(psbt);
 				dlc.BuilderState = builder.ExportStateJObject();
 				await Repository.SaveDLC(dlc);
@@ -58,10 +58,8 @@ namespace NDLC.CLI.DLC
 			}
 			else
 			{
-				if (dlc.GetNextStep(Network) != Repository.DLCState.DLCNextStep.OffererNeedStart ||
-				dlc.FundKeyPath is null)
-					throw new CommandException("name", "The DLC is not in the required state to start");
-				var key = await Repository.GetKey(dlc.FundKeyPath);
+				context.AssertState("name", dlc, true, DLCNextStep.Fund, Network);
+				var key = await Repository.GetKey(dlc.FundKeyPath!);
 				try
 				{
 					var sign = builder.Sign2(key, psbt);

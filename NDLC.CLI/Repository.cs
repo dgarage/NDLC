@@ -48,54 +48,50 @@ namespace NDLC.CLI
 
 			public enum DLCNextStep
 			{
-				Unknown,
-				OffererFund,
-				OffererCheckSigs,
-				AcceptorCheckSigs,
-				OffererNeedStart,
-				OffererStarted,
-				AcceptorNeedStart,
-				AcceptorStarted
+				Fund,
+				CheckSigs,
+				Setup,
+				Done,
 			}
 			public DLCNextStep GetNextStep(Network network)
 			{
 				if (BuilderState is null)
 					throw new InvalidOperationException("BuilderState not set");
 				var builder = new DLCTransactionBuilder(BuilderState.ToString(), network);
-				DLCNextStep nextStep = DLCNextStep.Unknown;
+				DLCNextStep nextStep;
 				if (builder.State.IsInitiator)
 				{
 					if (FundKeyPath is null)
 					{
-						nextStep = DLCNextStep.OffererFund;
+						nextStep = DLCNextStep.Setup;
 					}
 					else if (Accept is null)
 					{
-						nextStep = DLCNextStep.OffererCheckSigs;
+						nextStep = DLCNextStep.CheckSigs;
 					}
 					else if (Sign is null)
 					{
-						nextStep = DLCNextStep.OffererNeedStart;
+						nextStep = DLCNextStep.Fund;
 					}
 					else
 					{
-						nextStep = DLCNextStep.OffererStarted;
+						nextStep = DLCNextStep.Done;
 					}
 				}
 				else
 				{
 					if (Sign is null || builder.State.Funding is null)
 					{
-						nextStep = DLCNextStep.AcceptorCheckSigs;
+						nextStep = DLCNextStep.CheckSigs;
 					}
 					else if (!builder.State.Funding.PSBT.CanExtractTransaction())
 					{
 						
-						nextStep = DLCNextStep.AcceptorNeedStart;
+						nextStep = DLCNextStep.Fund;
 					}
 					else
 					{
-						nextStep = DLCNextStep.AcceptorStarted;
+						nextStep = DLCNextStep.Done;
 					}
 				}
 				return nextStep;
