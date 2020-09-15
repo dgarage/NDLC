@@ -79,7 +79,10 @@ For example:
 
 ## How to create an oracle
 
-![OliviaWantsToBecomeOracle](OliviaWantsToBecomeOracle.svg)
+<p align="center">
+  <img src="OliviaWantsToBecomeOracle.svg" />
+</p>
+
 So imagine that Olivia wants to run an oracle that other people might decide to use for their DLC.
 
 ```bash
@@ -113,7 +116,9 @@ The oracle name is arbitrary and local to bob and alice. They don't have to shar
 
 ## Olivia wants to attest an event
 
-![OliviaWantsAttestAnEvent](OliviaWantsAttestAnEvent.svg)
+<p align="center">
+  <img src="OliviaWantsAttestAnEvent.svg" />
+</p>
 
 Olivia decides she will attest the winner of the US election. So she creates an `event` that she will share with Alice and Bob.
 
@@ -140,7 +145,9 @@ The event full name is in the format `oraclename/eventname`, event name is arbit
 
 ## Alice wants to create a DLC: How to make an offer
 
-![AliceWantsToOfferADLC](AliceWantsToOfferADLC.svg)
+<p align="center">
+  <img src="AliceWantsToOfferADLC.svg" />
+</p>
 
 First, Alice need to generate a new DLC with the expected payoff for any outcomes, if betting on republicans:
 
@@ -172,7 +179,9 @@ dlc show MyFirstDLC
 
 ## Bob wants to accept the DLC
 
-![BobWantsToAcceptOffer](BobWantsToAcceptOffer.svg)
+<p align="center">
+  <img src="BobWantsToAcceptOffer.svg" />
+</p>
 
 First, Bob need to review the offer, to make sure he agrees with it:
 
@@ -209,7 +218,9 @@ dlc show MyFirstDLC
 
 ## Alice starts the contract
 
-![AliceStarts](AliceStarts.svg)
+<p align="center">
+  <img src="AliceStarts.svg" />
+</p>
 
 Now Alice will check that the accept message from Bob is correctl.
 
@@ -232,7 +243,7 @@ Once she signed it, she can start the DLC.
 dlc start MyFirstDLC <signed funding>
 ```
 
-She can send the resulting output to Bob, so he can start the DLC on his side.
+She must send the resulting output to Bob (called the `sign message`), so he can start the DLC on his side.
 She can see this output at any time with:
 ```bash
 dlc show --sign MyFirstDLC
@@ -250,11 +261,29 @@ Sign it and broadcast it.
 
 ## Bob starts the contract
 
-![BobStarts](BobStarts.svg)
+<p align="center">
+  <img src="BobStarts.svg" />
+</p>
+
+Now that Bob has the sign message from Alice, he can start the DLC.
+
+```bash
+dlc checksigs MyFirstDLC "<sign message>"
+```
+
+Then Bob need to sign the funding PSBT, and can finally start the DLC.
+
+```bash
+dlc start "<fundpsbt>"
+```
+
+Then finally Bob need to broadcast the funding transaction.
 
 ## The result came: Olivia attest the election
 
-![ResultKnown](ResultKnown.svg)
+<p align="center">
+  <img src="ResultKnown.svg" />
+</p>
 
 Now imagine Olivia wants to attest the election, she can use `event attest sign <eventfullname> <outcome>`:
 
