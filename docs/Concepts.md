@@ -221,7 +221,7 @@ dlc accept MyFirstDLC "<offer>"
 His maximum loss is 0.6, so she will need to fund a collateral of 0.6 BTC.
 He creates a PSBT (but do not broadcast) with his favorite wallet sending 0.6 BTC to himself and run:
 
-```
+```bash
 dlc setup MyFirstDLC "<setuppsbt>"
 ```
 
@@ -338,4 +338,24 @@ This will output a fully signed transaction which will send the funds according 
 
 # Additional features
 
-## Extract the attestation from a 
+## The death of the Oracle
+
+When an Oracle creates a new event, he commits to attest only a single outcome. Should he be tempted to attest two outcomes, it is possible for users to steal his private key, and thus its identity.
+
+For example, if the Olivia is malicious, she may have an attested an outcome publicly, but what if Alice notices that Bob broadcasted a `CET` different from the one expected one? This means Olivia colluded with Bob to selectively scam her.
+
+In that case Alice can steal Olivia's private key.
+```bash
+event attest add "Olivia/elections" <public attestation>
+```
+Then she can extract from the fraudulous `CET` the other attestation.
+
+```bash
+dlc extract MyFirstDLC "<fraudulous CET>"
+```
+
+By doing so, Alice now holds Olivia's private key as shown by
+```bash
+oracle show Olivia
+```
+With the private key in her hands, publishing it online would prove to people trusting Olivia that she should not be trusted.

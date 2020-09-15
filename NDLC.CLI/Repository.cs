@@ -195,7 +195,7 @@ namespace NDLC.CLI
 
 		public async Task<DLCState> NewDLC(OracleInfo oracleInfo, DLCTransactionBuilder builder)
 		{
-			var dir = Path.Combine(RepositoryDirectory, "dlcs");
+			var dir = Path.Combine(RepositoryDirectory, "DLCs");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
 			var s = new DLCState() 
@@ -211,7 +211,7 @@ namespace NDLC.CLI
 
 		public async Task SaveDLC(DLCState dlc)
 		{
-			var dir = Path.Combine(RepositoryDirectory, "dlcs");
+			var dir = Path.Combine(RepositoryDirectory, "DLCs");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
 			var file = GetDLCFilePath(dlc.Id);
@@ -235,7 +235,7 @@ namespace NDLC.CLI
 		string GetDLCFilePath(uint256 contractId)
 		{
 			var fileName = Encoders.Base58.EncodeData(contractId.ToBytes(false));
-			return Path.Combine(RepositoryDirectory, "dlcs", $"{fileName}.json");
+			return Path.Combine(RepositoryDirectory, "DLCs", $"{fileName}.json");
 		}
 
 		public class Oracle
@@ -371,7 +371,7 @@ namespace NDLC.CLI
 
 		private async Task SaveKeyset(HDFingerprint fingerprint, Keyset v)
 		{
-			var dir = Path.Combine(RepositoryDirectory, "keysets");
+			var dir = Path.Combine(RepositoryDirectory, "KeySets");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
 			var keyset = Path.Combine(dir, $"{fingerprint}.json");
@@ -380,7 +380,7 @@ namespace NDLC.CLI
 
 		private async Task<Keyset> OpenKeyset(HDFingerprint fingerprint)
 		{
-			var dir = Path.Combine(RepositoryDirectory, "keysets");
+			var dir = Path.Combine(RepositoryDirectory, "KeySets");
 			if (!Directory.Exists(dir))
 				throw new FormatException("Invalid keyset file");
 			var keyset = Path.Combine(dir, $"{fingerprint}.json");
@@ -389,7 +389,7 @@ namespace NDLC.CLI
 		}
 		private bool KeySetExists(HDFingerprint fingerprint)
 		{
-			var dir = Path.Combine(RepositoryDirectory, "keysets");
+			var dir = Path.Combine(RepositoryDirectory, "KeySets");
 			if (!Directory.Exists(dir))
 				return false;
 			var keyset = Path.Combine(dir, $"{fingerprint}.json");
