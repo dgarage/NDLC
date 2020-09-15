@@ -117,6 +117,11 @@ namespace NDLC.Tests
 					"--datadir", bob,
 					"dlc", "accept", "BetWithAlice", offer
 				});
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", bob,
+					"dlc", "show", "BetWithAlice"
+				});
 
 			var bobSigner = new Key();
 			var acceptFunding = CreateOfferFunding(Money.Coins(1.0m), bobSigner);
@@ -137,6 +142,11 @@ namespace NDLC.Tests
 				{
 					"--datadir", alice,
 					"dlc", "checksigs", acceptorSigs
+				});
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", alice,
+					"dlc", "show", "BetWithBob"
 				});
 			await Tester.AssertInvokeSuccess(new string[]
 				{
@@ -184,6 +194,11 @@ namespace NDLC.Tests
 				{
 					"--datadir", bob,
 					"dlc", "checksigs", signMessage
+				});
+			await Tester.AssertInvokeSuccess(new string[]
+				{
+					"--datadir", bob,
+					"dlc", "show", "BetWithAlice"
 				});
 			funding = PSBT.Parse(bobFunding, Network.Main);
 			funding.SignWithKeys(bobSigner);

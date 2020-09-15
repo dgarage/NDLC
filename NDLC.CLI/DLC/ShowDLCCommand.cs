@@ -162,11 +162,11 @@ namespace NDLC.CLI.DLC
 			switch (nextStep)
 			{
 				case DLCNextStep.Setup:
-					return $"You need to create the a setup PSBT with your wallet sending {s.Us!.Collateral!.ToString(false, false)} BTC to yourself, it must not be broadcasted.{Environment.NewLine}"
+					return $"You need to create the setup PSBT with your wallet sending {s.Us!.Collateral!.ToString(false, false)} BTC to yourself, it must not be broadcasted.{Environment.NewLine}"
 						 + $"The address receiving this amount will be the same address where the reward of the DLC will be received.{Environment.NewLine}"
-						 + $"Then your can use 'dlc setup {name} \"<PSBT>\"', and give this offer to the other party.";
+						 + $"Then your can use 'dlc setup {name} \"<PSBT>\"', and give this message to the other party.";
 				case DLCNextStep.CheckSigs when s.IsInitiator:
-					return $"You need to pass the offer to the other party, and the other party will need to accept if by sending you back a signed message.{Environment.NewLine}"
+					return $"You need to pass the offer to the other party, and the other party will need to accept by sending you back a signed message.{Environment.NewLine}"
 						 + $"Then you need to use `dlc checksigs \"<signed message>\"`.{Environment.NewLine}"
 						 + $"You can get the offer of this dlc with `dlc show --offer {name}`";
 				case DLCNextStep.CheckSigs when !s.IsInitiator:
@@ -183,7 +183,7 @@ namespace NDLC.CLI.DLC
 					return $"Make sure the other party actually start the DLC by broadcasting the funding transaction.{Environment.NewLine}" +
 					   	   $"IF THE OTHER PARTY DOES NOT RESPOND and doesn't broadcast the funding in reasonable delay. YOU MUST ABORT this DLC by signing and broadcasting the abort transaction `dlc show --abort {name}`.{Environment.NewLine}" +
 						   $"The abort transaction spend the coins you used for your collateral back to yourself.{Environment.NewLine}" +
-						   $"This will prevent a malicious acceptor to start the contract only if he wins.{Environment.NewLine}{Environment.NewLine}" +
+						   $"This will prevent a malicious party to start the contract without your involvement when he knows the outcome.{Environment.NewLine}{Environment.NewLine}" +
 						   $"When the Oracle attests the event, you can settle this contract by running `dlc execute \"<attestation>\"` and broadcasting the transaction.{Environment.NewLine}{Environment.NewLine}" +
 						   $"If the Oracle never attests the event you can get a refund later by broadcasting `dlc show --refund \"{name}\"`.{Environment.NewLine}{Environment.NewLine}";
 				case DLCNextStep.Done when !s.IsInitiator:

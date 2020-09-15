@@ -60,9 +60,7 @@ namespace NDLC.CLI.DLC
 				context.Console.Out.WriteLine($"Contract Execution validity: " + maturity.ToString());
 				context.Console.Out.WriteLine($"Refund validity: " + refund.ToString());
 				context.Console.Out.WriteLine($"How to accept this offer:");
-				context.Console.Out.WriteLine($"First, you need to create a PSBT with your wallet sending {review.AcceptorCollateral.ToString(false, false)} BTC to yourself, it must not be broadcasted.{Environment.NewLine}"
-						 + $"The address receiving this amount will be the same address where the reward of the DLC will be received.{Environment.NewLine}"
-						 + $"Then your can use 'dlc accept <name> <PSBT>', and give the accept message to the other party.");
+				context.Console.Out.WriteLine($"If your plan to accept this offer, you need to run 'dlc accept <dlcname> <offer>'. The DLC name is arbitrary and local, you will use it to manage your DLC.");
 			}
 			catch (Exception ex)
 			{
