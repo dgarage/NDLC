@@ -44,6 +44,7 @@ namespace NDLC.CLI.DLC
 					var offer = builder.FundOffer(key.PrivateKey, psbt);
 					offer.OffererContractId = dlc.Id;
 					dlc.FundKeyPath = key.KeyPath;
+					dlc.Abort = psbt;
 					dlc.BuilderState = builder.ExportStateJObject();
 					dlc.Offer = JObject.FromObject(offer, JsonSerializer.Create(Repository.JsonSettings));
 					await Repository.SaveDLC(dlc);
@@ -61,6 +62,7 @@ namespace NDLC.CLI.DLC
 				var accept = builder.FundAccept(k.PrivateKey, psbt);
 				accept.AcceptorContractId = dlc.Id;
 				dlc.FundKeyPath = k.KeyPath;
+				dlc.Abort = psbt;
 				dlc.BuilderState = builder.ExportStateJObject();
 				dlc.Accept = JObject.FromObject(accept, JsonSerializer.Create(Repository.JsonSettings));
 				await Repository.SaveDLC(dlc);
