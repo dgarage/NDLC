@@ -25,7 +25,9 @@ namespace NDLC.CLI
 		{
 			try
 			{
-				Network = Bitcoin.Instance.GetNetwork(GetNetworkType(context.ParseResult.RootCommandResult.ValueForOption("network") as string ?? "mainnet"));
+				Network = context.ParseResult.RootCommandResult.ValueForOption<bool>("testnet") ? Network.TestNet :
+						  context.ParseResult.RootCommandResult.ValueForOption<bool>("regtest") ? Network.RegTest :
+						  Network.Main;
 				_Repository = new Repository(context.ParseResult.RootCommandResult.ValueForOption<string>("datadir"), Network);
 				_NameRepository = new NameRepository(Path.Combine(_Repository.RepositoryDirectory, "names.json"));
 				NDLC.Messages.Serializer.Configure(JsonSerializerSettings, Network);

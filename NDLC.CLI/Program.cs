@@ -24,14 +24,20 @@ namespace NDLC.CLI
 		{
 			return new RootCommand("A simple tool to manage DLCs.\r\nTHIS IS EXPERIMENTAL, USE AT YOUR OWN RISKS!")
 			{
-				new Option<string>("--network", "The network type (mainnet, testnet or regtest)")
+				new Option<bool>("-mainnet", "Use mainnet (default)")
 				{
-					Argument = new Argument<string>(),
+					IsRequired = false
+				},
+				new Option<bool>("-testnet", "Use testnet")
+				{
+					IsRequired = false
+				},
+				new Option<bool>("-regtest", "Use regtest")
+				{
 					IsRequired = false
 				},
 				new Option<string>("--datadir", "The data directory")
 				{
-					Argument = new Argument<string>(),
 					IsRequired = false
 				},
 				ShowInfoCommand.CreateCommand(),
