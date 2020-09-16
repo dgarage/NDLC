@@ -179,13 +179,17 @@ dlc offer MyFirstDLC Olivia/elections "Republicans:0.6" "Democrats:-0.4"
 ```
 
 Her maximum loss is 0.4, so she will need to fund a collateral of 0.4 BTC.
-She creates a PSBT (but do not broadcast) with her favorite wallet sending 0.4 BTC to herself and run:
+She needs two things before getting her offer complete:
+1. She need to announce how she will pay for the collateral. (which UTXO)
+2. She need to announce where she will receive the payout of the DLC once it is executed.
+
+She can do this by creating a PSBT with her favorite wallet sending 0.4 BTC to herself and run:
 
 ```bash
 dlc setup MyFirstDLC "<setuppsbt>"
 ```
 
-The setup PSBT does not need to be signed. The address which 0.4 BTC are sent to, will be used as the payout address when the contract is settled.
+The setup PSBT does not need to be signed and must not be broadcasted. The address which 0.4 BTC are sent to, will be used as the payout address when the contract is settled.
 
 She can send the output message (the offer) to Bob.
 
@@ -272,7 +276,7 @@ She can see this output at any time with:
 dlc show --sign MyFirstDLC
 ```
 
-If Alice does not start the DLC by signing and broadcasting the funding transaction, Alice MUST ABORT the DLC, by spending back her collateral to herself.
+If Bob does not start the DLC by signing and broadcasting the funding transaction, Alice MUST ABORT the DLC, by spending back her collateral to herself.
 
 She can do this by retrieving the setup PSBT with:
 
