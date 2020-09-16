@@ -66,12 +66,13 @@ namespace NDLC.CLI.DLC
 			{
 				var builder = new DLCTransactionBuilder(false, null, null, null, Network);
 				builder.Accept(offer);
+				var collateral = offer.ToDiscretePayoffs(offer.ContractInfo).Inverse().CalculateMinimumCollateral();
 				var dlc = await Repository.NewDLC(offer.OracleInfo, builder);
 				dlc.BuilderState = builder.ExportStateJObject();
 				dlc.Offer = JObject.FromObject(offer, JsonSerializer.Create(Repository.JsonSettings));
 				await NameRepository.AsDLCNameRepository().SetMapping(name, dlc.Id);
 				await Repository.SaveDLC(dlc);
-				context.Console.Out.Write($"Contract accepted, you now need to setup the DLC. For more information, run `dlc show \"{name}\"`.");
+				context.Console.Out.Write($"Contract accepted, you now need to setup the DLC sending {collateral} BTC to yourself. For more information, run `dlc show \"{name}\"`.");
 			}
 			catch (Exception ex)
 			{

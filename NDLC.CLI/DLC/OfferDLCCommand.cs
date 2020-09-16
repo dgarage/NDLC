@@ -67,10 +67,11 @@ namespace NDLC.CLI.DLC
 			{
 				timeout.ContractTimeout = new LockTime(context.ParseResult.ValueForOption<uint>("refundlocktime"));
 			}
+			var collateral = payoffs.CalculateMinimumCollateral();
 			builder.Offer(oracle.PubKey, evt.EventId!.RValue, payoffs, timeout);
 			var dlc = await Repository.NewDLC(evt.EventId, builder);
 			await NameRepository.AsDLCNameRepository().SetMapping(name, dlc.Id);
-			context.Console.Out.Write($"Offer created, you now need to setup the DLC. For more information, run `dlc show \"{name}\"`.");
+			context.Console.Out.Write($"Offer created, you now need to setup the DLC sending {collateral} BTC to yourself. For more information, run `dlc show \"{name}\"`.");
 		}
 
 		private DiscretePayoffs CreatePayoffs(List<string> payoffs)
