@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="177.37mm" height="156.32mm" version="1.1" viewBox="0 0 177.37 156.32" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xlink="http://www.w3.org/1999/xlink">
  <defs>
+  <marker id="marker1303" overflow="visible" orient="auto">
+   <path transform="scale(-.6)" d="m8.7186 4.0337-10.926-4.0177 10.926-4.0177c-1.7455 2.3721-1.7354 5.6175-6e-7 8.0354z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-width=".625"/>
+  </marker>
   <marker id="marker1632" overflow="visible" orient="auto">
    <path transform="scale(-.6)" d="m8.7186 4.0337-10.926-4.0177 10.926-4.0177c-1.7455 2.3721-1.7354 5.6175-6e-7 8.0354z" fill-rule="evenodd" stroke="#000" stroke-linejoin="round" stroke-width=".625"/>
   </marker>
@@ -35,8 +38,11 @@
   </rdf:RDF>
  </metadata>
  <g transform="translate(-430.52 162.41)">
-  <path d="m563.42-50.16v14.532" fill="none" marker-end="url(#marker1632)" stroke="#000" stroke-width=".26458px"/>
-  <path d="m460.02-49.799 58.417 0.16883" fill="none" marker-end="url(#marker1997)" stroke="#000" stroke-width=".26458px"/>
+  <g fill="none" stroke="#000">
+   <path d="m467.88-95.594-0.0416 18.68" marker-end="url(#marker1303)" stroke-width=".265"/>
+   <path d="m563.42-50.16v14.532" marker-end="url(#marker1632)" stroke-width=".26458px"/>
+   <path d="m460.02-49.799 58.417 0.16883" marker-end="url(#marker1997)" stroke-width=".26458px"/>
+  </g>
   <path transform="rotate(127.4 288.35 21.114)" d="m145.91-95.661 25.792 9.3344-25.398 10.359-0.90743 27.414-17.7-20.954-26.353 7.6084 14.458-23.309-15.379-22.712 26.636 6.5478 16.848-21.645z" fill="#fcf696" stop-color="#000000"/>
   <path d="m467.88-131.88v24.804" fill="none" marker-end="url(#marker1643)" stroke="#000" stroke-width=".265"/>
   <rect x="510.25" y="-119.1" width="84.149" height="10.836" fill="url(#linearGradient1626)" stop-color="#000000"/>

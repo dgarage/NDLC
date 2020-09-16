@@ -137,7 +137,7 @@ oracle add "Olivia" "ab291..."
 
 The oracle name is arbitrary and local to bob and alice. They don't have to share the same name, but they have to share the same pubkey.
 
-## Olivia wants to attest an event
+## Olivia announces she will attest a future event
 
 <p align="center">
   <img src="OliviaWantsAttestAnEvent.svg" />
@@ -306,7 +306,7 @@ dlc start "<fundpsbt>"
 
 Then finally Bob need to broadcast the funding transaction.
 
-## The result came: Olivia attest the election
+## The result came: Olivia attests the election
 
 <p align="center">
   <img src="ResultKnown.svg" />
