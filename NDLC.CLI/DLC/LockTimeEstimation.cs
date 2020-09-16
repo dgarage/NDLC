@@ -35,6 +35,10 @@ namespace NDLC.CLI.DLC
 
 		public override string ToString()
 		{
+			if (lockTime == Constants.NeverLockTime)
+				return "Never";
+			if (EstimatedRemainingTime == TimeSpan.Zero || lockTime == 0)
+				return "Immediate";
 			if (UnknownEstimation)
 			{
 				if (lockTime.IsHeightLock)
@@ -48,10 +52,6 @@ namespace NDLC.CLI.DLC
 			}
 			else
 			{
-				if (lockTime == Constants.NeverLockTime)
-					return "Never";
-				if (EstimatedRemainingTime == TimeSpan.Zero)
-					return "Immediate";
 				return $"{TimeString(EstimatedRemainingTime)} (More or less 5 days)";
 			}
 		}
