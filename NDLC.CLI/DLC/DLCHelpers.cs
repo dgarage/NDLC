@@ -37,7 +37,7 @@ namespace NDLC.CLI.DLC
 				throw new CommandException(optionName, $"The DLC is in an invalid state for this action. The expected state is '{expectedState}' but your state is '{actualStep}'.");
 		}
 
-		public static void WriteTransaction(this InvocationContext ctx, Transaction tx, Network network)
+		public static void WriteTransaction(this InvocationContext ctx, Transaction tx, Coin? fundingCoin, Network network)
 		{
 			if (ctx.ParseResult.ValueForOption<bool>("psbt"))
 			{
@@ -47,6 +47,8 @@ namespace NDLC.CLI.DLC
 					psbt.Inputs[i].FinalScriptSig = tx.Inputs[i].ScriptSig;
 					psbt.Inputs[i].FinalScriptWitness = tx.Inputs[i].WitScript;
 				}
+				if (fundingCoin is Coin)
+					psbt.AddCoins(fundingCoin);
 				ctx.WritePSBT(psbt);
 			}
 			else

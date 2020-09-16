@@ -82,7 +82,7 @@ namespace NDLC.CLI.DLC
 				{
 					await Repository.AddAttestation(dlc.OracleInfo, oracleKey);
 				}
-				context.WriteTransaction(execution.CET, Network);
+				context.WriteTransaction(execution.CET, builder.State.Funding?.FundCoin, Network);
 			}
 			catch (Exception ex)
 			{

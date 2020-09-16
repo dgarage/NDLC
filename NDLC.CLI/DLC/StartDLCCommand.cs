@@ -54,7 +54,7 @@ namespace NDLC.CLI.DLC
 				var fullySigned = builder.Finalize(psbt);
 				dlc.BuilderState = builder.ExportStateJObject();
 				await Repository.SaveDLC(dlc);
-				context.WriteTransaction(fullySigned, Network);
+				context.WriteTransaction(fullySigned, builder.State.Funding?.FundCoin, Network);
 			}
 			else
 			{

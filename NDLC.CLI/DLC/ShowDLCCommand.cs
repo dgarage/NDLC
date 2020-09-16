@@ -125,7 +125,7 @@ namespace NDLC.CLI.DLC
 				try
 				{
 					var builder = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
-					context.WriteTransaction(builder.BuildRefund(), Network);
+					context.WriteTransaction(builder.BuildRefund(), builder.State.Funding?.FundCoin, Network);
 				}
 				catch
 				{
