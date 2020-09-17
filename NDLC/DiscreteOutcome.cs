@@ -25,7 +25,7 @@ namespace NDLC
 			if (outcomeString == null)
 				throw new ArgumentNullException(nameof(outcomeString));
 			OutcomeString = outcomeString;
-			Hash = Hashes.SHA256(Encoding.UTF8.GetBytes(outcomeString.Normalize(NormalizationForm.FormKD)));
+			Hash = Hashes.SHA256(Encoding.UTF8.GetBytes(outcomeString.Normalize(NormalizationForm.FormC)));
 		}
 
 		public static bool TryParse(string str, out DiscreteOutcome? outcome)

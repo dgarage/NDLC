@@ -384,6 +384,29 @@ namespace NDLC.Tests
 		}
 
 		[Fact]
+		public void CheckAttestationMatchBitcoinS()
+		{
+			var oracleInfo = OracleInfo.Parse("156c7d1c7922f0aa1168d9e21ac77ea88bbbe05e24e70a08bbe0519778f2e5daea3a68d8749b81682513b0479418d289d17e24d4820df2ce979f1a56a63ca525");
+			Assert.True(oracleInfo.TryComputeSigpoint(new DiscreteOutcome("Democrat_win"), out var sigpoint));
+			var attestation = Context.Instance.CreateECPrivKey(Encoders.Hex.DecodeData("77a5aabd716936411bbe19219bd0b261fae8f0524367268feb264e0a3b215766"));
+			var pubKey = attestation.CreatePubKey();
+			Assert.Equal(sigpoint, pubKey);
+		}
+		//[Fact]
+		//public void CheckNormalization()
+		//{
+		//	string elephant = "éléphant";
+		//	testOutputHelper.WriteLine(elephant);
+		//	var notNormalized = Encoders.Hex.EncodeData(Encoding.UTF8.GetBytes(elephant));
+		//	testOutputHelper.WriteLine($"Without normalization: {Encoders.Hex.EncodeData(Encoding.UTF8.GetBytes(elephant.Normalize()))}");
+		//	foreach (var form in new[] { NormalizationForm.FormD, NormalizationForm.FormC, NormalizationForm.FormKD, NormalizationForm.FormKC })
+		//	{
+		//		testOutputHelper.WriteLine(elephant.Normalize(form));
+		//		testOutputHelper.WriteLine($"{form}: {Encoders.Hex.EncodeData(Encoding.UTF8.GetBytes(elephant.Normalize(form)))}");
+		//	}
+		//}
+
+		[Fact]
 		public void AcceptorTestVectors()
 		{
 			RunAcceptorTest("Data/Acceptor-Chris", Network.TestNet);
