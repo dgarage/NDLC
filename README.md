@@ -64,7 +64,9 @@ We will make that easier when the protocol and this repository stabilizes.
 
 ## Documentation
 
-Please go to our [Documentation page](docs/Concepts.md).
+Please go to our [Documentation page](docs/Concepts.md) and see our video.
+
+[<img src="https://img.youtube.com/vi/DakwshnNkho/mqdefault.jpg">](https://youtu.be/DakwshnNkho)
 
 ## Special thanks
 

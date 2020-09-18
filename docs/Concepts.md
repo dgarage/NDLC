@@ -18,6 +18,10 @@ The `Funding Transaction` is a transaction built by the two parties of the contr
 
 The `Contract Execution Transaction` (or `CET`) is the transaction distributing the locked collateral according to the `payoff function` for the outcome attested by the oracle.
 
+The following documentation is also explained in this video.
+
+[<img src="https://img.youtube.com/vi/DakwshnNkho/mqdefault.jpg">](https://youtu.be/DakwshnNkho)
+
 ## Prerequisite
 
 This project is still experimental and subject to break without warning. We will not attempt to make backward compatible changes at this stage.
