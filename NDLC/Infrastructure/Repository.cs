@@ -1,25 +1,21 @@
-﻿using NBitcoin;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using NBitcoin.JsonConverters;
 using NBitcoin.Secp256k1;
-using NDLC.CLI.DLC;
-using NDLC.CLI.Events;
 using NDLC.Messages;
 using NDLC.Messages.JsonConverters;
 using NDLC.Secp256k1;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace NDLC.CLI
+namespace NDLC.Infrastructure
 {
 	public class Repository
 	{

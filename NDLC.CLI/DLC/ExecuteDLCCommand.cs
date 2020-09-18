@@ -9,6 +9,7 @@ using System.CommandLine.Parsing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NDLC.Infrastructure;
 
 namespace NDLC.CLI.DLC
 {

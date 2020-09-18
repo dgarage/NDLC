@@ -1,13 +1,9 @@
-﻿using NDLC.CLI.Events;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using NDLC.Messages;
 using NDLC.Secp256k1;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace NDLC.CLI
+namespace NDLC.Infrastructure
 {
 	public class EventNameRepository
 	{
@@ -77,7 +73,7 @@ namespace NDLC.CLI
 			return names;
 		}
 
-		internal async Task SetMapping(OracleInfo eventId, string name)
+		public async Task SetMapping(OracleInfo eventId, string name)
 		{
 			var fullname = GetEventFullName(eventId.PubKey, name);
 			await NameRepository.SetMapping(Scopes.Events, fullname, eventId.RValue.ToString());

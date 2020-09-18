@@ -10,7 +10,8 @@ using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.Text;
 using System.Threading.Tasks;
-using static NDLC.CLI.Repository.DLCState;
+using NDLC.Infrastructure;
+using static NDLC.Infrastructure.Repository.DLCState;
 
 namespace NDLC.CLI.DLC
 {

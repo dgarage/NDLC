@@ -4,6 +4,7 @@ using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Runtime.CompilerServices;
 using System.Text;
+using NDLC.Infrastructure;
 
 namespace NDLC.CLI.Events
 {

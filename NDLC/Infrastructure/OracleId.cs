@@ -1,13 +1,8 @@
-﻿using NBitcoin.DataEncoders;
+﻿using System.Diagnostics.CodeAnalysis;
+using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
-using NDLC.Messages;
-using Newtonsoft.Json.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
 
-namespace NDLC.CLI
+namespace NDLC.Infrastructure
 {
 	public class OracleId
 	{
@@ -22,7 +17,7 @@ namespace NDLC.CLI
 			return new OracleId(pubkey);
 		}
 
-		public static bool TryParse(string str, [MaybeNullWhenAttribute(false)] out OracleId id)
+		public static bool TryParse(string str, [MaybeNullWhen(false)] out OracleId id)
 		{
 			id = null;
 			if (!HexEncoder.IsWellFormed(str))

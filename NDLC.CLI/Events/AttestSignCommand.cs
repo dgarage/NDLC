@@ -11,6 +11,7 @@ using NBitcoin.Secp256k1;
 using NBitcoin;
 using NDLC.Messages;
 using System.CommandLine;
+using NDLC.Infrastructure;
 
 namespace NDLC.CLI.Events
 {

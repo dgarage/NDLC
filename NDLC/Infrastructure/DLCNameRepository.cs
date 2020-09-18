@@ -1,11 +1,7 @@
-﻿using NBitcoin;
-using NDLC.Messages;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using NBitcoin;
 
-namespace NDLC.CLI
+namespace NDLC.Infrastructure
 {
 	public class DLCNameRepository
 	{

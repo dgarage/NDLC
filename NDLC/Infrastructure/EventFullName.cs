@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace NDLC.CLI.Events
+namespace NDLC.Infrastructure
 {
 	public class EventFullName
 	{
