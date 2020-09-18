@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDLC.Tests", "NDLC.Tests\ND
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDLC.CLI", "NDLC.CLI\NDLC.CLI.csproj", "{D27C03F0-1E5B-4921-BB5D-1C97B782F20D}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NDLC.GUI", "NDLC.GUI\NDLC.GUI.fsproj", "{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{D27C03F0-1E5B-4921-BB5D-1C97B782F20D}.Release|x64.Build.0 = Release|Any CPU
 		{D27C03F0-1E5B-4921-BB5D-1C97B782F20D}.Release|x86.ActiveCfg = Release|Any CPU
 		{D27C03F0-1E5B-4921-BB5D-1C97B782F20D}.Release|x86.Build.0 = Release|Any CPU
+		{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}.Debug|x64.Build.0 = Debug|Any CPU
+		{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}.Debug|x86.Build.0 = Debug|Any CPU
+		{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}.Release|x64.ActiveCfg = Release|Any CPU
+		{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}.Release|x64.Build.0 = Release|Any CPU
+		{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}.Release|x86.ActiveCfg = Release|Any CPU
+		{17188FC5-9AD6-4CDB-8CE5-595F86FE07DE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
