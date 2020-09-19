@@ -11,17 +11,13 @@ using System.CommandLine.Parsing;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
-using static NDLC.CLI.Repository;
-using static NDLC.CLI.Repository.DLCState;
+using static NDLC.Infrastructure.Repository;
+using static NDLC.Infrastructure.Repository.DLCState;
 
 namespace NDLC.CLI.DLC
 {
 	public static class DLCHelpers
 	{
-		public static JObject ExportStateJObject(this DLCTransactionBuilder builder)
-		{
-			return JObject.Parse(builder.ExportState());
-		}
 
 		public static void AssertState(this InvocationContext ctx, string optionName, DLCState currentState, bool expectedOfferer, DLCNextStep expectedState, Network network)
 		{

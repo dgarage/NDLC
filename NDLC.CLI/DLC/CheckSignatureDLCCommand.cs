@@ -14,7 +14,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using static NDLC.CLI.Repository.DLCState;
+using NDLC.Infrastructure;
+using static NDLC.Infrastructure.Repository.DLCState;
 
 namespace NDLC.CLI.DLC
 {

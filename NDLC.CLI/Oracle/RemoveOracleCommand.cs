@@ -5,6 +5,7 @@ using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Text;
 using System.Threading.Tasks;
+using NDLC.Infrastructure;
 
 namespace NDLC.CLI
 {

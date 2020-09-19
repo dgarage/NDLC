@@ -9,7 +9,8 @@ using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.Text;
 using System.Threading.Tasks;
-using static NDLC.CLI.Repository;
+using NDLC.Infrastructure;
+using static NDLC.Infrastructure.Repository;
 
 namespace NDLC.CLI
 {

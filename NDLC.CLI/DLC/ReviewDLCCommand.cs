@@ -7,6 +7,7 @@ using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using System.Text;
 using System.Threading.Tasks;
+using NDLC.Infrastructure;
 using static NDLC.OfferReview;
 
 namespace NDLC.CLI.DLC

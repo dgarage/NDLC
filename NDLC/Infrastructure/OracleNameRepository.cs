@@ -1,10 +1,7 @@
-﻿using NBitcoin.Secp256k1;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace NDLC.CLI
+namespace NDLC.Infrastructure
 {
 	public class OracleNameRepository
 	{
