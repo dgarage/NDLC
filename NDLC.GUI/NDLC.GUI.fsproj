@@ -7,6 +7,8 @@
 
   <ItemGroup>
     <AvaloniaResource Include="**\*.xaml" />
+    <Compile Include="Utils\Utils.fs" />
+    <Compile Include="Utils\GlobalConfig.fs" />
     <Compile Include="About.fs" />
     <Compile Include="Oracle.fs" />
     <Compile Include="DLC.fs" />
@@ -17,6 +19,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NDLC\NDLC.csproj" />
+    <ProjectReference Include="..\TaskUtils\TaskUtils.fsproj" />
+    <ProjectReference Include="..\ResultUtils\ResultUtils.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

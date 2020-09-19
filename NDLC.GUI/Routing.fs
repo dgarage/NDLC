@@ -6,6 +6,8 @@ open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.DSL
 open Avalonia.Layout
 open Avalonia.Styling
+open Elmish
+open NDLC.GUI.Utils
 
 module Shell =
     type Page =
@@ -20,23 +22,33 @@ module Shell =
           EventState: EventModule.State
           DLCState: DLCModule.State }
         
-    let init =
-        { CurrentPage = Page.About
-          OracleState = OracleModule.init
-          EventState = EventModule.init
-          DLCState = DLCModule.init }
-        
     type Msg =
         | NavigateTo of Page
         | OracleMsg of OracleModule.Msg
         | EventMsg of EventModule.Msg
         | DLCMsg of DLCModule.Msg
         
-    let update (msg: Msg) (state: State) =
+    let init =
+        let globalConfig = GlobalConfig.Default
+        let o, cmd = OracleModule.init globalConfig
+        { CurrentPage = Page.About
+          OracleState = o
+          EventState = EventModule.init
+          DLCState = DLCModule.init }, cmd |> Cmd.map(OracleMsg)
+        
+    let update globalConfig (msg: Msg) (state: State) =
         match msg with
         | NavigateTo page ->
-            { state with CurrentPage = page }
-        | _ -> failwith "Unreachable"
+            { state with CurrentPage = page }, Cmd.none
+        | OracleMsg m ->
+            let newState, cmd = OracleModule.update globalConfig m (state.OracleState)
+            { state with OracleState = newState }, cmd |> Cmd.map(OracleMsg)
+        | EventMsg m ->
+            let newState = EventModule.update m (state.EventState)
+            { state with EventState = newState }, Cmd.none
+        | DLCMsg m ->
+            let newState = DLCModule.update m (state.DLCState)
+            { state with DLCState = newState }, Cmd.none
             
     let viewMenu state dispatch =
         Menu.create [

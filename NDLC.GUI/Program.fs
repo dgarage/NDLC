@@ -9,6 +9,7 @@ open Avalonia.FuncUI
 open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI.Components.Hosts
 open Avalonia.Platform
+open NDLC.GUI.Utils
 
 type MainWindow() as this =
     inherit HostWindow()
@@ -23,7 +24,8 @@ type MainWindow() as this =
         base.AttachDevTools()
 #endif
         
-        Elmish.Program.mkSimple (fun () -> Shell.init) Shell.update Shell.view
+        let c = GlobalConfig.Default
+        Elmish.Program.mkProgram (fun () -> Shell.init) (Shell.update c) Shell.view
         |> Program.withHost this
 #if DEBUG
         |> Program.withConsoleTrace
