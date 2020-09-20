@@ -41,10 +41,11 @@ module OracleModule =
             OracleId = None
             KeyPath = None
         }
+        
     type State =
         {
             KnownOracles: Deferred<Result<OracleInfo seq, string>>
-            Selected: OracleInfo option
+            Selected: (OracleInfo * EventModule.State) option
             ImportingOracle: OracleInfo option
             InvalidOracleErrorMsg: string option
         }
@@ -56,6 +57,7 @@ module OracleModule =
         | InvalidOracle of errorMsg: string
         | ToggleOracleImport
         | NewOracle of OracleInfo
+        | EventMsg of EventModule.Msg
         
     let loadOracleInfos(repo: NameRepository) =
         task {
@@ -80,7 +82,7 @@ module OracleModule =
           Selected = None
           ImportingOracle = None
           InvalidOracleErrorMsg = None
-          }, Cmd.ofMsg(LoadOracles Started)
+          }, Cmd.batch [Cmd.ofMsg(LoadOracles Started)]
         
     let update (globalConfig) (msg: Msg) (state: State) =
         match msg with
@@ -97,7 +99,11 @@ module OracleModule =
             let newOracles = state.KnownOracles |> Deferred.map(Result.map(Seq.where(fun o -> o <> oracle)))
             { state with KnownOracles = newOracles }, Cmd.none
         | Select o ->
-            {state with Selected = o}, Cmd.none
+            match o with
+            | None -> state, Cmd.none
+            | Some o -> 
+                let (eState, cmd) = EventModule.init (o.Name)
+                {state with Selected = Some(o, eState); }, (cmd |> Cmd.map(EventMsg))
         | Generate oracleName ->
             let generate() =
                 task {
@@ -146,6 +152,12 @@ module OracleModule =
             { state with KnownOracles = newOracles}, Cmd.OfTask.attempt saveOracle () (fun x -> InvalidOracle(x.Message))
         | InvalidOracle msg ->
             { state with InvalidOracleErrorMsg = Some msg }, Cmd.none
+        | EventMsg m ->
+            match state.Selected with
+            | Some (o, eState) ->
+                let newState, cmd = EventModule.update globalConfig m (eState)
+                { state with Selected = Some (o, newState) }, (cmd |> Cmd.map(EventMsg))
+            | None -> state, Cmd.none
         
     let oracleListView (oracles: OracleInfo seq) dispatch =
         ListBox.create [
@@ -179,21 +191,6 @@ module OracleModule =
             ))
         ]
         
-        
-    let spinner =
-        StackPanel.create [
-            StackPanel.children [
-                StackPanel.create [
-                    StackPanel.horizontalAlignment HorizontalAlignment.Center
-                    StackPanel.verticalAlignment VerticalAlignment.Center
-                    StackPanel.children [
-                        TextBox.create [
-                            TextBox.text "Now loading..."
-                        ]
-                    ]
-                ]
-            ]
-        ]
     let renderError (errorMsg: string) =
         StackPanel.create [
             StackPanel.children [
@@ -213,42 +210,16 @@ module OracleModule =
             ]
         ]
         
-    let createOracleButton (dispatch: Msg -> unit) =
-        StackPanel.create [
-            StackPanel.dock Dock.Bottom
-            StackPanel.orientation Orientation.Horizontal
-            StackPanel.children[
-                Button.create [
-                    Button.content "Import"
-                    Button.margin 4.
-                    Button.fontSize 15.
-                    Button.classes ["round"]
-                    Button.onClick(fun _ -> dispatch ToggleOracleImport)
-                ]
-                Button.create [
-                    Button.content "Generate"
-                    Button.margin 4.
-                    Button.fontSize 15.
-                    Button.classes ["round"; "add"]
-                    Button.onClick(fun _ -> dispatch (Generate "MyNewOracle"))
-                    Button.styles (
-                         let styles = Styles()
-                         let style = Style(fun x -> x.OfType<Button>().Template().OfType<ContentPresenter>())
-                         
-                         let setter = Setter(ContentPresenter.CornerRadiusProperty, CornerRadius(10.0))
-                         style.Setters.Add setter
-                         
-                         styles.Add style
-                         styles
-                    )
-                ]
-            ]
-        ]
+    let oracleButtons (dispatch: Msg -> unit) =
+        Components.importAndGenerateButton
+            (fun _ -> dispatch ToggleOracleImport)
+            (fun _ -> dispatch (Generate("MyNewOracle")))
+            
     let viewOracle dispatch state =
         let o = state.KnownOracles
         match o with
         | HasNotStartedYet -> StackPanel.create []
-        | InProgress -> spinner
+        | InProgress -> Components.spinner
         | Resolved(Ok items) ->
             StackPanel.create [
                 StackPanel.orientation Orientation.Vertical
@@ -260,7 +231,7 @@ module OracleModule =
                         TextBlock.text (sprintf "List of known oracles: (count: %i)" (items |> Seq.length))
                     ]
                     oracleListView items dispatch
-                    createOracleButton dispatch
+                    oracleButtons dispatch
                     match state.InvalidOracleErrorMsg with
                     | None -> ()
                     | Some x ->
@@ -273,14 +244,18 @@ module OracleModule =
         | Resolved(Error e) ->
             renderError e
     
-    let oracleDetailsView (state: OracleInfo option) =
+    let createEventTab (state) dispatch =
         DockPanel.create [
-            DockPanel.isVisible state.IsSome
+            DockPanel.margin 3.
+        ]
+    let oracleDetailsView (state: State) dispatch =
+        DockPanel.create [
+            DockPanel.isVisible state.Selected.IsSome
             DockPanel.width 250.
             DockPanel.children [
-                match state with
+                match state.Selected with
                 | None -> ()
-                | Some o ->
+                | Some (o, eState) ->
                     StackPanel.create [
                         StackPanel.dock Dock.Top
                         StackPanel.orientation Orientation.Vertical
@@ -292,6 +267,8 @@ module OracleModule =
                             TextBlock.create [
                                 TextBlock.text (sprintf "%A" o)
                             ]
+                            
+                            EventModule.view eState (EventMsg >> dispatch)
                         ]
                     ]
             ]
@@ -300,7 +277,7 @@ module OracleModule =
         DockPanel.create [
             DockPanel.children [
                 viewOracle dispatch state
-                oracleDetailsView state.Selected
+                oracleDetailsView state dispatch
             ]
         ]
         

@@ -6,7 +6,7 @@
         <Setter Property="Background" Value="White" />
     </Style>
     <Style Selector="Button.add">
-        <Setter Property="Background" Value="DarkRed" />
+        <Setter Property="Background" Value="Green" />
     </Style>
     
     <Style Selector="TextBlock.error">

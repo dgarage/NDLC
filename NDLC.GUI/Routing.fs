@@ -9,26 +9,22 @@ module Shell =
     type Page =
         | About
         | Oracle
-        | Event
         | DLC
         
     type State =
         { CurrentPage: Page
           OracleState: OracleModule.State
-          EventState: EventModule.State
           DLCState: DLCModule.State }
         
     type Msg =
         | NavigateTo of Page
         | OracleMsg of OracleModule.Msg
-        | EventMsg of EventModule.Msg
         | DLCMsg of DLCModule.Msg
         
     let init =
         let o, cmd = OracleModule.init
         { CurrentPage = Page.About
           OracleState = o
-          EventState = EventModule.init
           DLCState = DLCModule.init }, cmd |> Cmd.map(OracleMsg)
         
     let update globalConfig (msg: Msg) (state: State) =
@@ -38,9 +34,6 @@ module Shell =
         | OracleMsg m ->
             let newState, cmd = OracleModule.update globalConfig m (state.OracleState)
             { state with OracleState = newState }, cmd |> Cmd.map(OracleMsg)
-        | EventMsg m ->
-            let newState = EventModule.update m (state.EventState)
-            { state with EventState = newState }, Cmd.none
         | DLCMsg m ->
             let newState = DLCModule.update m (state.DLCState)
             { state with DLCState = newState }, Cmd.none
@@ -55,10 +48,6 @@ module Shell =
                 MenuItem.create [
                     MenuItem.onClick (fun _ -> dispatch (NavigateTo Oracle))
                     MenuItem.header "Oracle"
-                ]
-                MenuItem.create [
-                    MenuItem.onClick (fun _ -> dispatch (NavigateTo Event))
-                    MenuItem.header "Event"
                 ]
                 MenuItem.create [
                     MenuItem.onClick (fun _ -> dispatch (NavigateTo DLC))
@@ -77,8 +66,6 @@ module Shell =
                         yield (ViewBuilder.Create<About.Host>([]))
                     | Oracle ->
                         yield OracleModule.view state.OracleState (OracleMsg >> dispatch)
-                    | Event ->
-                        yield EventModule.view state.EventState (EventMsg >> dispatch)
                     | DLC ->
                         yield DLCModule.view state.DLCState (DLCMsg >> dispatch)
                 ]
