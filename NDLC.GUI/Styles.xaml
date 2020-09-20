@@ -5,4 +5,11 @@
     <Style Selector="TextBlock.link:pointerover">
         <Setter Property="Background" Value="White" />
     </Style>
+    <Style Selector="Button.add">
+        <Setter Property="Background" Value="DarkRed" />
+    </Style>
+    
+    <Style Selector="TextBlock.error">
+        <Setter Property="Foreground" Value="Red"></Setter>
+    </Style>
 </Styles>

@@ -3,11 +3,7 @@ namespace NDLC.GUI
 open Avalonia.Controls
 open Avalonia.FuncUI.Builder
 open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI.DSL
-open Avalonia.Layout
-open Avalonia.Styling
 open Elmish
-open NDLC.GUI.Utils
 
 module Shell =
     type Page =
@@ -29,8 +25,7 @@ module Shell =
         | DLCMsg of DLCModule.Msg
         
     let init =
-        let globalConfig = GlobalConfig.Default
-        let o, cmd = OracleModule.init globalConfig
+        let o, cmd = OracleModule.init
         { CurrentPage = Page.About
           OracleState = o
           EventState = EventModule.init
@@ -50,7 +45,7 @@ module Shell =
             let newState = DLCModule.update m (state.DLCState)
             { state with DLCState = newState }, Cmd.none
             
-    let viewMenu state dispatch =
+    let viewMenu _ dispatch =
         Menu.create [
             Menu.viewItems [
                 MenuItem.create [
