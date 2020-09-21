@@ -25,7 +25,7 @@ type MainWindow() as this =
 #endif
         
         let c = GlobalConfig.Default
-        Elmish.Program.mkProgram (fun () -> Shell.init) (Shell.update c) Shell.view
+        Elmish.Program.mkProgram (fun () -> Router.init) (Router.update c) Router.view
         |> Program.withHost this
 #if DEBUG
         |> Program.withConsoleTrace

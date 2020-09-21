@@ -42,15 +42,18 @@ module EventModule =
         | Generate of string
         | NewEvent of EventInfo
         | Select of EventInfo option
+        | DLCMsg of DLCModule.Msg
         
     type State = {
         CreatorName: string
         EventInCreation: EventInfo option
         KnownEvents: Deferred<EventInfo list>
         LoadFailed: string option
+        Selected: (EventInfo  * DLCModule.State) option
     }
     let init oracleId =
-        { KnownEvents = Deferred.HasNotStartedYet; EventInCreation = None; CreatorName = oracleId; LoadFailed = None },
+        { KnownEvents = Deferred.HasNotStartedYet; EventInCreation = None; CreatorName = oracleId; LoadFailed = None
+          Selected = None; },
         Cmd.ofMsg (LoadEvents AsyncOperationStatus.Started)
     
     let private loadEventInfos (oracleName) (globalConfig) =
@@ -73,7 +76,8 @@ module EventModule =
                       Nonce = eId
                       Outcomes = e |> function Some x -> x.Outcomes | None -> [||]
                       CanReveal = e |> function Some x -> x.NonceKeyPath |> isNull |> not | None -> false
-                      NonceKeyPath = e |> Option.bind(fun x -> Option.ofObj x.NonceKeyPath) }
+                      NonceKeyPath = e |> Option.bind(fun x -> Option.ofObj x.NonceKeyPath)
+                      }
                     )
                 |> Seq.sortBy(fun o -> o.ToString())
                 |> Seq.toList
@@ -100,7 +104,21 @@ module EventModule =
         | NewEvent e ->
             let newEvents = state.KnownEvents |> Deferred.map(fun x -> e::x)
             { state with KnownEvents = newEvents}, Cmd.none
+        | Select e ->
+            match e with
+            | None -> { state with Selected = None }, Cmd.none
+            | Some e -> 
+                let (eState, cmd) = DLCModule.init (e.FullName)
+                { state with Selected = Some (e, eState) }, (cmd |> Cmd.map(DLCMsg))
+        | DLCMsg msg ->
+            match state.Selected with
+            | Some (o, eState) ->
+                let newState, cmd = DLCModule.update msg (eState)
+                { state with Selected = Some (o, newState) }, (cmd |> Cmd.map(DLCMsg))
+            | None -> state, Cmd.none
         
+    let eventListView state dispatch =
+        failwith ""
     let view (state: State) dispatch =
         match state.KnownEvents with
         | Resolved events ->
@@ -114,6 +132,12 @@ module EventModule =
                         TextBlock.text (sprintf "List of known events: (count: %i)" (events |> Seq.length))
                     ]
                     ListBox.create [
+                        ListBox.onSelectedItemChanged(fun obj ->
+                            match obj with
+                            | :? EventInfo as o -> o |> Some
+                            | _ -> None
+                            |> Select |> dispatch
+                        )
                         ListBox.dataItems events
                         ListBox.itemTemplate 
                             (DataTemplateView<EventInfo>.create (fun d ->
@@ -143,10 +167,13 @@ module EventModule =
                             ]
                         ))
                     ]
-                    
                     Components.importAndGenerateButton
                         (fun _ -> dispatch ToggleEventImport)
                         (fun _ -> dispatch (Generate "MyNewEvent"))
+                    match state.Selected with
+                    | Some (e, dlcState) ->
+                        DLCModule.view dlcState (DLCMsg >> dispatch)
+                    | None -> ()
                 ]
             ]
 

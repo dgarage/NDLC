@@ -1,7 +1,9 @@
 namespace NDLC.GUI
 
 open Avalonia.FuncUI.DSL
+open Elmish
 open NDLC
+open NDLC.Infrastructure
 
 module DLCModule =
     type Outcome = {
@@ -59,16 +61,20 @@ module DLCModule =
                 "If the Oracle never attests the event you can get a refund later by broadcasting `dlc show --refund \"{name}\"`."
             | _ -> failwithf "Unreachable (%A): (%b)" this.NextStep this.IsInitiator
     type State =
-        { DLCs: DLCInfo list }
+        {
+            DLCs: DLCInfo list
+            EventFullName: string
+        }
         
-    let init =
-        { DLCs = [] }
+    let init(eventFullName) =
+        { DLCs = []
+          EventFullName = eventFullName }, Cmd.none
     
     type Msg =
         | Null
         
     let update (msg: Msg) (state: State) =
-        state
+        state, Cmd.none
         
     let view (state: State) dispatch =
         Grid.create []

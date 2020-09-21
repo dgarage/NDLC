@@ -5,7 +5,7 @@ open Avalonia.FuncUI.Builder
 open Avalonia.FuncUI.DSL
 open Elmish
 
-module Shell =
+module Router =
     type Page =
         | About
         | Oracle

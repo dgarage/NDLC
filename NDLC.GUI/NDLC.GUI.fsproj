@@ -11,9 +11,9 @@
     <Compile Include="Utils\GlobalConfig.fs" />
     <Compile Include="About.fs" />
     <Compile Include="Components.fs" />
+    <Compile Include="DLC.fs" />
     <Compile Include="Event.fs" />
     <Compile Include="Oracle.fs" />
-    <Compile Include="DLC.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
