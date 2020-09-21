@@ -202,7 +202,8 @@ namespace NDLC.Messages
 			if (payoutAddress is null)
 				throw new InvalidOperationException("The PSBT should have an output paying the exact collateral");
 			var changeAddress = psbt.Outputs.Where(o => o.Value != expectedCollateral).Select(c => c.ScriptPubKey).FirstOrDefault();
-			var inputs = psbt.Inputs.Select(i => i.GetCoin())
+			var inputs = psbt.Inputs.Select(i => i.GetCoin() ?? throw new InvalidOperationException("The PSBT is missing witness_utxo"))
+						.Select(i => i.GetHashVersion() == HashVersion.Witness ? i : throw new InvalidOperationException("The funding wallet must be using segwit"))
 						.ToArray();
 			return (inputs, payoutAddress.GetDestinationAddress(network), changeAddress?.GetDestinationAddress(network));
 		}
