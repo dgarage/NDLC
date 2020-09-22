@@ -114,7 +114,7 @@ module OracleModule =
                     | Deferred.Resolved (Ok true) ->
                         return (InvalidOracle(sprintf "Please change the oracle name from \"%s\" before you go next" Constants.defaultOracleName) )
                     | _ ->
-                    let o = (ConfigUtils.tryGetOracle globalConfig oracleName).GetAwaiter().GetResult()
+                    let! o = (ConfigUtils.tryGetOracle globalConfig oracleName)
                     match o with
                     | Some _ -> return (InvalidOracle "Oracle with the same name Already exists!")
                     | None ->

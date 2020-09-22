@@ -48,3 +48,10 @@ module ConfigUtils =
                 let! result = repo.GetOracle(pk)
                 return Some (result)
         }
+        
+    let getOracle (globalConfig) (oracleName) = task {
+        match! tryGetOracle globalConfig oracleName with
+        | None -> return failwithf "Unreachable! Unknown OracleName %s" oracleName
+        | Some o ->
+            return o
+    }
