@@ -1,6 +1,7 @@
 ﻿using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace NDLC.Secp256k1
@@ -17,7 +18,7 @@ namespace NDLC.Secp256k1
 			this.e = e;
 		}
 
-		public static bool TryCreate(ReadOnlySpan<byte> input97, out SecpECDSAAdaptorProof? proof)
+		public static bool TryCreate(ReadOnlySpan<byte> input97, [MaybeNullWhen(false)] out SecpECDSAAdaptorProof proof)
 		{
 			if (!Internals.secp256k1_dleq_deserialize_point(input97, out var rp))
 			{

@@ -74,7 +74,7 @@ namespace NDLC.CLI.DLC
 		private async Task HandleSign(InvocationContext context, string signedMessageBase64)
 		{
 			var sign = Parse<Sign>(signedMessageBase64);
-			var dlc = await GetDLC(sign.AcceptorContractId);
+			var dlc = await GetDLC(sign.ContractId);
 			context.AssertState("signed", dlc, false, DLCNextStep.CheckSigs, Network);
 			var builder = new DLCTransactionBuilder(dlc.BuilderState!.ToString(), Network);
 			try

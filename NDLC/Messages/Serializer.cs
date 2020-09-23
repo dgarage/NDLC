@@ -31,7 +31,6 @@ namespace NDLC.Messages
 			settings.Converters.Add(new NBitcoin.JsonConverters.ScriptJsonConverter());
 			settings.Converters.Add(new NBitcoin.JsonConverters.SignatureJsonConverter());
 			settings.Converters.Add(new NBitcoin.JsonConverters.UInt256JsonConverter());
-			settings.Converters.Add(new PartialSignatureJsonConverter());
 			settings.Converters.Add(new ECXOnlyPubKeyJsonConverter());
 			settings.Converters.Add(new OracleInfoJsonConverter());
 			settings.Converters.Add(new ContractInfoJsonConverter());

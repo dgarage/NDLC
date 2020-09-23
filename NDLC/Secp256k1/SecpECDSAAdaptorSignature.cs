@@ -1,6 +1,7 @@
 ﻿using NBitcoin.Secp256k1;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices.ComTypes;
 using System.Security.Cryptography;
 using System.Text;
@@ -25,7 +26,7 @@ namespace NDLC.Secp256k1
 			return new Scalar(buf.Slice(1), out _);
 		}
 
-		public static bool TryCreate(ReadOnlySpan<byte> input65, out SecpECDSAAdaptorSignature? sig)
+		public static bool TryCreate(ReadOnlySpan<byte> input65, [MaybeNullWhen(false)] out SecpECDSAAdaptorSignature sig)
 		{
 			sig = null;
 			if (input65.Length != 65)
