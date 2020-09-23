@@ -21,7 +21,7 @@
   <path d="m309.77 46.838v17.911" fill="none" marker-end="url(#marker1800)" stroke="#000" stroke-width=".26458px"/>
   <g transform="translate(414.32 134.43)">
    <ellipse cx="-104.55" cy="-43.043" rx="36.491" ry="7.5985" fill="#ffc0c8" stop-color="#000000"/>
-   <text x="-130.01314" y="-42.13316" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="-130.01314" y="-42.13316" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal">dlc offer MyFirstDLC &lt;fundpsbt&gt;</tspan></text>
+   <text x="-130.01314" y="-42.13316" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="-130.01314" y="-42.13316" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal">dlc setup MyFirstDLC &lt;setuppsbt&gt;</tspan></text>
   </g>
   <g transform="translate(414.32 134.43)">
    <rect x="-146.62" y="-69.147" width="84.149" height="10.836" fill="#ffc0c8" stop-color="#000000"/>
@@ -31,7 +31,7 @@
   <path d="m309.77 76.114v7.6702" fill="none" marker-end="url(#marker2001)" stroke="#000" stroke-width=".265"/>
   <g transform="translate(412.19 134.43)">
    <ellipse cx="-102.42" cy="-87.058" rx="40.803" ry="9.3372" fill="#ffc0c8" stop-color="#000000"/>
-   <text x="-102.43006" y="-88.362968" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" text-align="center" text-anchor="middle" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="-102.43006" y="-88.362968">dlc generate MyFirstDLC Olivia/elections</tspan><tspan x="-102.43006" y="-83.953247">"Republicans:0.6"  "Democrats:-0.4"</tspan></text>
+   <text x="-102.43006" y="-88.362968" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" text-align="center" text-anchor="middle" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="-102.43006" y="-88.362968">dlc offer MyFirstDLC Olivia/elections</tspan><tspan x="-102.43006" y="-83.953247">"Republicans:0.6"  "Democrats:-0.4"</tspan></text>
   </g>
   <rect x="267.7" y="65.279" width="84.149" height="10.836" fill="#ffc0c8" stop-color="#000000"/>
   <text x="279.66705" y="71.605888" fill="#000000" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal;line-height:1.25" xml:space="preserve"><tspan x="279.66705" y="71.605888" font-family="'Segoe UI'" font-size="3.5278px" stroke-width=".26458" style="font-variant-caps:normal;font-variant-east-asian:normal;font-variant-ligatures:normal;font-variant-numeric:normal">Create a PSBT sending 0.4 BTC to herself...</tspan></text>
