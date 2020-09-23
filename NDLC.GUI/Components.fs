@@ -32,7 +32,7 @@ module Components =
                 Button.margin 4.
                 Button.fontSize 15.
                 Button.classes classes
-                Button.onClick(onClick)
+                Button.onClick(onClick, SubPatchOptions.Always)
                 Button.styles (
                      let styles = Styles()
                      let style = Style(fun x -> x.OfType<Button>().Template().OfType<ContentPresenter>())

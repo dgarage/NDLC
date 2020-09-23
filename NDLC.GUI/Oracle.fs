@@ -131,7 +131,7 @@ module OracleModule =
                     | false, _ ->
                         return (InvalidOracle "Failed to parse Oracle id!")
                 }
-            state, Cmd.OfTask.either generate () id (fun ex -> Msg.InvalidOracle (ex.Message))
+            state, Cmd.OfTask.either generate () id (fun ex -> Msg.InvalidOracle (ex.ToString()))
         | ToggleOracleImport ->
             { state with ImportingOracle = OracleInfo.Empty |> Some }, Cmd.none
         | NewOracle oracle ->
@@ -264,10 +264,6 @@ module OracleModule =
                             TextBlock.create [
                                 TextBlock.text "Here goes oracle details"
                             ]
-                            TextBlock.create [
-                                TextBlock.text (sprintf "%A" o)
-                            ]
-                            
                             EventModule.view eState (EventMsg >> dispatch)
                         ]
                     ]
