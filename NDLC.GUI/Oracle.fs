@@ -251,15 +251,15 @@ module OracleModule =
     let oracleDetailsView (state: State) dispatch =
         DockPanel.create [
             DockPanel.isVisible state.Selected.IsSome
-            DockPanel.width 250.
+            // DockPanel.width 250.
             DockPanel.children [
                 match state.Selected with
                 | None -> ()
-                | Some (o, eState) ->
+                | Some (_, eState) ->
                     StackPanel.create [
                         StackPanel.dock Dock.Top
                         StackPanel.orientation Orientation.Vertical
-                        StackPanel.margin 10.
+                        StackPanel.margin 1.
                         StackPanel.children [
                             TextBlock.create [
                                 TextBlock.text "Here goes oracle details"

@@ -2,6 +2,7 @@ namespace NDLC.GUI.Utils
 
 open FSharp.Control.Tasks
 open System
+open System.Diagnostics
 open System.IO
 open NBitcoin
 open NBitcoin.DataEncoders
@@ -40,10 +41,11 @@ module ConfigUtils =
                 let n = nameRepo globalConfig
                 n.GetId(Scopes.Oracles, oracleName)
             if isNull id then return None else
-            let pk: ECXOnlyPubKey = null
-            match ECXOnlyPubKey.TryCreate(ReadOnlySpan(Encoders.Hex.DecodeData(id)), Context.Instance, ref pk) with
+            let mutable pk: ECXOnlyPubKey = null
+            match ECXOnlyPubKey.TryCreate(ReadOnlySpan(Encoders.Hex.DecodeData(id)), Context.Instance, &pk) with
             | false -> return None
             | true ->
+                Debug.Assert(pk |> isNull |> not)
                 let repo = repository (globalConfig)
                 let! result = repo.GetOracle(pk)
                 return Some (result)
