@@ -47,7 +47,6 @@ module Router =
             ]
             Menu.dock Dock.Top
         ]
-        
     let view (state: State) dispatch =
             DockPanel.create [
                 DockPanel.children [
