@@ -4,6 +4,7 @@ open Avalonia.FuncUI.DSL
 open Elmish
 open NDLC
 open NDLC.Infrastructure
+open Avalonia.Controls
 
 module DLCModule =
     type Outcome = {
@@ -68,15 +69,34 @@ module DLCModule =
             EventFullName: string
         }
         
-    let init(eventFullName) =
+    let init =
         { DLCs = []
-          EventFullName = eventFullName }, Cmd.none
-    
+          EventFullName = "" }, Cmd.none
+        
     type Msg =
         | Null
         
-    let update (msg: Msg) (state: State) =
+    let update (globalConfig) (msg: Msg) (state: State) =
         state, Cmd.none
         
     let view (state: State) dispatch =
-        Grid.create []
+        DockPanel.create [
+            DockPanel.children [
+                TabControl.create [
+                    TabControl.tabStripPlacement Dock.Left
+                    TabControl.viewItems [
+                        TabItem.create [
+                            TabItem.header "Offer"
+                        ]
+                        
+                        TabItem.create [
+                            TabItem.header "Setup"
+                        ]
+                        
+                        TabItem.create [
+                            TabItem.header "Accept"
+                        ]
+                    ]
+                ]
+            ]
+        ]
