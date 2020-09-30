@@ -33,15 +33,6 @@ module Components =
                 Button.fontSize 15.
                 Button.classes classes
                 Button.onClick(onClick, SubPatchOptions.Always)
-                Button.styles (
-                     let styles = Styles()
-                     let style = Style(fun x -> x.OfType<Button>().Template().OfType<ContentPresenter>())
-                     
-                     let setter = Setter(ContentPresenter.CornerRadiusProperty, CornerRadius(10.0))
-                     style.Setters.Add setter
-                     styles.Add style
-                     styles
-                )
             ]
         StackPanel.create [
             StackPanel.dock Dock.Bottom
@@ -51,3 +42,6 @@ module Components =
                 button "Generate" ["round"; "add"] onGenerateClicked
             ]
         ]
+        
+    let inputTextBox (name) (watermark) =
+        TextBox.create []

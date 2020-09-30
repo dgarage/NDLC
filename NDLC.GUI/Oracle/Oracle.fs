@@ -238,7 +238,7 @@ module OracleModule =
             (fun _ -> dispatch (ForSelf(ToggleOracleImport)))
             (fun _ -> dispatch (ForSelf(Generate("MyNewOracle"))))
             
-    let viewOracle dispatch state =
+    let viewOracle state dispatch =
         let o = state.KnownOracles
         match o with
         | HasNotStartedYet -> StackPanel.create []
@@ -295,7 +295,7 @@ module OracleModule =
     let view (state: State) (dispatch: Msg -> unit) =
         DockPanel.create [
             DockPanel.children [
-                viewOracle dispatch state
+                viewOracle state dispatch
                 oracleDetailsView state dispatch
             ]
         ]

@@ -26,7 +26,7 @@ module Router =
     let oracleMsgTranslator =
         OracleModule.translator {
             OnInternalMsg = OracleMsg
-            OnNewOffer = fun offer -> Sequence([NavigateTo(DLC); offer |> DLCModule.NewOffer |> DLCMsg])
+            OnNewOffer = fun offer -> Sequence([NavigateTo(DLC); offer |> DLCOfferModule.NewOffer |> DLCModule.OfferMsg |> DLCMsg])
         }
         
     let init =
@@ -45,7 +45,7 @@ module Router =
             let newState, cmd = OracleModule.update globalConfig m (state.OracleState)
             { state with OracleState = newState }, cmd |> Cmd.map(OracleMsg)
         | DLCMsg m ->
-            let newState, cmd = DLCModule.update globalConfig m (state.DLCState)
+            let newState, cmd = DLCModule.update globalConfig (state.DLCState) m
             { state with DLCState = newState }, (cmd |> Cmd.map(DLCMsg))
         | Sequence msgs ->
            let folder (s, c) msg =
@@ -72,7 +72,7 @@ module Router =
             ]
             Menu.dock Dock.Top
         ]
-    let view (state: State) dispatch =
+    let view globalConfig (state: State) dispatch =
             DockPanel.create [
                 DockPanel.children [
                     yield viewMenu state dispatch
@@ -82,6 +82,6 @@ module Router =
                     | Oracle ->
                         yield OracleModule.view state.OracleState (oracleMsgTranslator >> dispatch)
                     | DLC ->
-                        yield DLCModule.view state.DLCState (DLCMsg >> dispatch)
+                        yield DLCModule.view globalConfig state.DLCState (DLCMsg >> dispatch)
                 ]
             ]

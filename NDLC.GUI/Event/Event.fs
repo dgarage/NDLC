@@ -1,239 +1,24 @@
 namespace NDLC.GUI
 
-open FSharp.Control.Tasks
-open Elmish
+open System.Threading.Tasks
+
 open Avalonia.Controls
 
+open FSharp.Control.Tasks
+open Elmish
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Components
 
-open Avalonia.Layout
 open NBitcoin
-open NDLC.GUI.GlobalMsgs
-open System.Threading.Tasks
+
 open NDLC.Infrastructure
 open NDLC.GUI.Utils
 open NDLC.Messages
 open NDLC.Secp256k1
 
-module EventInImportModule =
-    type EventImportArg = {
-        OracleName: string
-        EventName: string
-        Nonce: SchnorrNonce option
-        Outcomes: string []
-    }
-        with
-        static member Empty = {
-            OracleName = ""
-            EventName = ""
-            Nonce = None
-            Outcomes = [||]
-        }
-        
-    type InternalMsg =
-        | UpdateImport of EventImportArg
-        | InvalidInput of string
-        
-    type OutMsg =
-        | NewEvent of EventImportArg
+open NDLC.GUI.GlobalMsgs
+open NDLC.GUI.Event
 
-    type Msg =
-        | ForSelf of InternalMsg
-        | ForParent of OutMsg
-        
-    type State = {
-        EventInImport: EventImportArg
-        ErrorMsg: string option
-    }
-    
-    type TranslationDictionary<'Msg> = {
-        OnInternalMsg: InternalMsg -> 'Msg
-        OnNewEvent: EventImportArg -> 'Msg
-    }
-    
-    type Translator<'Msg> = Msg -> 'Msg
-    
-    let translator ({ OnInternalMsg = onInternalMsg; OnNewEvent = onNewEvent }: TranslationDictionary<'Msg>): Translator<'Msg> =
-        function
-        | ForSelf i -> onInternalMsg i
-        | ForParent (NewEvent x) -> onNewEvent x
-        
-    let init =
-        { EventInImport = EventImportArg.Empty; ErrorMsg = None }
-        
-    let update (msg: InternalMsg) (state: State) =
-        match msg with
-        | UpdateImport a ->
-            { state with EventInImport = a }
-        | InvalidInput i ->
-            { state with ErrorMsg = Some i }
-    
-    let eventInImportView (state: EventImportArg) dispatch =
-        StackPanel.create [
-            StackPanel.orientation Orientation.Vertical
-            StackPanel.name "Please Enter Information about new Event"
-            let name1 = "EventName"
-            let name2 = "Nonce"
-            let name3 = "Outcomes"
-            let handler (b: TextBox) =
-                match b.Text with
-                | s when b.Name = name1 ->
-                    { state with EventName = s }
-                    |> UpdateImport
-                | s when b.Name = name2 ->
-                    match SchnorrNonce.TryParse s with
-                    | true, nonce ->
-                        { state with Nonce = Some(nonce) }
-                        |> UpdateImport
-                    | false, _ ->
-                        InvalidInput "Failed to parse Nonce"
-                | s when b.Name = name3 ->
-                    { state with Outcomes = s.Split "," }
-                    |> UpdateImport
-                | _ -> failwith "Unreachable!"
-                |> ForSelf |> dispatch
-                
-            yield! StackPanel.onTextboxInput handler
-            StackPanel.children [
-                TextBox.create [
-                    TextBox.name name1
-                    TextBox.watermark "Enter event name here"
-                    TextBox.text state.EventName
-                ]
-                TextBox.create [
-                    TextBox.name name2
-                    TextBox.watermark "Paste Nonce here"
-                ]
-                TextBox.create [
-                    TextBox.name name3
-                    TextBox.watermark "Enter comma separated list of outcomes (e.g. \"Sunny,Cloudy,Else\")"
-                ]
-                Button.create [
-                    Button.content "Save"
-                    Button.onClick((fun _ -> dispatch (ForParent (NewEvent state))),
-                                   SubPatchOptions.OnChangeOf(state))
-                ]
-            ]
-        ]
-    let view (state: State) dispatch =
-        StackPanel.create [
-            StackPanel.children [
-                eventInImportView state.EventInImport dispatch
-                    
-                match state.ErrorMsg with
-                | Some s ->
-                    StackPanel.create [
-                        StackPanel.children [
-                            TextBlock.create [
-                                TextBlock.classes ["error"]
-                                TextBlock.text s
-                            ]
-                        ]
-                    ]
-                | None  -> ()
-            ]
-        ]
-        
-module EventInGenerationModule =
-    type EventGenerationArg = {
-        Name: string
-        Outcomes: string []
-    }
-        with
-        static member Empty = { Name = ""; Outcomes = [||] }
-        
-    type EventGenerationMsg =
-        | SetName of string
-        | SetOutcomes of string[]
-    type InternalMsg =
-        | UpdateGenerate of EventGenerationMsg
-        | InvalidInput of string
-        
-    type OutMsg =
-        | Generate of EventGenerationArg
-        
-    type Msg =
-        | ForSelf of InternalMsg
-        | ForParent of OutMsg
-        
-    type State = {
-        EventInGeneration: EventGenerationArg
-        ErrorMsg: string option
-    }
-    
-    type TranslationDictionary<'Msg> = {
-        OnInternalMsg: InternalMsg -> 'Msg
-        OnGenerate: EventGenerationArg -> 'Msg
-    }
-    
-    type Translator<'Msg> = Msg -> 'Msg
-    
-    let translator ({ OnInternalMsg = onInternalMsg; OnGenerate = onGenerate; }: TranslationDictionary<'Msg>): Translator<'Msg> =
-        function
-        | ForSelf i -> onInternalMsg i
-        | ForParent (Generate x) -> onGenerate x
-    
-    let init =
-        { EventInGeneration = EventGenerationArg.Empty; ErrorMsg = None }
-
-    let update (msg: InternalMsg) (state: State) =
-        match msg with
-        | UpdateGenerate a ->
-            match a with
-            | SetName n ->
-                let e = { state.EventInGeneration with Name = n }
-                { state with EventInGeneration = e }
-            | SetOutcomes o ->
-                let e = { state.EventInGeneration with Outcomes = o }
-                { state with EventInGeneration = e }
-        | InvalidInput i ->
-            { state with ErrorMsg = Some i }
-    
-    let eventInGenerationView (state: EventGenerationArg) dispatch =
-        StackPanel.create [
-            StackPanel.orientation Orientation.Vertical
-            StackPanel.name "Please Enter Information about new Event"
-            StackPanel.children [
-                TextBox.create [
-                    TextBox.watermark "Enter event name here"
-                    TextBox.name "EventNameBox"
-                    TextBox.text state.Name
-                    TextBox.isReadOnly false
-                    yield! TextBox.onTextInputFinished(fun txt -> SetName txt |> UpdateGenerate |> ForSelf |> dispatch)
-                ]
-                TextBox.create [
-                    TextBox.watermark "Enter comma separated list of outcomes (e.g. \"Sunny,Cloudy,Else\")"
-                    TextBox.name "OutcomesBox"
-                    TextBox.isReadOnly false
-                    TextBox.text (state.Outcomes |> String.concat ",")
-                    yield! TextBox.onTextInputFinished(fun txt -> txt.Split"," |> SetOutcomes |> UpdateGenerate |> ForSelf |> dispatch)
-                ]
-                Button.create [
-                    Button.content "Save"
-                    Button.onClick((fun _ -> state |> Generate |> ForParent |> dispatch), SubPatchOptions.OnChangeOf(state))
-                ]
-            ]
-        ]
-        
-    let view (state: State) dispatch =
-        StackPanel.create [
-            StackPanel.children [
-                eventInGenerationView state.EventInGeneration dispatch
-                    
-                match state.ErrorMsg with
-                | Some s ->
-                    StackPanel.create [
-                        StackPanel.children [
-                            TextBlock.create [
-                                TextBlock.classes ["error"]
-                                TextBlock.text s
-                            ]
-                        ]
-                    ]
-                | None  -> ()
-            ]
-        ]
 [<RequireQualifiedAccess>]
 module EventModule =
     type EventInfo = {
@@ -285,8 +70,6 @@ module EventModule =
         | Generate of EventInGenerationModule.EventGenerationArg
         | NewEvent of EventInfo
         | Select of EventInfo option
-        | DLCMsg of DLCModule.Msg
-        
         
     type OutMsg =
         | NewOffer of NewOfferMetadata
@@ -309,7 +92,7 @@ module EventModule =
         CreatorName: string
         KnownEvents: Deferred<EventInfo list>
         LoadFailed: string option
-        Selected: (EventInfo  * DLCModule.State) option
+        Selected: (EventInfo) option
         EventInImport: EventInImportModule.State
         EventInGeneration: EventInGenerationModule.State
     }
@@ -420,14 +203,8 @@ module EventModule =
             match e with
             | None -> { state with Selected = None }, Cmd.none
             | Some e -> 
-                let (eState, cmd) = DLCModule.init
-                { state with Selected = Some (e, eState) }, (cmd |> Cmd.map(DLCMsg))
-        | DLCMsg msg ->
-            match state.Selected with
-            | Some (o, eState) ->
-                let newState, cmd = DLCModule.update globalConfig msg (eState)
-                { state with Selected = Some (o, newState) }, (cmd |> Cmd.map(DLCMsg))
-            | None -> state, Cmd.none
+                { state with Selected = Some (e) }, Cmd.none
+                
     let view (state: State) dispatch =
         match state.KnownEvents with
         | Resolved events ->
@@ -457,7 +234,7 @@ module EventModule =
                                         MenuItem.create [
                                             MenuItem.header "Create New Offer"
                                             MenuItem.onClick(fun _ ->
-                                                { NewOfferMetadata.EventFullName = (state.Selected.Value |> fst |> fun x -> x.FullNameObject) }
+                                                { NewOfferMetadata.EventFullName = (state.Selected.Value |> fun x -> x.FullNameObject) }
                                                 |> NewOffer
                                                 |> ForParent
                                                 |> dispatch
@@ -513,11 +290,6 @@ module EventModule =
                             ]
                         ]
                     ]
-                    
-                    match state.Selected with
-                    | Some (e, dlcState) ->
-                        DLCModule.view dlcState (DLCMsg >> ForSelf >> dispatch)
-                    | None -> ()
                 ]
             ]
 

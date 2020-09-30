@@ -13,9 +13,13 @@
     <Compile Include="Controls.fs" />
     <Compile Include="About.fs" />
     <Compile Include="GlobalMsgs.fs" />
-    <Compile Include="DLC.fs" />
-    <Compile Include="Event.fs" />
-    <Compile Include="Oracle.fs" />
+    <Compile Include="DLC\DLCSetup.fs" />
+    <Compile Include="DLC\DLCOffer.fs" />
+    <Compile Include="DLC\DLC.fs" />
+    <Compile Include="Event\EventInImport.fs" />
+    <Compile Include="Event\EventInGeneration.fs" />
+    <Compile Include="Event\Event.fs" />
+    <Compile Include="Oracle\Oracle.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

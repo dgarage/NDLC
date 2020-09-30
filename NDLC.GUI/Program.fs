@@ -26,7 +26,7 @@ type MainWindow() as this =
 #endif
         
         let c = GlobalConfig.Default
-        Elmish.Program.mkProgram (fun () -> Router.init) (Router.update c) Router.view
+        Elmish.Program.mkProgram (fun () -> Router.init) (Router.update c) (Router.view c)
         |> Program.withHost this
         |> Program.run
 
@@ -35,7 +35,7 @@ type MainControl() as this =
     inherit HostControl()
     do
         let c = GlobalConfig.Default
-        Elmish.Program.mkProgram (fun () -> Router.init) (Router.update c) Router.view
+        Elmish.Program.mkProgram (fun () -> Router.init) (Router.update c) (Router.view c)
         |> Program.withHost this
         |> Program.withConsoleTrace
         |> Program.run

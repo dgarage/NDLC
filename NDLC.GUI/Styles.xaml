@@ -5,11 +5,21 @@
     <Style Selector="TextBlock.link:pointerover">
         <Setter Property="Background" Value="White" />
     </Style>
+    
     <Style Selector="Button.add">
         <Setter Property="Background" Value="Green" />
+    </Style>
+    <Style Selector="Button.round">
+        <Setter Property="Margin" Value="6" />
+    </Style>
+    <Style Selector="Button.round /template/ ContentPresenter">
+        <Setter Property="CornerRadius" Value="6" />
     </Style>
     
     <Style Selector="TextBlock.error">
         <Setter Property="Foreground" Value="Red"></Setter>
+    </Style>
+    <Style Selector="TextBox.userinput">
+        <Setter Property="Margin" Value="6"></Setter>
     </Style>
 </Styles>
