@@ -277,7 +277,7 @@ module EventModule =
             NonceKeyPath = None
         }
         
-    type Msg =
+    type InternalMsg =
         | LoadEvents of AsyncOperationStatus<Result<EventInfo list, string>>
         | EventInImportMsg of EventInImportModule.InternalMsg
         | EventInGenerationMsg of EventInGenerationModule.InternalMsg
@@ -286,6 +286,27 @@ module EventModule =
         | Select of EventInfo option
         | DLCMsg of DLCModule.Msg
         
+        
+    type NewOfferMetadata = {
+        EventFullName: EventFullName
+    }
+    type OutMsg =
+        | NewOffer of NewOfferMetadata
+    type Msg =
+        | ForSelf of InternalMsg
+        | ForParent of OutMsg
+        
+    type TranslationDictionary<'Msg> = {
+        OnInternalMsg: InternalMsg -> 'Msg
+        OnNewOffer: NewOfferMetadata -> 'Msg
+    }
+    
+    type Translator<'Msg> = Msg -> 'Msg
+    
+    let translator ({ OnInternalMsg = onInternalMsg; OnNewOffer = onNewOffer }: TranslationDictionary<'Msg>): Translator<'Msg> =
+        function
+        | ForSelf i -> onInternalMsg i
+        | ForParent (NewOffer x) -> onNewOffer x
     type State = {
         CreatorName: string
         KnownEvents: Deferred<EventInfo list>
@@ -347,7 +368,7 @@ module EventModule =
         return Some(e)
     }
     
-    let update globalConfig (msg: Msg) (state: State) =
+    let update globalConfig (msg: InternalMsg) (state: State) =
         match msg with
         | LoadEvents Started ->
             { state with KnownEvents = InProgress }, Cmd.OfTask.result (loadEventInfos state.CreatorName globalConfig)
@@ -391,6 +412,9 @@ module EventModule =
         | EventInGenerationMsg (msg) ->
             let neweventInGenerationState = EventInGenerationModule.update msg state.EventInGeneration
             { state with EventInGeneration = neweventInGenerationState }, Cmd.none
+        | EventInImportMsg (msg) ->
+            let newEventInImport = EventInImportModule.update msg state.EventInImport
+            { state with EventInImport = newEventInImport }, Cmd.none
         | NewEvent e ->
             let newEvents = state.KnownEvents |> Deferred.map(fun x -> e::x)
             { state with KnownEvents = newEvents}, Cmd.none
@@ -423,7 +447,7 @@ module EventModule =
                             match obj with
                             | :? EventInfo as o -> o |> Some
                             | _ -> None
-                            |> Select |> dispatch
+                            |> Select |> ForSelf |> dispatch
                         )
                         ListBox.dataItems events
                         ListBox.itemTemplate 
@@ -434,7 +458,12 @@ module EventModule =
                                     ContextMenu.viewItems [
                                         MenuItem.create [
                                             MenuItem.header "Create New Offer"
-                                            MenuItem.onClick(fun _ -> failwith "TODO: dispatch")
+                                            MenuItem.onClick(fun _ ->
+                                                { NewOfferMetadata.EventFullName = (state.Selected.Value |> fst |> fun x -> x.FullNameObject) }
+                                                |> NewOffer
+                                                |> ForParent
+                                                |> dispatch
+                                                )
                                         ]
                                         MenuItem.create [
                                             MenuItem.header "Attest Event"
@@ -477,19 +506,19 @@ module EventModule =
                             TabItem.create [
                                 TabItem.classes ["sub-tubitem"; "import"]
                                 TabItem.header "Import"
-                                TabItem.content (EventInImportModule.view state.EventInImport (eventInImportTranslator >> dispatch))
+                                TabItem.content (EventInImportModule.view state.EventInImport (eventInImportTranslator >> ForSelf >> dispatch))
                             ]
                             TabItem.create [
                                 TabItem.classes ["sub-tubitem"; "generate"]
                                 TabItem.header "Generate"
-                                TabItem.content (EventInGenerationModule.view state.EventInGeneration (eventInGenerationTranslator >> dispatch))
+                                TabItem.content (EventInGenerationModule.view state.EventInGeneration (eventInGenerationTranslator >> ForSelf >> dispatch))
                             ]
                         ]
                     ]
                     
                     match state.Selected with
                     | Some (e, dlcState) ->
-                        DLCModule.view dlcState (DLCMsg >> dispatch)
+                        DLCModule.view dlcState (DLCMsg >> ForSelf >> dispatch)
                     | None -> ()
                 ]
             ]

@@ -57,7 +57,10 @@ module OracleModule =
         | InvalidOracle of errorMsg: string
         | ToggleOracleImport
         | NewOracle of OracleInfo
-        | EventMsg of EventModule.Msg
+        | NewOffer of EventModule.NewOfferMetadata
+        | EventMsg of EventModule.InternalMsg
+        
+    let eventMsgTranslator = EventModule.translator { OnInternalMsg = EventMsg; OnNewOffer = NewOffer }
         
     let loadOracleInfos(repo: NameRepository) =
         task {
@@ -264,7 +267,7 @@ module OracleModule =
                             TextBlock.create [
                                 TextBlock.text "Here goes oracle details"
                             ]
-                            EventModule.view eState (EventMsg >> dispatch)
+                            EventModule.view eState (eventMsgTranslator >> dispatch)
                         ]
                     ]
             ]
