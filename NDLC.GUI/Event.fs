@@ -9,6 +9,7 @@ open Avalonia.FuncUI.Components
 
 open Avalonia.Layout
 open NBitcoin
+open NDLC.GUI.GlobalMsgs
 open System.Threading.Tasks
 open NDLC.Infrastructure
 open NDLC.GUI.Utils
@@ -287,9 +288,6 @@ module EventModule =
         | DLCMsg of DLCModule.Msg
         
         
-    type NewOfferMetadata = {
-        EventFullName: EventFullName
-    }
     type OutMsg =
         | NewOffer of NewOfferMetadata
     type Msg =

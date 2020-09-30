@@ -19,8 +19,15 @@ module Router =
         
     type Msg =
         | NavigateTo of Page
-        | OracleMsg of OracleModule.Msg
+        | OracleMsg of OracleModule.InternalMsg
         | DLCMsg of DLCModule.Msg
+        | Sequence of Msg seq
+        
+    let oracleMsgTranslator =
+        OracleModule.translator {
+            OnInternalMsg = OracleMsg
+            OnNewOffer = fun offer -> Sequence([NavigateTo(DLC); offer |> DLCModule.NewOffer |> DLCMsg])
+        }
         
     let init =
         let o, oCmd = OracleModule.init
@@ -30,7 +37,7 @@ module Router =
           DLCState = d
         }, Cmd.batch [(oCmd |> Cmd.map(OracleMsg)); (dCmd |> Cmd.map(DLCMsg))]
         
-    let update globalConfig (msg: Msg) (state: State) =
+    let rec update globalConfig (msg: Msg) (state: State) =
         match msg with
         | NavigateTo page ->
             { state with CurrentPage = page }, Cmd.none
@@ -40,6 +47,12 @@ module Router =
         | DLCMsg m ->
             let newState, cmd = DLCModule.update globalConfig m (state.DLCState)
             { state with DLCState = newState }, (cmd |> Cmd.map(DLCMsg))
+        | Sequence msgs ->
+           let folder (s, c) msg =
+                let s', cmd = update globalConfig msg s
+                s', cmd :: c
+           let newState, cmdList = msgs |> Seq.fold(folder) (state, [])
+           newState, (cmdList |> Cmd.batch)
             
     let viewMenu _ dispatch =
         Menu.create [
@@ -67,7 +80,7 @@ module Router =
                     | About ->
                         yield (ViewBuilder.Create<About.Host>([]))
                     | Oracle ->
-                        yield OracleModule.view state.OracleState (OracleMsg >> dispatch)
+                        yield OracleModule.view state.OracleState (oracleMsgTranslator >> dispatch)
                     | DLC ->
                         yield DLCModule.view state.DLCState (DLCMsg >> dispatch)
                 ]

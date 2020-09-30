@@ -23,6 +23,7 @@ open Avalonia.Media
 open NBitcoin
 open NBitcoin.DataEncoders
 open NBitcoin.Secp256k1
+open NDLC.GUI.GlobalMsgs
 open NDLC.GUI.Utils
             
 module OracleModule =
@@ -49,7 +50,7 @@ module OracleModule =
             ImportingOracle: OracleInfo option
             InvalidOracleErrorMsg: string option
         }
-    type Msg =
+    type InternalMsg =
         | LoadOracles of AsyncOperationStatus<Result<OracleInfo seq, string>>
         | Remove of OracleInfo
         | Select of OracleInfo option
@@ -57,10 +58,16 @@ module OracleModule =
         | InvalidOracle of errorMsg: string
         | ToggleOracleImport
         | NewOracle of OracleInfo
-        | NewOffer of EventModule.NewOfferMetadata
+        | NewOffer of NewOfferMetadata
         | EventMsg of EventModule.InternalMsg
         
-    let eventMsgTranslator = EventModule.translator { OnInternalMsg = EventMsg; OnNewOffer = NewOffer }
+    type OutMsg =
+        | NewOffer of NewOfferMetadata
+    type Msg =
+        | ForSelf of InternalMsg
+        | ForParent of OutMsg
+        
+    let eventMsgTranslator = EventModule.translator { OnInternalMsg = EventMsg >> ForSelf; OnNewOffer = NewOffer >> ForParent }
         
     let loadOracleInfos(repo: NameRepository) =
         task {
@@ -80,6 +87,19 @@ module OracleModule =
         if (not <| isOk) then raise <| Exception("Failed to remove oracle! This should never happen") else
         return ()
     }
+    
+    type TranslationDictionary<'Msg> = {
+        OnInternalMsg: InternalMsg -> 'Msg
+        OnNewOffer: NewOfferMetadata -> 'Msg
+    }
+    
+    type Translator<'Msg> = Msg -> 'Msg
+    
+    let translator ({ OnInternalMsg = onInternalMsg; OnNewOffer = onNewOffer }: TranslationDictionary<'Msg>): Translator<'Msg> =
+        function
+        | ForSelf i -> onInternalMsg i
+        | ForParent (NewOffer x) -> onNewOffer x
+        
     let init =
         { KnownOracles = Deferred.HasNotStartedYet
           Selected = None
@@ -87,7 +107,7 @@ module OracleModule =
           InvalidOracleErrorMsg = None
           }, Cmd.batch [Cmd.ofMsg(LoadOracles Started)]
         
-    let update (globalConfig) (msg: Msg) (state: State) =
+    let update (globalConfig) (msg: InternalMsg) (state: State) =
         match msg with
         | LoadOracles Started ->
             let nameRepo =  (ConfigUtils.nameRepo globalConfig)
@@ -130,11 +150,11 @@ module OracleModule =
                     | true, oracleId ->
                         return
                             { OracleId = Some oracleId; Name = oracleName; KeyPath = None }
-                            |> Msg.NewOracle
+                            |> NewOracle
                     | false, _ ->
                         return (InvalidOracle "Failed to parse Oracle id!")
                 }
-            state, Cmd.OfTask.either generate () id (fun ex -> Msg.InvalidOracle (ex.ToString()))
+            state, Cmd.OfTask.either generate () id (fun ex -> InvalidOracle (ex.ToString()))
         | ToggleOracleImport ->
             { state with ImportingOracle = OracleInfo.Empty |> Some }, Cmd.none
         | NewOracle oracle ->
@@ -168,7 +188,7 @@ module OracleModule =
                 match obj with
                 | :? OracleInfo as o -> o |> Some
                 | _ -> None
-                |> Select |> dispatch
+                |> Select |> ForSelf |> dispatch
             )
             ListBox.dataItems (oracles)
             ListBox.itemTemplate
@@ -187,7 +207,7 @@ module OracleModule =
                         Button.create [
                             Button.dock Dock.Right
                             Button.content "remove"
-                            Button.onClick ((fun _ -> d |> Msg.Remove |> dispatch), SubPatchOptions.OnChangeOf d.OracleId)
+                            Button.onClick ((fun _ -> d |> Remove |> ForSelf |> dispatch), SubPatchOptions.OnChangeOf d.OracleId)
                         ]
                     ]
                 ]
@@ -215,8 +235,8 @@ module OracleModule =
         
     let oracleButtons (dispatch: Msg -> unit) =
         Components.importAndGenerateButton
-            (fun _ -> dispatch ToggleOracleImport)
-            (fun _ -> dispatch (Generate("MyNewOracle")))
+            (fun _ -> dispatch (ForSelf(ToggleOracleImport)))
+            (fun _ -> dispatch (ForSelf(Generate("MyNewOracle"))))
             
     let viewOracle dispatch state =
         let o = state.KnownOracles
@@ -234,7 +254,7 @@ module OracleModule =
                         TextBlock.text (sprintf "List of known oracles: (count: %i)" (items |> Seq.length))
                     ]
                     oracleListView items dispatch
-                    oracleButtons dispatch
+                    oracleButtons (dispatch)
                     match state.InvalidOracleErrorMsg with
                     | None -> ()
                     | Some x ->
@@ -272,7 +292,7 @@ module OracleModule =
                     ]
             ]
         ]
-    let view (state: State) dispatch =
+    let view (state: State) (dispatch: Msg -> unit) =
         DockPanel.create [
             DockPanel.children [
                 viewOracle dispatch state

@@ -5,6 +5,7 @@ open Elmish
 open NDLC
 open NDLC.Infrastructure
 open Avalonia.Controls
+open GlobalMsgs
 
 module DLCModule =
     type Outcome = {
@@ -19,6 +20,7 @@ module DLCModule =
         | CheckSigs
         | Setup
         | Done
+        
     type DLCInfo = {
         Name: string
         EventFullName: string
@@ -74,6 +76,7 @@ module DLCModule =
           EventFullName = "" }, Cmd.none
         
     type Msg =
+        | NewOffer of NewOfferMetadata
         | Null
         
     let update (globalConfig) (msg: Msg) (state: State) =
