@@ -10,6 +10,12 @@ using Xunit.Abstractions;
 using NDLC.Secp256k1;
 using System.Text;
 using NBitcoin;
+using Newtonsoft.Json.Linq;
+using System.IO;
+using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Linq;
+using NBitcoin.Crypto;
 
 namespace NDLC.Tests
 {
@@ -47,6 +53,37 @@ namespace NDLC.Tests
 				Assert.True(priv.PubKey.ToECPubKey().TryExtractPrivateKey(msg1, sig1, msg2, sig2, out var privkey));
 				Assert.Equal(priv.ToHex(), Encoders.Hex.EncodeData(privkey.ToBytes()));
 			}
+		}
+
+		class NormalizationTest
+		{
+			public string Description { get; set; }
+			public string[] Variants { get; set; }
+			public string Expected { get; set; }
+			public string SHA256 { get; set; }
+		}
+
+		[Fact]
+		public void NormalizationTests()
+		{
+			var tests = JsonConvert.DeserializeObject<NormalizationTest[]>(File.ReadAllText("Data/normalization_tests.json"));
+
+			foreach (var t in tests)
+			{
+				Log.WriteLine(t.Description);
+				foreach (var v in t.Variants)
+				{
+					Log.WriteLine("\t" + v);
+					var normalized = v.Normalize(NormalizationForm.FormC);
+					Assert.Equal(t.Expected, ToHex(normalized));
+					Assert.Equal(t.SHA256, Encoders.Hex.EncodeData(Hashes.SHA256(Encoders.Hex.DecodeData(t.Expected))));
+				}
+			}
+		}
+
+		private static string ToHex(string normalized)
+		{
+			return Encoders.Hex.EncodeData(Encoding.UTF8.GetBytes(normalized));
 		}
 
 		[Fact]
