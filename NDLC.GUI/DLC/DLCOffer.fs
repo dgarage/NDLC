@@ -1,5 +1,7 @@
 module NDLC.GUI.DLCOfferModule
 
+open System
+open System.Linq
 open FSharp.Control.Tasks
 open Avalonia.Controls
 open Elmish
@@ -7,105 +9,54 @@ open Avalonia.FuncUI.DSL
 open Avalonia.Layout
 open NBitcoin
 
+open TaskUtils
+open ResultUtils
+
 open NDLC.Infrastructure
 open NDLC.Messages
 
-open NDLC.GUI.Utils
 open NDLC.GUI
 open NDLC.GUI.GlobalMsgs
-
-type Outcome = {
-    Name: string
-    Odds: float
-}
-type MyRelationToDLC =
-    | Offerer
-    | Acceptor
-type DLCNextStep =
-    | Fund
-    | CheckSigs
-    | Setup
-    | Done
-    
-type DLCInfo = {
-    Name: string
-    EventFullName: string
-    LocalIdHex: string
-    Role: MyRelationToDLC
-    NextStep: DLCNextStep
-    Outcomes: Outcome list
-}
-with
-    member this.IsInitiator = this.Role = Offerer
-    member this.NextStepExplanation =
-        match this.NextStep with
-        | DLCNextStep.Setup ->
-            "You need to create the setup PSBT with your wallet sending {s.Us!.Collateral!.ToString(false, false)} BTC to yourself, it must not be broadcasted.
-            The address receiving this amount will be the same address where the reward of the DLC will be received.
-            Then your can use 'dlc setup {name} \"<PSBT>\"', and give this message to the other party."
-        | DLCNextStep.CheckSigs when this.IsInitiator ->
-            "You need to pass the offer to the other party, and the other party will need to accept by sending you back a signed message.
-            Then you need to use `dlc checksigs \"<signed message>\"`.
-            You can get the offer of this dlc with `dlc show --offer {name}`"
-        | DLCNextStep.CheckSigs when not <| this.IsInitiator ->
-            "You need to pass the accept message to the other party, and the other party needs to reply with a signed message.
-            Then you need to use `dlc checksigs \"<signed message>\"`.
-            You can get the accept message of this dlc with `dlc show --accept {name}`"
-        | DLCNextStep.Fund when this.IsInitiator ->
-            "You need to partially sign a PSBT funding the DLC. You can can get the PSBT with `dlc show --funding {name}`.
-            Then you need to use `dlc start {name} \"<PSBT>\"` and send the signed message to the other party."
-        | DLCNextStep.Fund when this.IsInitiator ->
-            "You need to partially sign a PSBT funding the DLC. You can can get the PSBT with `dlc show --funding {name}`.
-            Then you need to use `dlc start {name} \"<PSBT>\"` and broadcast the resulting transaction.";
-        | DLCNextStep.Done when this.IsInitiator ->
-            "Make sure the other party actually start the DLC by broadcasting the funding transaction.
-            IF THE OTHER PARTY DOES NOT RESPOND and doesn't broadcast the funding in reasonable delay. YOU MUST ABORT this DLC by signing and broadcasting the abort transaction `dlc show --abort {name}`.
-            The abort transaction spend the coins you used for your collateral back to yourself.
-            This will prevent a malicious party to start the contract without your involvement when he knows the outcome.
-            
-            When the Oracle attests the event, you can settle this contract by running `dlc execute \"<attestation>\"` and broadcasting the transaction.
-            
-            If the Oracle never attests the event you can get a refund later by broadcasting `dlc show --refund \"{name}\"`.";
-        | DLCNextStep.Done when not <| this.IsInitiator ->
-            "You need to fully sign and broadcast the funding transaction. You can get the PSBT with `dlc show --funding`.
-            When the Oracle attests the event, you can settle this contract by running `dlc execute \"<attestation>\"` and broadcasting the transaction.
-            If the Oracle never attests the event you can get a refund later by broadcasting `dlc show --refund \"{name}\"`."
-        | _ -> failwithf "Unreachable (%A): (%b)" this.NextStep this.IsInitiator
+open NDLC.GUI.Utils
 
 type OfferVM = {
     ContractInfo: ContractInfo seq
     /// The locktime of the CET transaction
-    LockTime: LockTime option
-    RefundLockTime: LockTime option
+    LockTime: LockTime
+    RefundLockTime: LockTime
     EventFullName: EventFullName
+    LocalName: string
 }
     with
     static member Empty = {
         ContractInfo = Seq.empty
-        LockTime = None
-        RefundLockTime = None
+        LockTime = LockTime.Zero
+        RefundLockTime = LockTime(4999999)
         EventFullName = EventFullName.Empty
+        LocalName = ""
     }
     static member FromMetadata(m: NewOfferMetadata) = {
-        ContractInfo = []
-        LockTime = None
-        RefundLockTime = None
-        EventFullName = EventFullName.Empty
+        ContractInfo = Seq.empty
+        LockTime =  LockTime.Zero
+        RefundLockTime = LockTime(4999999)
+        EventFullName = m.EventFullName
+        LocalName = ""
     }
     member this.ToOfferMsg() =
-        let o = Offer()
-        o.ContractInfo <- this.ContractInfo |> Array.ofSeq
-        o.Timeouts <-
-            let t = Timeouts()
-            t.ContractMaturity <- Option.defaultValue (LockTime.Zero) (this.LockTime)
-            t.ContractTimeout <- Option.defaultValue (LockTime(4999999)) (this.RefundLockTime)
-            t
-        o
+        task {
+            let o = Offer()
+            if (this.ContractInfo.Count() < 2) then return Error("You must specify at least 2 contract info!") else
+            if (this.LocalName |> String.IsNullOrEmpty) then  return Error("You must specify LocalName") else
+            o.ContractInfo <- this.ContractInfo |> Array.ofSeq
+            o.Timeouts <-
+                let t = Timeouts()
+                t.ContractMaturity <- (this.LockTime)
+                t.ContractTimeout <- (this.RefundLockTime)
+                t
+            return Ok o
+        }
 type State =
     {
-        DLCs: DLCInfo list
-        Selected: DLCInfo option
-        EventFullName: string
         OfferInEdit: OfferVM
         Error: string option
     }
@@ -113,10 +64,11 @@ type State =
 type InternalMsg =
     | NewOffer of NewOfferMetadata
     | UpdateOffer of OfferVM
+    | CommitOffer
     | InvalidInput of msg: string
     
 type OutMsg =
-    | OfferAccepted of msg: string
+    | OfferAccepted of AsyncOperationStatus<string * Offer>
     
 type Msg =
     | ForSelf of InternalMsg
@@ -124,7 +76,7 @@ type Msg =
     
 type TranslationDictionary<'Msg> = {
     OnInternalMsg: InternalMsg -> 'Msg
-    OnOfferAccepted: string -> 'Msg
+    OnOfferAccepted: AsyncOperationStatus<string * Offer> -> 'Msg
 }
 
 type Translator<'Msg> = Msg -> 'Msg
@@ -135,9 +87,7 @@ let translator ({ OnInternalMsg = onInternalMsg; OnOfferAccepted = onOfferAccept
     | ForParent (OfferAccepted msg) -> onOfferAccepted msg
     
 let init: State * Cmd<InternalMsg> =
-    { DLCs = []
-      Selected = None
-      EventFullName = ""
+    {
       OfferInEdit = OfferVM.Empty
       Error = None
       }, Cmd.none
@@ -146,7 +96,7 @@ let init: State * Cmd<InternalMsg> =
 let tryGetDLC globalConfig (dlcName: string) = task {
         return failwith ""
     }
-let update (globalConfig) (state: State)(msg: InternalMsg)  =
+let update (globalConfig) (msg: InternalMsg) (state: State) =
     match msg with
     | NewOffer data ->
         let o = OfferVM.FromMetadata(data)
@@ -155,9 +105,15 @@ let update (globalConfig) (state: State)(msg: InternalMsg)  =
         { state with OfferInEdit = (vm); Error = None }, Cmd.none
     | InvalidInput msg ->
         { state with Error = Some (msg)}, Cmd.none
+    | CommitOffer ->
+         let job =
+            Cmd.OfTask.either (state.OfferInEdit.ToOfferMsg >> Task.map(function | Ok x -> x | Error e -> raise <| Exception (e.ToString())))
+                              ()
+                              (fun x -> Finished("Finished Creating New Offer", x) |> OfferAccepted |> ForParent)
+                              (fun e -> e.ToString() |> InvalidInput |> ForSelf)
+         state, Cmd.batch[Cmd.ofMsg (Started |> OfferAccepted |> ForParent); job]
     
 let view (state: State) (dispatch) =
-    let state = state.OfferInEdit
     StackPanel.create [
         StackPanel.horizontalAlignment HorizontalAlignment.Center
         StackPanel.verticalAlignment VerticalAlignment.Center
@@ -170,11 +126,13 @@ let view (state: State) (dispatch) =
                 TextBox.useFloatingWatermark true
                 TextBox.name "EventFullname"
                 TextBox.watermark "Event full name: (<oracle/event>)"
-                yield! TextBox.onTextInputFinished(fun s ->
+                TextBox.text (state.OfferInEdit.EventFullName.ToString())
+                TextBox.errors (state.Error |> Option.toArray |> Seq.cast<obj>)
+                yield! TextBox.onTextInput(fun s ->
                     match EventFullName.TryParse s with
                     | true, eventFullName ->
-                        let s = { state with EventFullName = eventFullName }
-                        s |> UpdateOffer |> ForSelf |> dispatch
+                        let newOffer = { state.OfferInEdit with EventFullName = eventFullName }
+                        newOffer |> UpdateOffer |> ForSelf |> dispatch
                     | _ -> "Invalid EventFullName! (It must be in the form of 'oraclename/eventname'" |> InvalidInput |> ForSelf |> dispatch
                     )
             ]
@@ -182,7 +140,7 @@ let view (state: State) (dispatch) =
                 TextBox.classes ["userinput"]
                 TextBox.useFloatingWatermark true
                 TextBox.name "Payoff"
-                TextBox.watermark "Payoffs: (outcome:reward,outcome:-loss)"
+                TextBox.watermark "Payoffs. a.k.a contract_info: (outcome:reward,outcome:-loss)"
             ]
             TextBox.create [
                 TextBox.classes ["userinput"]
@@ -194,12 +152,12 @@ let view (state: State) (dispatch) =
                 TextBox.classes ["userinput"]
                 TextBox.useFloatingWatermark true
                 TextBox.name "Locktime"
-                TextBox.watermark "CET locktime"
+                TextBox.watermark "CET locktime. a.k.a. 'contract_maturity_bound'"
             ]
             TextBox.create [
                 TextBox.classes ["userinput"]
                 TextBox.useFloatingWatermark true
-                TextBox.name "RefundLocktime"
+                TextBox.name "RefundLocktime. a.k.a 'contract_timeout'"
                 TextBox.watermark "Refund locktime"
             ]
             TextBox.create [
@@ -218,9 +176,11 @@ let view (state: State) (dispatch) =
                         Button.content "Cancel"
                     ]
                     Button.create [
+                        Button.isEnabled state.Error.IsNone
                         Button.classes ["round"]
                         Button.dock Dock.Right
                         Button.content "Ok"
+                        Button.onClick(fun _ -> CommitOffer |> ForSelf |> dispatch)
                     ]
                 ]
             ]

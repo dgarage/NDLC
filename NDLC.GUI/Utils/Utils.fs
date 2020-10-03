@@ -19,11 +19,15 @@ type Deferred<'t> =
 /// Contains utility functions to work with value of the type `Deferred<'T>`.
 module Deferred =
 
+    let hasNotStarted = function
+        | HasNotStartedYet -> true
+        | _ -> false
     /// Returns whether the `Deferred<'T>` value has been resolved or not.
     let resolved = function
         | HasNotStartedYet -> false
         | InProgress -> false
         | Resolved _ -> true
+        
 
     /// Returns whether the `Deferred<'T>` value is in progress or not.
     let inProgress = function

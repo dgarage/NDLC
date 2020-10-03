@@ -81,6 +81,7 @@ let eventInGenerationView (state: EventGenerationArg) dispatch =
                 yield! TextBox.onTextInputFinished(fun txt -> txt.Split"," |> SetOutcomes |> UpdateGenerate |> ForSelf |> dispatch)
             ]
             Button.create [
+                Button.horizontalAlignment HorizontalAlignment.Right
                 Button.content "Save"
                 Button.onClick((fun _ -> state |> Generate |> ForParent |> dispatch), SubPatchOptions.OnChangeOf(state))
             ]

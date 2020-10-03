@@ -15,7 +15,9 @@
     <Compile Include="GlobalMsgs.fs" />
     <Compile Include="DLC\DLCSetup.fs" />
     <Compile Include="DLC\DLCOffer.fs" />
+    <Compile Include="DLC\DLCAccept.fs" />
     <Compile Include="DLC\DLC.fs" />
+    <Compile Include="DLCList\DLCList.fs" />
     <Compile Include="Event\EventInImport.fs" />
     <Compile Include="Event\EventInGeneration.fs" />
     <Compile Include="Event\Event.fs" />

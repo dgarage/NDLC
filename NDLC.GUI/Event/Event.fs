@@ -234,7 +234,7 @@ module EventModule =
                                         MenuItem.create [
                                             MenuItem.header "Create New Offer"
                                             MenuItem.onClick(fun _ ->
-                                                { NewOfferMetadata.EventFullName = (state.Selected.Value |> fun x -> x.FullNameObject) }
+                                                { NewOfferMetadata.EventFullName = (d.FullNameObject) }
                                                 |> NewOffer
                                                 |> ForParent
                                                 |> dispatch

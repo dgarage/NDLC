@@ -52,7 +52,7 @@ let translator ({ OnInternalMsg = onInternalMsg; OnSetupFinished = onSetupFinish
 let init: _ * Cmd<InternalMsg> =
     State.Empty, Cmd.none
     
-let update state msg =
+let update msg state =
     match msg with
     | Update s ->
         s, Cmd.none

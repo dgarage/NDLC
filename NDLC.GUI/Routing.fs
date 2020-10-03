@@ -45,7 +45,7 @@ module Router =
             let newState, cmd = OracleModule.update globalConfig m (state.OracleState)
             { state with OracleState = newState }, cmd |> Cmd.map(OracleMsg)
         | DLCMsg m ->
-            let newState, cmd = DLCModule.update globalConfig (state.DLCState) m
+            let newState, cmd = DLCModule.update globalConfig m (state.DLCState)
             { state with DLCState = newState }, (cmd |> Cmd.map(DLCMsg))
         | Sequence msgs ->
            let folder (s, c) msg =

@@ -3,38 +3,32 @@ namespace NDLC.GUI
 open Avalonia.FuncUI.DSL
 open Elmish
 open Avalonia.Controls
+open NDLC.GUI.DLCOfferModule
+open NDLC.GUI.Utils
 
-module DLCAcceptModule =
-    type State = {
-        Nil: bool
-    }
-    
-    let init =
-        { Nil = false }
-        
  module DLCModule =
     type State = {
         Offer: DLCOfferModule.State
         Setup: DLCSetupModule.State
         Accept: DLCAcceptModule.State
-        OutputToShowUser: string option
+        OutputToShowUser: Deferred<(string * string)>
     }
     
     type Msg =
         | OfferMsg of DLCOfferModule.InternalMsg
         | SetupMsg of DLCSetupModule.InternalMsg
-        | OutputReturned of msg: string
+        | OutputReturned of msg: string * content: string
         
     let offerTranslator =
         DLCOfferModule.translator
             {
                 OnInternalMsg = OfferMsg
-                OnOfferAccepted = OutputReturned
+                OnOfferAccepted = fun x -> (sprintf "Finished creating Offer! next step is", x.ToString()) |> OutputReturned
             }
     let setupTranslator =
         DLCSetupModule.translator
             { DLCSetupModule.TranslationDictionary.OnInternalMsg = SetupMsg
-              OnSetupFinished = fun x -> x.ToString() |> OutputReturned
+              OnSetupFinished = fun x -> (sprintf "", x.ToString()) |> OutputReturned
             }
             
     let init =
@@ -45,18 +39,18 @@ module DLCAcceptModule =
             Offer = o
             Setup = s
             Accept = a
-            OutputToShowUser = None
+            OutputToShowUser = HasNotStartedYet
         }, Cmd.batch([ oCmd |> Cmd.map(OfferMsg); sCmd |> Cmd.map(SetupMsg) ])
-    let update globalConfig state msg =
+    let update globalConfig msg state =
         match msg with
         | OfferMsg msg ->
-            let s, cmd = DLCOfferModule.update globalConfig state.Offer msg
-            {  state with Offer = s }, (cmd |> Cmd.map OfferMsg)
+            let s, cmd = DLCOfferModule.update globalConfig msg state.Offer 
+            {  state with Offer = s }, (cmd |> Cmd.map (offerTranslator))
         | SetupMsg msg ->
-            let s, cmd = DLCSetupModule.update state.Setup msg
+            let s, cmd = DLCSetupModule.update msg state.Setup
             { state with Setup = s }, (cmd |> Cmd.map SetupMsg)
-        | OutputReturned msg ->
-            { state with OutputToShowUser = Some msg }, Cmd.none
+        | OutputReturned (msg, content) ->
+            { state with OutputToShowUser = Deferred.Resolved(msg, content)}, Cmd.none
     
     let view globalConfig (state: State) dispatch =
         DockPanel.create [
@@ -78,6 +72,21 @@ module DLCAcceptModule =
                             TabItem.header "Accept"
                         ]
                     ]
+                ]
+                
+                StackPanel.create [
+                    StackPanel.isVisible (state.OutputToShowUser |> Deferred.hasNotStarted |> not)
+                    match state.OutputToShowUser with
+                    | Resolved (msg, content) ->
+                        StackPanel.children [
+                            TextBlock.create [
+                                TextBlock.text msg
+                            ]
+                            TextBox.create [
+                                TextBox.text content
+                            ]
+                        ]
+                    | _ -> ()
                 ]
             ]
         ]
