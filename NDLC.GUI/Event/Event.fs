@@ -70,6 +70,7 @@ module EventModule =
         | Generate of EventInGenerationModule.EventGenerationArg
         | NewEvent of EventInfo
         | Select of EventInfo option
+        | Sequence of InternalMsg seq
         
     type OutMsg =
         | NewOffer of NewOfferMetadata
@@ -149,7 +150,7 @@ module EventModule =
         return Some(e)
     }
     
-    let update globalConfig (msg: InternalMsg) (state: State) =
+    let rec update globalConfig (msg: InternalMsg) (state: State) =
         match msg with
         | LoadEvents Started ->
             { state with KnownEvents = InProgress }, Cmd.OfTask.result (loadEventInfos state.CreatorName globalConfig)
@@ -166,7 +167,7 @@ module EventModule =
                 | Some _ -> return EventInGenerationModule.InvalidInput (sprintf "Event with the name %s already exists" (name)) |> EventInGenerationMsg
                 | None ->
                     let! o  =
-                        ConfigUtils.getOracle globalConfig (state.CreatorName)
+                        CommandBase.getOracle globalConfig (state.CreatorName)
                     if o.RootedKeyPath |> isNull then
                         return (sprintf "You do not own the key for an oracle (%s)" state.CreatorName) |> EventInGenerationModule.InvalidInput |> EventInGenerationMsg else
                     let repo = ConfigUtils.repository globalConfig
@@ -189,7 +190,9 @@ module EventModule =
                                  }
                         return NewEvent(eventInfo)
             }
-            state, Cmd.OfTask.either generate () (fun x -> x) (fun e -> (e.ToString()) |> EventInGenerationModule.InvalidInput |> EventInGenerationMsg)
+            state, Cmd.OfTask.either generate ()
+                       (fun x -> Sequence([x; EventInGenerationModule.Reset |> EventInGenerationMsg]))
+                       (fun e -> (e.ToString()) |> EventInGenerationModule.InvalidInput |> EventInGenerationMsg)
         | EventInGenerationMsg (msg) ->
             let neweventInGenerationState = EventInGenerationModule.update msg state.EventInGeneration
             { state with EventInGeneration = neweventInGenerationState }, Cmd.none
@@ -204,6 +207,13 @@ module EventModule =
             | None -> { state with Selected = None }, Cmd.none
             | Some e -> 
                 { state with Selected = Some (e) }, Cmd.none
+        | Sequence msgs ->
+           let folder (s, c) msg =
+                let s', cmd = update globalConfig msg s
+                s', cmd :: c
+           let newState, cmdList = msgs |> Seq.fold(folder) (state, [])
+           newState, (cmdList |> Cmd.batch)
+            
                 
     let view (state: State) dispatch =
         match state.KnownEvents with
@@ -234,7 +244,7 @@ module EventModule =
                                         MenuItem.create [
                                             MenuItem.header "Create New Offer"
                                             MenuItem.onClick(fun _ ->
-                                                { NewOfferMetadata.EventFullName = (d.FullNameObject) }
+                                                { NewOfferMetadata.EventFullName = (d.FullNameObject); Outcomes = d.Outcomes }
                                                 |> NewOffer
                                                 |> ForParent
                                                 |> dispatch

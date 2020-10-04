@@ -16,7 +16,7 @@ type GlobalConfig = {
 }
 with
     static member  Default = {
-        Network = Network.Main
+        Network = Network.RegTest
         DataDir = None
     }
 
@@ -34,26 +34,3 @@ module ConfigUtils =
         |> Path.Combine
         |> NameRepository
         
-   
-    let tryGetOracle (globalConfig: GlobalConfig) (oracleName: string) =
-        task {
-            let! id =
-                let n = nameRepo globalConfig
-                n.GetId(Scopes.Oracles, oracleName)
-            if isNull id then return None else
-            let mutable pk: ECXOnlyPubKey = null
-            match ECXOnlyPubKey.TryCreate(ReadOnlySpan(Encoders.Hex.DecodeData(id)), Context.Instance, &pk) with
-            | false -> return None
-            | true ->
-                Debug.Assert(pk |> isNull |> not)
-                let repo = repository (globalConfig)
-                let! result = repo.GetOracle(pk)
-                return Some (result)
-        }
-        
-    let getOracle (globalConfig) (oracleName) = task {
-        match! tryGetOracle globalConfig oracleName with
-        | None -> return failwithf "Unreachable! Unknown OracleName %s" oracleName
-        | Some o ->
-            return o
-    }

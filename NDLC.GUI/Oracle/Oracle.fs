@@ -24,6 +24,7 @@ open NBitcoin
 open NBitcoin.DataEncoders
 open NBitcoin.Secp256k1
 open NDLC.GUI.GlobalMsgs
+open NDLC.GUI.Oracle
 open NDLC.GUI.Utils
             
 module OracleModule =
@@ -49,6 +50,8 @@ module OracleModule =
             Selected: (OracleInfo * EventModule.State) option
             ImportingOracle: OracleInfo option
             InvalidOracleErrorMsg: string option
+            OracleInImport: OracleInImportModule.State
+            OracleInGeneration: OracleInGenerationModule.State
         }
     type InternalMsg =
         | LoadOracles of AsyncOperationStatus<Result<OracleInfo seq, string>>
@@ -58,8 +61,9 @@ module OracleModule =
         | InvalidOracle of errorMsg: string
         | ToggleOracleImport
         | NewOracle of OracleInfo
-        | NewOffer of NewOfferMetadata
         | EventMsg of EventModule.InternalMsg
+        | OracleInImportMsg of OracleInImportModule.InternalMsg
+        | OracleInGenerationMsg of OracleInGenerationModule.InternalMsg
         
     type OutMsg =
         | NewOffer of NewOfferMetadata
@@ -68,6 +72,8 @@ module OracleModule =
         | ForParent of OutMsg
         
     let eventMsgTranslator = EventModule.translator { OnInternalMsg = EventMsg >> ForSelf; OnNewOffer = NewOffer >> ForParent }
+    let oracleInImportTranslator = OracleInImportModule.translator { OnInternalMsg = OracleInImportMsg >> ForSelf }
+    let oracleInGenerationTranslator = OracleInGenerationModule.translator { OnInternalMsg = OracleInGenerationMsg >> ForSelf }
         
     let loadOracleInfos(repo: NameRepository) =
         task {
@@ -105,6 +111,8 @@ module OracleModule =
           Selected = None
           ImportingOracle = None
           InvalidOracleErrorMsg = None
+          OracleInImport = OracleInImportModule.init
+          OracleInGeneration = OracleInGenerationModule.init
           }, Cmd.batch [Cmd.ofMsg(LoadOracles Started)]
         
     let update (globalConfig) (msg: InternalMsg) (state: State) =
@@ -137,19 +145,21 @@ module OracleModule =
                     | Deferred.Resolved (Ok true) ->
                         return (InvalidOracle(sprintf "Please change the oracle name from \"%s\" before you go next" Constants.defaultOracleName) )
                     | _ ->
-                    let! o = (ConfigUtils.tryGetOracle globalConfig oracleName)
+                    let! o = (CommandBase.tryGetOracle globalConfig (oracleName))
                     match o with
                     | Some _ -> return (InvalidOracle "Oracle with the same name Already exists!")
                     | None ->
                     let repo = ConfigUtils.repository globalConfig
-                    let nameRepo = ConfigUtils.nameRepo globalConfig
                     let! (keyPath, key) = repo.CreatePrivateKey()
                     let pubkey,_ = key.PubKey.ToECPubKey().ToXOnlyPubKey()
+                    let nameRepo = ConfigUtils.nameRepo globalConfig
+                    do! nameRepo.SetMapping(Scopes.Oracles, oracleName, Encoders.Hex.EncodeData(pubkey.ToBytes()))
                     let pubkeyHex = Encoders.Hex.EncodeData(pubkey.ToBytes())
+                    let! _ = repo.AddOracle(pubkey, keyPath)
                     match OracleId.TryParse pubkeyHex with
                     | true, oracleId ->
                         return
-                            { OracleId = Some oracleId; Name = oracleName; KeyPath = None }
+                            { OracleId = Some oracleId; Name = oracleName; KeyPath = Some(keyPath) }
                             |> NewOracle
                     | false, _ ->
                         return (InvalidOracle "Failed to parse Oracle id!")
@@ -182,7 +192,7 @@ module OracleModule =
                 { state with Selected = Some (o, newState) }, (cmd |> Cmd.map(EventMsg))
             | None -> state, Cmd.none
         
-    let oracleListView (oracles: OracleInfo seq) dispatch =
+    let private oracleListView (oracles: OracleInfo seq) dispatch =
         ListBox.create [
             ListBox.onSelectedItemChanged(fun obj ->
                 match obj with
@@ -238,7 +248,7 @@ module OracleModule =
             (fun _ -> dispatch (ForSelf(ToggleOracleImport)))
             (fun _ -> dispatch (ForSelf(Generate("MyNewOracle"))))
             
-    let viewOracle state dispatch =
+    let private viewOracle state dispatch =
         let o = state.KnownOracles
         match o with
         | HasNotStartedYet -> StackPanel.create []
@@ -255,6 +265,21 @@ module OracleModule =
                     ]
                     oracleListView items dispatch
                     oracleButtons (dispatch)
+                    TabControl.create [
+                        TabControl.tabStripPlacement Dock.Top
+                        TabControl.viewItems [
+                            TabItem.create [
+                                TabItem.classes ["sub-tubitem"; "import"]
+                                TabItem.header "Import"
+                                TabItem.content (OracleInImportModule.view state.OracleInImport (oracleInImportTranslator >> dispatch))
+                            ]
+                            TabItem.create [
+                                TabItem.classes ["sub-tubitem"; "generate"]
+                                TabItem.header "Generate"
+                                TabItem.content (OracleInGenerationModule.view state.OracleInGeneration (oracleInGenerationTranslator >> dispatch))
+                            ]
+                        ]
+                    ]
                     match state.InvalidOracleErrorMsg with
                     | None -> ()
                     | Some x ->
@@ -267,11 +292,7 @@ module OracleModule =
         | Resolved(Error e) ->
             renderError e
     
-    let createEventTab (state) dispatch =
-        DockPanel.create [
-            DockPanel.margin 3.
-        ]
-    let oracleDetailsView (state: State) dispatch =
+    let private oracleDetailsAndEventView (state: State) dispatch =
         DockPanel.create [
             DockPanel.isVisible state.Selected.IsSome
             // DockPanel.width 250.
@@ -296,7 +317,7 @@ module OracleModule =
         DockPanel.create [
             DockPanel.children [
                 viewOracle state dispatch
-                oracleDetailsView state dispatch
+                oracleDetailsAndEventView state dispatch
             ]
         ]
         

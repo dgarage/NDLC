@@ -4,6 +4,7 @@ open Avalonia.Controls
 open Avalonia.FuncUI.Builder
 open Avalonia.FuncUI.DSL
 open Elmish
+open NDLC.GUI
 
 module Router =
     type Page =

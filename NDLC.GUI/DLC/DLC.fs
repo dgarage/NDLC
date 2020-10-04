@@ -7,51 +7,47 @@ open NDLC.GUI.DLCOfferModule
 open NDLC.GUI.Utils
 
  module DLCModule =
+    type FromChild =
+        | OfferResult of DLCOfferModule.OfferResult
     type State = {
         Offer: DLCOfferModule.State
-        Setup: DLCSetupModule.State
         Accept: DLCAcceptModule.State
-        OutputToShowUser: Deferred<(string * string)>
+        OutputToShowUser: Deferred<FromChild>
     }
     
     type Msg =
         | OfferMsg of DLCOfferModule.InternalMsg
-        | SetupMsg of DLCSetupModule.InternalMsg
-        | OutputReturned of msg: string * content: string
+        | OutputReturned of FromChild
+        | NoOp
         
     let offerTranslator =
         DLCOfferModule.translator
             {
                 OnInternalMsg = OfferMsg
-                OnOfferAccepted = fun x -> (sprintf "Finished creating Offer! next step is", x.ToString()) |> OutputReturned
-            }
-    let setupTranslator =
-        DLCSetupModule.translator
-            { DLCSetupModule.TranslationDictionary.OnInternalMsg = SetupMsg
-              OnSetupFinished = fun x -> (sprintf "", x.ToString()) |> OutputReturned
+                OnOfferAccepted =
+                    function
+                        | Started -> NoOp
+                        | Finished s ->
+                            s |> OfferResult |> OutputReturned
             }
             
     let init =
         let o, oCmd = DLCOfferModule.init
-        let s, sCmd = DLCSetupModule.init
         let a = DLCAcceptModule.init
         {
             Offer = o
-            Setup = s
             Accept = a
             OutputToShowUser = HasNotStartedYet
-        }, Cmd.batch([ oCmd |> Cmd.map(OfferMsg); sCmd |> Cmd.map(SetupMsg) ])
+        }, Cmd.batch([ oCmd |> Cmd.map(OfferMsg); ])
     let update globalConfig msg state =
         match msg with
         | OfferMsg msg ->
             let s, cmd = DLCOfferModule.update globalConfig msg state.Offer 
             {  state with Offer = s }, (cmd |> Cmd.map (offerTranslator))
-        | SetupMsg msg ->
-            let s, cmd = DLCSetupModule.update msg state.Setup
-            { state with Setup = s }, (cmd |> Cmd.map SetupMsg)
-        | OutputReturned (msg, content) ->
-            { state with OutputToShowUser = Deferred.Resolved(msg, content)}, Cmd.none
-    
+        | OutputReturned o ->
+            { state with OutputToShowUser = Deferred.Resolved(o)}, Cmd.none
+        | NoOp ->
+            state, Cmd.none
     let view globalConfig (state: State) dispatch =
         DockPanel.create [
             DockPanel.children [
@@ -60,12 +56,7 @@ open NDLC.GUI.Utils
                     TabControl.viewItems [
                         TabItem.create [
                             TabItem.header "Offer"
-                            TabItem.content (DLCOfferModule.view state.Offer (offerTranslator >> dispatch))
-                        ]
-                        
-                        TabItem.create [
-                            TabItem.header "Setup"
-                            TabItem.content (DLCSetupModule.view globalConfig state.Setup (setupTranslator >> dispatch))
+                            TabItem.content (DLCOfferModule.view globalConfig state.Offer (offerTranslator >> dispatch))
                         ]
                         
                         TabItem.create [
@@ -77,13 +68,16 @@ open NDLC.GUI.Utils
                 StackPanel.create [
                     StackPanel.isVisible (state.OutputToShowUser |> Deferred.hasNotStarted |> not)
                     match state.OutputToShowUser with
-                    | Resolved (msg, content) ->
+                    | Resolved (OfferResult x) ->
                         StackPanel.children [
                             TextBlock.create [
-                                TextBlock.text msg
+                                TextBlock.text (x.Msg)
                             ]
                             TextBox.create [
-                                TextBox.text content
+                                TextBox.text (x.Offer.ToString())
+                            ]
+                            TextBox.create [
+                                TextBox.text (x.OfferJson)
                             ]
                         ]
                     | _ -> ()

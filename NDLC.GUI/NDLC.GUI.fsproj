@@ -9,6 +9,8 @@
     <AvaloniaResource Include="**\*.xaml" />
     <Compile Include="Utils\Utils.fs" />
     <Compile Include="Utils\GlobalConfig.fs" />
+    <Compile Include="Utils\CommandBase.fs" />
+    <Compile Include="Utils\Constants.fs" />
     <Compile Include="Components.fs" />
     <Compile Include="Controls.fs" />
     <Compile Include="About.fs" />
@@ -21,6 +23,8 @@
     <Compile Include="Event\EventInImport.fs" />
     <Compile Include="Event\EventInGeneration.fs" />
     <Compile Include="Event\Event.fs" />
+    <Compile Include="Oracle\OracleInImport.fs" />
+    <Compile Include="Oracle\OracleInGeneration.fs" />
     <Compile Include="Oracle\Oracle.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Program.fs" />
