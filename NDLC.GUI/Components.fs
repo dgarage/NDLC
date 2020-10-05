@@ -24,24 +24,5 @@ module Components =
         ]
 
 
-    let inline importAndGenerateButton (onImportClicked) (onGenerateClicked) =
-        let button (name: string) (classes: _ list) onClick = 
-            Button.create [
-                Button.dock Dock.Left
-                Button.content name
-                Button.margin 4.
-                Button.fontSize 15.
-                Button.classes classes
-                Button.onClick(onClick, SubPatchOptions.Always)
-            ]
-        StackPanel.create [
-            StackPanel.dock Dock.Bottom
-            StackPanel.orientation Orientation.Horizontal
-            StackPanel.children[
-                button "Import" ["round"] onImportClicked
-                button "Generate" ["round"; "add"] onGenerateClicked
-            ]
-        ]
-        
     let inputTextBox (name) (watermark) =
         TextBox.create []

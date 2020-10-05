@@ -23,8 +23,8 @@
     <Compile Include="Event\EventInImport.fs" />
     <Compile Include="Event\EventInGeneration.fs" />
     <Compile Include="Event\Event.fs" />
+    <Compile Include="Oracle\DomainModel.fs" />
     <Compile Include="Oracle\OracleInImport.fs" />
-    <Compile Include="Oracle\OracleInGeneration.fs" />
     <Compile Include="Oracle\Oracle.fs" />
     <Compile Include="Routing.fs" />
     <Compile Include="Program.fs" />

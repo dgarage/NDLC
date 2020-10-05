@@ -12,6 +12,7 @@ open NDLC.Infrastructure
 let tryGetOracle (globalConfig) (oracleName: string): Task<Repository.Oracle option>  = task {
     let nameRepo = ConfigUtils.nameRepo globalConfig
     let! id = nameRepo.GetId(Scopes.Oracles, oracleName)
+    if (id |> isNull) then return None else
     let mutable pk: ECXOnlyPubKey = null
     match ECXOnlyPubKey.TryCreate(ReadOnlySpan(Encoders.Hex.DecodeData(id)), Context.Instance, &pk) with
     | false -> return None

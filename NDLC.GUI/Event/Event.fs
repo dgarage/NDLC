@@ -225,7 +225,7 @@ module EventModule =
                         TextBlock.dock Dock.Top
                         TextBlock.margin 5.
                         TextBlock.fontSize 14.
-                        TextBlock.text (sprintf "List of known events: (count: %i)" (events |> Seq.length))
+                        TextBlock.text (sprintf "List of %i known events: (try right-clicking)" (events |> Seq.length))
                     ]
                     ListBox.create [
                         ListBox.onSelectedItemChanged(fun obj ->
