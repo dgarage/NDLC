@@ -27,4 +27,7 @@ let translator ({ OnInternalMsg = onInternalMsg; }: TranslationDictionary<'Msg>)
     function
     | ForSelf i -> onInternalMsg i
 
+let update (msg: InternalMsg) (state: State) =
+    match msg with
+    | UpdateFoo  -> state
 let view (state) dispatch = StackPanel.create []

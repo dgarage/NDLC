@@ -1,6 +1,7 @@
 module NDLC.GUI.Oracle.OracleInImportModule
 
 open Avalonia.FuncUI.DSL
+open Elmish
 open NDLC.Messages
 
 type InternalMsg =
@@ -28,4 +29,8 @@ let init =
 let translator ({ OnInternalMsg = onInternalMsg; }: TranslationDictionary<'Msg>): Translator<'Msg> =
     function
     | ForSelf i -> onInternalMsg i
+    
+let update (msg: InternalMsg) (state: State) =
+    match msg with
+    | UpdateFoo  -> state, Cmd.none
 let view (state) dispatch = StackPanel.create []

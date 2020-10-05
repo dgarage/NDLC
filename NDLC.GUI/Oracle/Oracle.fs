@@ -35,18 +35,39 @@ module OracleModule =
     type OracleInfo = {
         Name: string
         OracleId: OracleId option
+        PubKey: ECXOnlyPubKey option
         KeyPath: RootedKeyPath option
     }
         with
         static member Empty = {
             Name = ""
             OracleId = None
+            PubKey = None
             KeyPath = None
         }
         
+    type KnownOracles = {
+        Mine: OracleInfo seq
+        Others: OracleInfo seq
+    }
+        with
+        member this.Exists(o: OracleInfo) =
+            this.Mine |> Seq.exists(fun m -> m = o) ||
+            this.Others |> Seq.exists(fun m -> m = o)
+        member this.Remove(o: OracleInfo) =
+            {
+                Mine = this.Mine |> Seq.where(fun m -> m <> o)
+                Others = this.Others |> Seq.where(fun m -> m <> o)
+            }
+            
+        member this.Add(o: OracleInfo) =
+            match o.KeyPath with
+            | Some _ -> { this with Mine = Seq.append this.Mine (Seq.singleton o) }
+            | None -> { this with Others = Seq.append this.Others (Seq.singleton o) }
+        
     type State =
         {
-            KnownOracles: Deferred<Result<OracleInfo seq, string>>
+            KnownOracles: Deferred<Result<KnownOracles, string>>
             Selected: (OracleInfo * EventModule.State) option
             ImportingOracle: OracleInfo option
             InvalidOracleErrorMsg: string option
@@ -54,7 +75,7 @@ module OracleModule =
             OracleInGeneration: OracleInGenerationModule.State
         }
     type InternalMsg =
-        | LoadOracles of AsyncOperationStatus<Result<OracleInfo seq, string>>
+        | LoadOracles of AsyncOperationStatus<Result<KnownOracles, string>>
         | Remove of OracleInfo
         | Select of OracleInfo option
         | Generate of name: string
@@ -75,14 +96,24 @@ module OracleModule =
     let oracleInImportTranslator = OracleInImportModule.translator { OnInternalMsg = OracleInImportMsg >> ForSelf }
     let oracleInGenerationTranslator = OracleInGenerationModule.translator { OnInternalMsg = OracleInGenerationMsg >> ForSelf }
         
-    let loadOracleInfos(repo: NameRepository) =
+    let loadOracleInfos(globalConfig) =
         task {
-            let! a =
-                repo.AsOracleNameRepository().GetIds()
+            let nameRepo =  (ConfigUtils.nameRepo globalConfig)
+            let! nameAndId =
+                nameRepo.AsOracleNameRepository().GetIds()
+            let oracleInfos = ResizeArray()
+            for kv in nameAndId do
+                let! o = CommandBase.getOracle(globalConfig) (kv.Key)
+                oracleInfos.Add({ OracleInfo.Name = kv.Key
+                                  OracleId = Some kv.Value
+                                  KeyPath = o.RootedKeyPath |> Option.ofObj
+                                  PubKey = o.PubKey |> Option.ofObj })
+            let mine =
+                oracleInfos |> Seq.where(fun o -> o.KeyPath.IsSome) |> Seq.sortBy(fun o -> o.Name)
+            let others = 
+                oracleInfos |> Seq.where(fun o -> o.KeyPath.IsNone) |> Seq.sortBy(fun o -> o.Name)
             return
-                a
-                |> Seq.sortBy(fun kv -> kv.Key)
-                |> Seq.map(fun kv -> { OracleInfo.Name = kv.Key; OracleId = Some kv.Value; KeyPath = None })
+                { Mine = mine; Others = others }
                 |> Ok
                 |> Finished
                 |> LoadOracles
@@ -118,8 +149,7 @@ module OracleModule =
     let update (globalConfig) (msg: InternalMsg) (state: State) =
         match msg with
         | LoadOracles Started ->
-            let nameRepo =  (ConfigUtils.nameRepo globalConfig)
-            { state with KnownOracles = InProgress }, Cmd.OfTask.result (loadOracleInfos nameRepo)
+            { state with KnownOracles = InProgress }, Cmd.OfTask.result (loadOracleInfos globalConfig)
         | LoadOracles (Finished (Ok oracles)) ->
             { state with KnownOracles = Resolved(Ok oracles) }, Cmd.none
         | LoadOracles (Finished (Error e)) ->
@@ -127,7 +157,7 @@ module OracleModule =
         | Remove oracle ->
             let nameRepo = ConfigUtils.nameRepo globalConfig
             (removeOracle nameRepo oracle).GetAwaiter().GetResult()
-            let newOracles = state.KnownOracles |> Deferred.map(Result.map(Seq.where(fun o -> o <> oracle)))
+            let newOracles = state.KnownOracles |> Deferred.map(Result.map((fun o -> o.Remove(oracle))))
             { state with KnownOracles = newOracles }, Cmd.none
         | Select o ->
             match o with
@@ -140,7 +170,7 @@ module OracleModule =
                 task {
                     let p =
                         state.KnownOracles
-                        |> Deferred.map(Result.map(Seq.exists(fun o -> o.Name = Constants.defaultOracleName)))
+                        |> Deferred.map(Result.map((fun o -> o.Mine |> Seq.exists(fun o -> o.Name = Constants.defaultOracleName))))
                     match p with
                     | Deferred.Resolved (Ok true) ->
                         return (InvalidOracle(sprintf "Please change the oracle name from \"%s\" before you go next" Constants.defaultOracleName) )
@@ -159,7 +189,7 @@ module OracleModule =
                     match OracleId.TryParse pubkeyHex with
                     | true, oracleId ->
                         return
-                            { OracleId = Some oracleId; Name = oracleName; KeyPath = Some(keyPath) }
+                            { OracleId = Some oracleId; Name = oracleName; KeyPath = Some(keyPath); PubKey = Some (pubkey) }
                             |> NewOracle
                     | false, _ ->
                         return (InvalidOracle "Failed to parse Oracle id!")
@@ -181,7 +211,7 @@ module OracleModule =
                     | None -> ()
                     return ()
                 }
-            let newOracles = state.KnownOracles |> Deferred.map(Result.map(Seq.append (Seq.singleton oracle)))
+            let newOracles = state.KnownOracles |> Deferred.map(Result.map(fun x -> x.Add(oracle)))
             { state with KnownOracles = newOracles}, Cmd.OfTask.attempt saveOracle () (fun x -> InvalidOracle(x.Message))
         | InvalidOracle msg ->
             { state with InvalidOracleErrorMsg = Some msg }, Cmd.none
@@ -191,6 +221,12 @@ module OracleModule =
                 let newState, cmd = EventModule.update globalConfig m (eState)
                 { state with Selected = Some (o, newState) }, (cmd |> Cmd.map(EventMsg))
             | None -> state, Cmd.none
+        | OracleInGenerationMsg msg ->
+            let newState = OracleInGenerationModule.update msg state.OracleInGeneration
+            { state with OracleInGeneration = newState }, Cmd.none
+        | OracleInImportMsg msg ->
+            let newState, cmd = OracleInImportModule.update msg state.OracleInImport
+            { state with OracleInImport = newState }, (cmd |> Cmd.map(OracleInGenerationMsg))
         
     let private oracleListView (oracles: OracleInfo seq) dispatch =
         ListBox.create [
@@ -243,11 +279,6 @@ module OracleModule =
             ]
         ]
         
-    let oracleButtons (dispatch: Msg -> unit) =
-        Components.importAndGenerateButton
-            (fun _ -> dispatch (ForSelf(ToggleOracleImport)))
-            (fun _ -> dispatch (ForSelf(Generate("MyNewOracle"))))
-            
     let private viewOracle state dispatch =
         let o = state.KnownOracles
         match o with
@@ -257,14 +288,23 @@ module OracleModule =
             StackPanel.create [
                 StackPanel.orientation Orientation.Vertical
                 StackPanel.children [
+                    
                     TextBlock.create [
                         TextBlock.dock Dock.Top
                         TextBlock.margin 5.
                         TextBlock.fontSize 18.
-                        TextBlock.text (sprintf "List of known oracles: (count: %i)" (items |> Seq.length))
+                        TextBlock.text (sprintf "List of oracles created by myself: (count: %i)" (items.Mine |> Seq.length))
                     ]
-                    oracleListView items dispatch
-                    oracleButtons (dispatch)
+                    oracleListView items.Mine dispatch
+                    
+                    TextBlock.create [
+                        TextBlock.dock Dock.Top
+                        TextBlock.margin 5.
+                        TextBlock.fontSize 18.
+                        TextBlock.text (sprintf "List of other oracles: (count: %i)" (items.Others |> Seq.length))
+                    ]
+                    oracleListView items.Others dispatch
+                    
                     TabControl.create [
                         TabControl.tabStripPlacement Dock.Top
                         TabControl.viewItems [
