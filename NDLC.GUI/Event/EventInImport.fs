@@ -96,23 +96,13 @@ let eventInImportView (state: EventImportArg) dispatch =
         let name1 = "EventName"
         let name2 = "Nonce"
         let name3 = "Outcomes"
-        let handler (b: TextBox) =
-            match b.Text with
-            | s when b.Name = name1 ->
-                UpdateEventName s
-            | s when b.Name = name2 ->
-                UpdateNonce s
-            | s when b.Name = name3 ->
-                UpdateOutcomes s
-            | _ -> failwith "Unreachable!"
-            |> ForSelf |> dispatch
             
-        yield! StackPanel.onTextboxInput handler
         StackPanel.children [
             TextBox.create [
                 TextBox.name name1
                 TextBox.watermark "Enter event name here"
                 TextBox.classes ["userinput"]
+                yield! TextBox.onTextInput(UpdateEventName >> ForSelf >> dispatch)
                 TextBox.errors(
                      state.ValidateEventName()
                      |> Option.toList |> Seq.cast<obj>
@@ -123,13 +113,17 @@ let eventInImportView (state: EventImportArg) dispatch =
                 TextBox.name name2
                 TextBox.classes ["userinput"]
                 TextBox.errors (state.ValidateNonce() |> Option.toList |> Seq.cast<obj>)
+                yield! TextBox.onTextInput(UpdateNonce >> ForSelf >> dispatch)
                 TextBox.watermark "Paste Nonce here"
+                TextBox.text state._Nonce
             ]
             TextBox.create [
                 TextBox.name name3
                 TextBox.classes ["userinput"]
                 TextBox.errors (state.ValidateOutcomes() |> Option.toList |> Seq.cast<obj>)
+                yield! TextBox.onTextInput(UpdateOutcomes >> ForSelf >> dispatch)
                 TextBox.watermark "Enter comma separated list of outcomes (e.g. \"Sunny,Cloudy,Else\")"
+                TextBox.text state._Outcomes
             ]
             Button.create [
                 Button.horizontalAlignment HorizontalAlignment.Right

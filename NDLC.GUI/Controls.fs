@@ -29,16 +29,3 @@ module TextBox =
             TextBox.onKeyUp(handler')
         ]
         
-        
-module StackPanel =
-    let onTextboxInput handler =
-        let handler' (args: RoutedEventArgs) =
-            let tBox = args.Source :?> TextBox
-            let tx = (tBox).Text
-            if String.IsNullOrEmpty tx then () else
-            handler (tBox)
-        [
-            TextBox.onKeyDown(handler')
-            TextBox.onKeyUp(handler')
-        ]
-        

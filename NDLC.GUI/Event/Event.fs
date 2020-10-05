@@ -198,7 +198,7 @@ module EventModule =
             }
             state, Cmd.OfTask.either generate ()
                        (fun x -> Sequence([x; EventInGenerationModule.Reset |> EventInGenerationMsg]))
-                       (fun e -> (e.ToString()) |> EventInGenerationModule.InvalidInput |> EventInGenerationMsg)
+                       (fun e -> (e.Message) |> EventInGenerationModule.InvalidInput |> EventInGenerationMsg)
         | EventInGenerationMsg (msg) ->
             let neweventInGenerationState = EventInGenerationModule.update msg state.EventInGeneration
             { state with EventInGeneration = neweventInGenerationState }, Cmd.none
@@ -219,15 +219,15 @@ module EventModule =
                     let evtId = OracleInfo(oracle.PubKey, e.Nonce.Value)
                     match! repo.AddEvent(evtId, e.Outcomes) with
                     | false ->
-                        failwithf "An event with the same name (%s) already exists!" e.FullName
+                        failwithf "An event with the same nonce already exists!"
                     | true ->
                     let nameRepo = ConfigUtils.nameRepo globalConfig
                     do! nameRepo.AsEventRepository().SetMapping(evtId, e.EventName)
             }
-            state, Cmd.OfTask.either saveEvent () (fun _ -> NewEventSaved(e)) (fun e -> InvalidInput(e.ToString()))
+            state, Cmd.OfTask.either saveEvent () (fun _ -> NewEventSaved(e)) (fun e -> InvalidInput(e.Message))
         | NewEventSaved e ->
             let newEvents = state.KnownEvents |> Deferred.map(fun x -> e::x)
-            { state with KnownEvents = newEvents}, Cmd.batch[Cmd.ofMsg(EventInImportMsg (EventInImportModule.Reset)); Cmd.ofMsg(EventInGenerationMsg (EventInGenerationModule.Reset))]
+            { state with KnownEvents = newEvents; ErrorMsg = None}, Cmd.batch[Cmd.ofMsg(EventInImportMsg (EventInImportModule.Reset)); Cmd.ofMsg(EventInGenerationMsg (EventInGenerationModule.Reset))]
         | Select e ->
             match e with
             | None -> { state with Selected = None }, Cmd.none
