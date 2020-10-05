@@ -2,12 +2,9 @@ namespace NDLC.GUI
 
 open FSharp.Control.Tasks
 
-open Avalonia
 open Avalonia.Controls
-open Avalonia.Controls.Presenters
 open Avalonia.Layout
 open Avalonia.Media
-open Avalonia.Styling
 
 open Elmish
 
@@ -18,21 +15,16 @@ open NDLC.Infrastructure
 open NDLC.Secp256k1
 
 open System
-open System.Diagnostics
-open Avalonia.Media
-open NBitcoin
 open NBitcoin.DataEncoders
-open NBitcoin.Secp256k1
 open NDLC.GUI.GlobalMsgs
 open NDLC.GUI.Oracle
 open NDLC.GUI.Oracle.DomainModel
 open NDLC.GUI.Utils
             
 module OracleModule =
-    open NDLC.GUI.Utils
     module Constants =
         [<Literal>]
-        let defaultOracleName = "MyOwesomeOracleName"
+        let defaultOracleName = "PleaseChangeMe"
     type KnownOracles = {
         Mine: OracleInfo seq
         Others: OracleInfo seq
@@ -297,7 +289,7 @@ module OracleModule =
                         Button.margin 4.
                         Button.fontSize 15.
                         Button.classes ["round"; "add"]
-                        let onClick = (fun _ -> dispatch(ForSelf(Generate("PleaseChangeMe"))))
+                        let onClick = (fun _ -> dispatch(ForSelf(Generate(Constants.defaultOracleName))))
                         Button.onClick(onClick, SubPatchOptions.Always)
                     ]
                     
@@ -346,16 +338,13 @@ module OracleModule =
             DockPanel.children [
                 match state.Selected with
                 | None -> ()
-                | Some (_, eState) ->
+                | Some (oInfo, eState) ->
                     StackPanel.create [
                         StackPanel.dock Dock.Top
                         StackPanel.orientation Orientation.Vertical
                         StackPanel.margin 1.
                         StackPanel.children [
-                            TextBlock.create [
-                                TextBlock.text "Here goes oracle details"
-                            ]
-                            EventModule.view eState (eventMsgTranslator >> dispatch)
+                            EventModule.view oInfo.KeyPath.IsSome eState (eventMsgTranslator >> dispatch)
                         ]
                     ]
             ]

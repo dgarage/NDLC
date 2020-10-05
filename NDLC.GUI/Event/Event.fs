@@ -16,6 +16,8 @@ open NDLC.GUI.Utils
 open NDLC.Messages
 open NDLC.Secp256k1
 
+open System.Diagnostics
+open Avalonia.FuncUI.Types
 open NDLC.GUI.GlobalMsgs
 open NDLC.GUI.Event
 
@@ -56,7 +58,7 @@ module EventModule =
          
         static member FromEventImport (e: EventInImportModule.EventImportArg) = {
             Nonce = e.Nonce
-            OracleName = e.OracleName
+            OracleName = e._OracleName
             EventName = e.EventName
             Outcomes = e.Outcomes
             CanReveal = false
@@ -69,7 +71,9 @@ module EventModule =
         | EventInGenerationMsg of EventInGenerationModule.InternalMsg
         | Generate of EventInGenerationModule.EventGenerationArg
         | NewEvent of EventInfo
+        | NewEventSaved of EventInfo
         | Select of EventInfo option
+        | InvalidInput of msg: string
         | Sequence of InternalMsg seq
         
     type OutMsg =
@@ -96,6 +100,7 @@ module EventModule =
         Selected: (EventInfo) option
         EventInImport: EventInImportModule.State
         EventInGeneration: EventInGenerationModule.State
+        ErrorMsg: string option
     }
     
     let eventInGenerationTranslator = EventInGenerationModule.translator { OnInternalMsg = EventInGenerationMsg
@@ -107,6 +112,7 @@ module EventModule =
           EventInGeneration = EventInGenerationModule.init
           EventInImport = EventInImportModule.init
           CreatorName = oracleId; LoadFailed = None
+          ErrorMsg = None
           Selected = None;},
         Cmd.ofMsg (LoadEvents AsyncOperationStatus.Started)
         
@@ -200,13 +206,35 @@ module EventModule =
             let newEventInImport = EventInImportModule.update msg state.EventInImport
             { state with EventInImport = newEventInImport }, Cmd.none
         | NewEvent e ->
+            let e = { e with OracleName = state.CreatorName }
+            let saveEvent () = task {
+                let! existingE = CommandBase.tryGetEvent(globalConfig) e.FullNameObject
+                match existingE with
+                | Some _ ->
+                    return (failwithf "An event with the same name (%s) already exists!" e.FullName)
+                | None ->
+                    let! oracle = CommandBase.getOracle globalConfig (state.CreatorName)
+                    let repo = ConfigUtils.repository globalConfig
+                    Debug.Assert(e.Nonce.Value |> isNull |> not)
+                    let evtId = OracleInfo(oracle.PubKey, e.Nonce.Value)
+                    match! repo.AddEvent(evtId, e.Outcomes) with
+                    | false ->
+                        failwithf "An event with the same name (%s) already exists!" e.FullName
+                    | true ->
+                    let nameRepo = ConfigUtils.nameRepo globalConfig
+                    do! nameRepo.AsEventRepository().SetMapping(evtId, e.EventName)
+            }
+            state, Cmd.OfTask.either saveEvent () (fun _ -> NewEventSaved(e)) (fun e -> InvalidInput(e.ToString()))
+        | NewEventSaved e ->
             let newEvents = state.KnownEvents |> Deferred.map(fun x -> e::x)
-            { state with KnownEvents = newEvents}, Cmd.none
+            { state with KnownEvents = newEvents}, Cmd.batch[Cmd.ofMsg(EventInImportMsg (EventInImportModule.Reset)); Cmd.ofMsg(EventInGenerationMsg (EventInGenerationModule.Reset))]
         | Select e ->
             match e with
             | None -> { state with Selected = None }, Cmd.none
             | Some e -> 
                 { state with Selected = Some (e) }, Cmd.none
+        | InvalidInput msg ->
+            { state with ErrorMsg = Some(msg) }, Cmd.none
         | Sequence msgs ->
            let folder (s, c) msg =
                 let s', cmd = update globalConfig msg s
@@ -215,7 +243,7 @@ module EventModule =
            newState, (cmdList |> Cmd.batch)
             
                 
-    let view (state: State) dispatch =
+    let view (amIOracle: bool) (state: State) dispatch =
         match state.KnownEvents with
         | Resolved events ->
             StackPanel.create [
@@ -285,21 +313,35 @@ module EventModule =
                         ))
                     ]
                     
-                    TabControl.create [
-                        TabControl.tabStripPlacement Dock.Top
-                        TabControl.viewItems [
-                            TabItem.create [
-                                TabItem.classes ["sub-tubitem"; "import"]
-                                TabItem.header "Import"
-                                TabItem.content (EventInImportModule.view state.EventInImport (eventInImportTranslator >> ForSelf >> dispatch))
+                    if (amIOracle) then
+                        TabControl.create [
+                            TabControl.tabStripPlacement Dock.Top
+                            TabControl.viewItems [
+                                TabItem.create [
+                                    TabItem.classes ["sub-tubitem"; "import"]
+                                    TabItem.header "Import Event"
+                                    TabItem.content (EventInImportModule.view state.EventInImport (eventInImportTranslator >> ForSelf >> dispatch))
+                                ]
+                                TabItem.create [
+                                    TabItem.classes ["sub-tubitem"; "generate"]
+                                    TabItem.header "Generate new Event"
+                                    TabItem.content (EventInGenerationModule.view state.EventInGeneration (eventInGenerationTranslator >> ForSelf >> dispatch))
+                                ]
                             ]
-                            TabItem.create [
-                                TabItem.classes ["sub-tubitem"; "generate"]
-                                TabItem.header "Generate"
-                                TabItem.content (EventInGenerationModule.view state.EventInGeneration (eventInGenerationTranslator >> ForSelf >> dispatch))
+                        ] :> IView
+                    else
+                        EventInImportModule.view state.EventInImport (eventInImportTranslator >> ForSelf >> dispatch)
+                    match state.ErrorMsg with
+                    | Some s ->
+                        StackPanel.create [
+                            StackPanel.children [
+                                TextBlock.create [
+                                    TextBlock.classes ["error"]
+                                    TextBlock.text s
+                                ]
                             ]
                         ]
-                    ]
+                    | None  -> ()
                 ]
             ]
 

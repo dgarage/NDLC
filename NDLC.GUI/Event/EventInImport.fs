@@ -10,14 +10,13 @@ open NDLC.Secp256k1
 
 open NDLC.GUI
 
-type EventImportArg = private {
-    _OracleName: string
+type EventImportArg = {
     _EventName: string
     _Nonce: string
     _Outcomes: string
+    _OracleName: string
 }
     with
-    member this.OracleName = this._OracleName
     member this.EventName = this._EventName
     member this.Nonce =
         match SchnorrNonce.TryParse this._Nonce with
@@ -38,18 +37,18 @@ type EventImportArg = private {
         | None, None, None -> true
         | _ -> false
     static member Empty = {
-        _OracleName = ""
         _EventName = ""
         _Nonce = ""
         _Outcomes = ""
+        _OracleName = ""
     }
     
 type InternalMsg =
-    | UpdateOracleName of string
     | UpdateEventName of string
     | UpdateNonce of string
     | UpdateOutcomes of string
     | InvalidInput of string
+    | Reset
     
 type OutMsg =
     | NewEvent of EventImportArg
@@ -80,12 +79,15 @@ let init =
     
 let update (msg: InternalMsg) (state: State) =
     match msg with
-    | UpdateOracleName a ->
-        { state with EventInImport = { state.EventInImport with _OracleName = a } }
     | UpdateEventName a ->
         { state with EventInImport = { state.EventInImport with _EventName = a } }
+    | UpdateNonce a ->
+        { state with EventInImport = { state.EventInImport with _Nonce = a } }
+    | UpdateOutcomes a ->
+        { state with EventInImport = { state.EventInImport with _Outcomes = a }}
     | InvalidInput i ->
         { state with ErrorMsg = Some i }
+    | Reset -> init
 
 let eventInImportView (state: EventImportArg) dispatch =
     StackPanel.create [

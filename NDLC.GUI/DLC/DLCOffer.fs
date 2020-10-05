@@ -163,7 +163,7 @@ type OfferVM = {
             let! lockTime = tryParseLockTime this.LockTime
             let! rLockTime = tryParseLockTime this.RefundLockTime
             let! f = tryParseFeeRate this.FeeRate
-            let! e = tryParseEventFullname this.FeeRate
+            let! e = tryParseEventFullname this.EventFullName
             let! psbt = tryParsePSBT (this.SetupPSBT, globalConfig.Network)
             return {
                 OfferDomainModel.ContractInfo = c
@@ -178,8 +178,8 @@ type OfferVM = {
         
     member this.HasError(n): bool =
         let v = this.Validate(n)
-        match v.ContractInfoErr, v.LocalNameErr, v.LockTimeErr, v.RefundLockTimeErr, v.EventFullNameErr with
-        | None, None, None, None, None -> false
+        match v.ContractInfoErr, v.LocalNameErr, v.LockTimeErr, v.RefundLockTimeErr, v.EventFullNameErr, v.FeeRateErr, v.PSBTErr with
+        | None, None, None, None, None, None, None -> false
         | _ -> true
         
 type State =
@@ -241,7 +241,7 @@ module private Tasks =
     /// 1. Offer message to send other peer
     /// 2. string repr of that offer
     let tryCreateDLC globalConfig (o: OfferVM): Task<Result<(Offer * string), _>> = task {
-        let d = o.ToDomainModel(globalConfig) |> function Error e -> failwithf "Unreachable state: %A. Error %s" o e | Ok r -> r
+        let d = o.ToDomainModel(globalConfig) |> function Error e -> failwithf "Unreachable state: %A.\n Error %s" o e | Ok r -> r
         let! maybeExistingDLC = CommandBase.tryGetDLC globalConfig o.LocalName
         match maybeExistingDLC with
         | Some _ ->
@@ -250,7 +250,7 @@ module private Tasks =
         let builder = DLCTransactionBuilder(true, null, null, null, globalConfig.Network)
         
         let! oracle = CommandBase.getOracle globalConfig (d.EventFullName.Name)
-        let! evt = CommandBase.getEvent (globalConfig) ("eventfullname", d.EventFullName)
+        let! evt = CommandBase.getEvent (globalConfig) (d.EventFullName)
         let timeout =
             let t = Timeouts()
             t.ContractMaturity <- LockTime 0
@@ -410,6 +410,13 @@ let view globalConfig (state: State) (dispatch) =
                     ]
                 ]
             ]
+            match state.Error with
+            | None -> ()
+            | Some x ->
+                TextBlock.create[
+                    TextBlock.text x
+                    TextBlock.classes ["error"]
+                ]
         ]
     ]
     
