@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin.Crypto;
+using NDLC.Messages;
 
 namespace NDLC.Tests
 {
@@ -64,9 +65,9 @@ namespace NDLC.Tests
 		}
 
 		[Fact]
-		public void NormalizationTests()
+		public void dlc_hash_test()
 		{
-			var tests = JsonConvert.DeserializeObject<NormalizationTest[]>(File.ReadAllText("Data/normalization_tests.json"));
+			var tests = JsonConvert.DeserializeObject<NormalizationTest[]>(File.ReadAllText("Data/dlc_hash_test.json"));
 
 			foreach (var t in tests)
 			{
@@ -77,6 +78,7 @@ namespace NDLC.Tests
 					var normalized = v.Normalize(NormalizationForm.FormC);
 					Assert.Equal(t.Expected, ToHex(normalized));
 					Assert.Equal(t.SHA256, Encoders.Hex.EncodeData(Hashes.SHA256(Encoders.Hex.DecodeData(t.Expected))));
+					Assert.Equal(t.SHA256, Encoders.Hex.EncodeData(new DiscreteOutcome(v).Hash));
 				}
 			}
 		}
@@ -84,6 +86,34 @@ namespace NDLC.Tests
 		private static string ToHex(string normalized)
 		{
 			return Encoders.Hex.EncodeData(Encoding.UTF8.GetBytes(normalized));
+		}
+
+		[Fact]
+		public void dlc_schnorr_test()
+		{
+			var arr = JArray.Parse(File.ReadAllText("Data/dlc_schnorr_test.json"));
+			foreach (var vector in arr.OfType<JObject>())
+			{
+				var privKey = Context.Instance.CreateECPrivKey(Encoders.Hex.DecodeData(vector["inputs"]["privKey"].Value<string>()));
+				var privNonce = Context.Instance.CreateECPrivKey(Encoders.Hex.DecodeData(vector["inputs"]["privNonce"].Value<string>()));
+				var hash = Encoders.Hex.DecodeData(vector["inputs"]["msgHash"].Value<string>());
+
+				var pubkey = Context.Instance.CreateXOnlyPubKey(Encoders.Hex.DecodeData(vector["pubKey"].Value<string>()));
+				var nonce = new SchnorrNonce(Context.Instance.CreateXOnlyPubKey(Encoders.Hex.DecodeData(vector["pubNonce"].Value<string>())));
+
+				Assert.Equal(nonce, privNonce.CreateSchnorrNonce());
+				Assert.Equal(pubkey, privKey.CreateXOnlyPubKey());
+				Assert.True(new OracleInfo(pubkey, nonce).TryComputeSigpoint(new DiscreteOutcome(hash), out var sigpoint));
+				Assert.True(Context.Instance.TryCreatePubKey(Encoders.Hex.DecodeData(vector["sigPoint"].Value<string>()), out var expectedSigPoint));
+				Assert.Equal(expectedSigPoint, sigpoint);
+
+				Assert.True(SecpSchnorrSignature.TryCreate(Encoders.Hex.DecodeData(vector["signature"].Value<string>()), out var expectedSig));
+				Assert.Equal(expectedSig.rx, nonce.PubKey.Q.x);
+				var expectedAttestation = expectedSig.s;
+				var sig = privKey.SignBIP140(hash, new PrecomputedNonceFunctionHardened(privNonce.ToBytes()));
+				Assert.Equal(expectedSig.rx, sig.rx);
+				Assert.Equal(expectedSig.s, sig.s);
+			}
 		}
 
 		[Fact]
