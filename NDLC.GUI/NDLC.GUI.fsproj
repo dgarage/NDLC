@@ -15,7 +15,7 @@
     <Compile Include="Controls.fs" />
     <Compile Include="About.fs" />
     <Compile Include="GlobalMsgs.fs" />
-    <Compile Include="DLC\DLCSetup.fs" />
+    <Compile Include="ParserAndValidators.fs" />
     <Compile Include="DLC\DLCOffer.fs" />
     <Compile Include="DLC\DLCAccept.fs" />
     <Compile Include="DLC\DLC.fs" />
