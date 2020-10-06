@@ -1,4 +1,8 @@
 namespace NDLC.GUI.Utils
+// for stackalloc
+#nowarn "9"
+
+open System
 
 
 module Option =
@@ -54,3 +58,11 @@ module Deferred =
         | HasNotStartedYet -> HasNotStartedYet
         | InProgress -> InProgress
         | Resolved value -> transform value
+        
+[<RequireQualifiedAccess>]
+module String =
+    open FSharp.NativeInterop
+    let isBase64 (s: string) =
+        let dummy' = NativePtr.stackalloc<byte>(s.Length)
+        let dummy = Span<byte>(NativePtr.toVoidPtr dummy', 32)
+        Convert.TryFromBase64String(s, dummy) |> fst

@@ -1,9 +1,4 @@
-﻿using NBitcoin;
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NDLC.CLI
+﻿namespace NDLC
 {
 	class Constants
 	{

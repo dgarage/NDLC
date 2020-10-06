@@ -11,6 +11,7 @@ open NDLC.GUI.Utils
  module DLCModule =
     type FromChild =
         | OfferResult of DLCOfferModule.OfferResult
+        | AcceptResult of string
     type State = {
         Offer: DLCOfferModule.State
         Accept: DLCAcceptModule.State
@@ -19,6 +20,7 @@ open NDLC.GUI.Utils
     
     type Msg =
         | OfferMsg of DLCOfferModule.InternalMsg
+        | AcceptMsg of DLCAcceptModule.InternalMsg
         | OutputReturned of FromChild
         | CopyToClipBoard of string
         | NoOp
@@ -34,6 +36,12 @@ open NDLC.GUI.Utils
                             s |> OfferResult |> OutputReturned
             }
             
+    let acceptTranslator =
+        DLCAcceptModule.translator {
+            OnInternalMsg = AcceptMsg
+            OnInputFinished = AcceptResult >> OutputReturned
+        }
+            
     let init =
         let o, oCmd = DLCOfferModule.init
         let a = DLCAcceptModule.init
@@ -47,6 +55,9 @@ open NDLC.GUI.Utils
         | OfferMsg msg ->
             let s, cmd = DLCOfferModule.update globalConfig msg state.Offer 
             {  state with Offer = s }, (cmd |> Cmd.map (offerTranslator))
+        | AcceptMsg msg ->
+            let s, cmd = DLCAcceptModule.update globalConfig msg state.Accept
+            {  state with Accept = s }, (cmd |> Cmd.map (acceptTranslator))
         | OutputReturned o ->
             { state with OutputToShowUser = Deferred.Resolved(o)}, Cmd.none
         | CopyToClipBoard x ->
@@ -70,6 +81,7 @@ open NDLC.GUI.Utils
                         
                         TabItem.create [
                             TabItem.header "Accept"
+                            TabItem.content (DLCAcceptModule.view globalConfig state.Accept (acceptTranslator >> dispatch))
                         ]
                     ]
                 ]
