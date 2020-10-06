@@ -1,5 +1,7 @@
 namespace NDLC.GUI
 
+open Avalonia
+open FSharp.Control.Tasks
 open Avalonia.FuncUI.DSL
 open Elmish
 open Avalonia.Controls
@@ -18,6 +20,7 @@ open NDLC.GUI.Utils
     type Msg =
         | OfferMsg of DLCOfferModule.InternalMsg
         | OutputReturned of FromChild
+        | CopyToClipBoard of string
         | NoOp
         
     let offerTranslator =
@@ -46,6 +49,12 @@ open NDLC.GUI.Utils
             {  state with Offer = s }, (cmd |> Cmd.map (offerTranslator))
         | OutputReturned o ->
             { state with OutputToShowUser = Deferred.Resolved(o)}, Cmd.none
+        | CopyToClipBoard x ->
+            let copy (str) = task {
+                do! Application.Current.Clipboard.SetTextAsync str
+                return NoOp
+            }
+            state, Cmd.OfTask.result (copy x)
         | NoOp ->
             state, Cmd.none
     let view globalConfig (state: State) dispatch =
@@ -74,10 +83,26 @@ open NDLC.GUI.Utils
                                 TextBlock.text (x.Msg)
                             ]
                             TextBox.create [
-                                TextBox.text (x.Offer.ToString())
+                                TextBox.text (x.OfferBase64)
+                                TextBlock.contextMenu (ContextMenu.create [
+                                    ContextMenu.viewItems [
+                                        MenuItem.create [
+                                            MenuItem.header "Copy Base64"
+                                            MenuItem.onClick(fun (_) -> x.OfferBase64 |> CopyToClipBoard |> dispatch)
+                                        ]
+                                    ]
+                                ])
                             ]
                             TextBox.create [
                                 TextBox.text (x.OfferJson)
+                                TextBlock.contextMenu (ContextMenu.create [
+                                    ContextMenu.viewItems [
+                                        MenuItem.create [
+                                            MenuItem.header "Copy Json"
+                                            MenuItem.onClick(fun (_) -> x.OfferJson |> CopyToClipBoard |> dispatch)
+                                        ]
+                                    ]
+                                ])
                             ]
                         ]
                     | _ -> ()

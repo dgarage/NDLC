@@ -16,6 +16,7 @@ open NDLC.GUI.Utils
 open NDLC.Messages
 open NDLC.Secp256k1
 
+open Avalonia
 open System.Diagnostics
 open Avalonia.FuncUI.Types
 open NDLC.GUI.GlobalMsgs
@@ -72,9 +73,11 @@ module EventModule =
         | Generate of EventInGenerationModule.EventGenerationArg
         | NewEvent of EventInfo
         | NewEventSaved of EventInfo
+        | CopyToClipBoard of string
         | Select of EventInfo option
         | InvalidInput of msg: string
         | Sequence of InternalMsg seq
+        | NoOp
         
     type OutMsg =
         | NewOffer of NewOfferMetadata
@@ -241,6 +244,13 @@ module EventModule =
                 s', cmd :: c
            let newState, cmdList = msgs |> Seq.fold(folder) (state, [])
            newState, (cmdList |> Cmd.batch)
+        | CopyToClipBoard txt ->
+            let copy (str) = task {
+                do! Application.Current.Clipboard.SetTextAsync str
+                return NoOp
+            }
+            state, Cmd.OfTask.result (copy txt)
+        | NoOp -> state, Cmd.none
             
                 
     let view (amIOracle: bool) (state: State) dispatch =
@@ -269,6 +279,10 @@ module EventModule =
                                 DockPanel.lastChildFill false
                                 DockPanel.contextMenu (ContextMenu.create [
                                     ContextMenu.viewItems [
+                                        MenuItem.create [
+                                            MenuItem.header "Copy Nonce"
+                                            MenuItem.onClick (fun _ -> match d.Nonce with None -> () | Some n -> CopyToClipBoard(n.ToString()) |> ForSelf |> dispatch)
+                                        ]
                                         MenuItem.create [
                                             MenuItem.header "Create New Offer"
                                             MenuItem.onClick(fun _ ->

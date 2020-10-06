@@ -14,6 +14,7 @@ open Avalonia.FuncUI.DSL
 open NDLC.Infrastructure
 open NDLC.Secp256k1
 
+open Avalonia
 open System
 open NBitcoin.DataEncoders
 open NDLC.GUI.GlobalMsgs
@@ -67,6 +68,8 @@ module OracleModule =
         | NewOracle of OracleInfo
         | EventMsg of EventModule.InternalMsg
         | OracleInImportMsg of OracleInImportModule.InternalMsg
+        | CopyToClipBoard of string
+        | NoOp
         
     type OutMsg =
         | NewOffer of NewOfferMetadata
@@ -212,6 +215,13 @@ module OracleModule =
             | Some o ->
             let newState, cmd = OracleInImportModule.update msg o
             { state with OracleInImport = newState |> Some }, (cmd |> Cmd.map(OracleInImportMsg))
+        | CopyToClipBoard txt ->
+            let copy (str) = task {
+                do! Application.Current.Clipboard.SetTextAsync str
+                return NoOp
+            }
+            state, Cmd.OfTask.result (copy txt)
+        | NoOp -> state, Cmd.none
         
     let private oracleListView (oracles: OracleInfo seq) dispatch =
         ListBox.create [
@@ -226,6 +236,14 @@ module OracleModule =
                 (DataTemplateView<OracleInfo>.create (fun d ->
                 DockPanel.create [
                     DockPanel.lastChildFill false
+                    DockPanel.contextMenu (ContextMenu.create [
+                        ContextMenu.viewItems [
+                            MenuItem.create [
+                                MenuItem.header "Copy PubKey"
+                                MenuItem.onClick(fun _ -> d.OracleId.ToString() |> CopyToClipBoard |> ForSelf |> dispatch)
+                            ]
+                        ]
+                    ])
                     DockPanel.children [
                         TextBox.create [
                             TextBox.text d.Name

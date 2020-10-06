@@ -1,6 +1,7 @@
 module NDLC.GUI.DLCOfferModule
 
 open System
+open System.Linq
 open FSharp.Control.Tasks
 open Avalonia.Controls
 open Elmish
@@ -14,6 +15,9 @@ open ResultUtils
 open NDLC.Infrastructure
 open NDLC.Messages
 
+open System.Collections.Generic
+open System.Text
+open NBitcoin.DataEncoders
 open System.Threading.Tasks
 open NDLC
 open NDLC.GUI
@@ -111,8 +115,8 @@ type OfferVM = {
     with
     static member Empty = {
         ContractInfo = ""
-        LockTime = ""
-        RefundLockTime = ""
+        LockTime = "0"
+        RefundLockTime = "499999999"
         EventFullName = ""
         LocalName = ""
         FeeRate = ""
@@ -202,10 +206,11 @@ type InternalMsg =
     | UpdateOffer of OfferUpdate
     | CommitOffer
     | InvalidInput of msg: string
+    | ResetErrorMsg
     
 type OfferResult = {
     Msg: string
-    Offer: Offer
+    OfferBase64: string
     OfferJson: string
 }
 type OutMsg =
@@ -237,33 +242,52 @@ let init: State * Cmd<InternalMsg> =
     
 [<AutoOpen>]
 module private Tasks =
+    let private fixCasing (evt: Repository.Event, payoffs: DiscretePayoffs) =
+        result {
+            let outcomes = HashSet<DiscreteOutcome>()
+            for i in 0..(payoffs.Count - 1) do
+                match payoffs.[i].Outcome.OutcomeString |> Option.ofObj with
+                | None -> return! Error("The payoff cannot be parsed")
+                | Some p ->
+                    let knownOutcome = evt.Outcomes |> Seq.map(DiscreteOutcome) |> fun s -> s.FirstOrDefault(fun o -> o.OutcomeString.Equals(p, StringComparison.OrdinalIgnoreCase))
+                    if (knownOutcome |> isNull) then return! Error(sprintf "The outcome %s is not part of the event" p) else
+                    outcomes.Add(knownOutcome) |> ignore;
+                    payoffs.[i] <- DiscretePayoff(knownOutcome, payoffs.[i].Reward)
+            if (outcomes.Count <> evt.Outcomes.Length) then
+                return! Error ("You did not specified the reward of all outcomes of the event")
+        }
     /// Returns
-    /// 1. Offer message to send other peer
+    /// 1. base64-encoded Offer message to send other peer
     /// 2. string repr of that offer
-    let tryCreateDLC globalConfig (o: OfferVM): Task<Result<(Offer * string), _>> = task {
+    let tryCreateDLC globalConfig (o: OfferVM): Task<Result<(string * string), _>> = task {
         let d = o.ToDomainModel(globalConfig) |> function Error e -> failwithf "Unreachable state: %A.\n Error %s" o e | Ok r -> r
         let! maybeExistingDLC = CommandBase.tryGetDLC globalConfig o.LocalName
         match maybeExistingDLC with
         | Some _ ->
             return Error("DLC with the same name already exists!")
         | _ ->
+        let! oracle = CommandBase.getOracle globalConfig (d.EventFullName.OracleName)
+        let! evt = CommandBase.getEvent (globalConfig) (d.EventFullName)
+        
+        match fixCasing(evt, d.ContractInfo) with
+        | Error e -> return Error e
+        | Ok _ ->
+        
         let builder = DLCTransactionBuilder(true, null, null, null, globalConfig.Network)
         
-        let! oracle = CommandBase.getOracle globalConfig (d.EventFullName.Name)
-        let! evt = CommandBase.getEvent (globalConfig) (d.EventFullName)
         let timeout =
             let t = Timeouts()
-            t.ContractMaturity <- LockTime 0
-            t.ContractTimeout <- Constants.NeverLockTime
+            t.ContractMaturity <- d.LockTime
+            t.ContractTimeout <- d.RefundLockTime
             t
            
         builder.Offer(oracle.PubKey, evt.EventId.RValue, d.ContractInfo, timeout) |> ignore;
-        let! dlc = (ConfigUtils.repository globalConfig).NewDLC(evt.EventId, builder)
+        let repo = ConfigUtils.repository globalConfig
+        let! dlc = repo.NewDLC(evt.EventId, builder)
         let nameRepo = ConfigUtils.nameRepo globalConfig
         do! nameRepo.AsDLCNameRepository().SetMapping(o.LocalName, dlc.Id)
         
         // from setup command
-        let repo = ConfigUtils.repository globalConfig
         let! (keypath, key) = repo.CreatePrivateKey()
         let offer = builder.FundOffer(key, d.PSBT)
         offer.OffererContractId <- dlc.Id
@@ -273,11 +297,12 @@ module private Tasks =
         dlc.Offer <- JObject.FromObject(offer, JsonSerializer.Create(repo.JsonSettings))
         do! repo.SaveDLC(dlc)
         
-        let jsonTxt = JsonConvert.SerializeObject(obj, repo.JsonSettings);
-        return Ok(offer, jsonTxt)
+        let jsonTxt = JsonConvert.SerializeObject(offer, repo.JsonSettings)
+        let base64Txt = Encoders.Base64.EncodeData(UTF8Encoding.UTF8.GetBytes(jsonTxt))
+        return Ok(base64Txt, jsonTxt)
     }
 
-let update (globalConfig) (msg: InternalMsg) (state: State) =
+let rec update (globalConfig) (msg: InternalMsg) (state: State) =
     match msg with
     | NewOffer data ->
         let o = OfferVM.FromMetadata(data)
@@ -301,15 +326,17 @@ let update (globalConfig) (msg: InternalMsg) (state: State) =
         ,Cmd.none
     | InvalidInput msg ->
         { state with Error = Some (msg)}, Cmd.none
+    | ResetErrorMsg ->
+        { state with Error = None }, Cmd.none
     | CommitOffer ->
          let job =
             Cmd.OfTask.either ((tryCreateDLC globalConfig) >> Task.map(function | Ok x -> x | Error e -> raise <| Exception (e.ToString())))
                               (state.OfferInEdit)
                               (fun (offer, offerJson) ->
-                                Finished({ Msg = "Finished Creating New Offer"; Offer = offer; OfferJson = offerJson })
+                                Finished({ Msg = "Finished Creating New Offer"; OfferBase64 = offer; OfferJson = offerJson })
                                 |> OfferAccepted |> ForParent)
-                              (fun e -> e.ToString() |> InvalidInput |> ForSelf)
-         state, Cmd.batch[Cmd.ofMsg (Started |> OfferAccepted |> ForParent); job]
+                              (fun e -> e.Message |> InvalidInput |> ForSelf)
+         state, Cmd.batch[Cmd.ofMsg (Started |> OfferAccepted |> ForParent); Cmd.ofMsg(ResetErrorMsg |> ForSelf); job]
     
 let view globalConfig (state: State) (dispatch) =
     StackPanel.create [
@@ -346,6 +373,7 @@ let view globalConfig (state: State) (dispatch) =
                 TextBox.useFloatingWatermark true
                 TextBox.name "Localname"
                 TextBox.watermark "Local Name For the offer"
+                TextBox.text (state.OfferInEdit.LocalName)
                 TextBox.errors (state.OfferInEdit.Validate(globalConfig.Network).LocalNameErr |> Option.toArray |> Seq.cast<obj>)
                 yield! TextBox.onTextInput(
                     LocalNameUpdate >>  UpdateOffer >> ForSelf >> dispatch
@@ -356,6 +384,7 @@ let view globalConfig (state: State) (dispatch) =
                 TextBox.useFloatingWatermark true
                 TextBox.name "Locktime"
                 TextBox.watermark "CET locktime. a.k.a. 'contract_maturity_bound'"
+                TextBox.text (state.OfferInEdit.LockTime)
                 TextBox.errors (state.OfferInEdit.Validate(globalConfig.Network).LockTimeErr |> Option.toArray |> Seq.cast<obj>)
                 yield! TextBox.onTextInput(
                     LockTimeUpdate >>  UpdateOffer >> ForSelf >> dispatch
@@ -366,6 +395,7 @@ let view globalConfig (state: State) (dispatch) =
                 TextBox.useFloatingWatermark true
                 TextBox.name "RefundLocktime. a.k.a 'contract_timeout'"
                 TextBox.watermark "Refund locktime"
+                TextBox.text (state.OfferInEdit.RefundLockTime)
                 TextBox.errors (state.OfferInEdit.Validate(globalConfig.Network).RefundLockTimeErr |> Option.toArray |> Seq.cast<obj>)
                 yield! TextBox.onTextInput(
                     RefundLockTimeUpdate >>  UpdateOffer >> ForSelf >> dispatch
@@ -376,6 +406,7 @@ let view globalConfig (state: State) (dispatch) =
                 TextBox.useFloatingWatermark true
                 TextBox.name "FeeRate"
                 TextBox.watermark "Feerate"
+                TextBox.text (state.OfferInEdit.FeeRate)
                 TextBox.errors (state.OfferInEdit.Validate(globalConfig.Network).FeeRateErr |> Option.toArray |> Seq.cast<obj>)
                 yield! TextBox.onTextInput(
                     FeeRateUpdate >>  UpdateOffer >> ForSelf >> dispatch
@@ -392,6 +423,7 @@ let view globalConfig (state: State) (dispatch) =
                         | Error _ -> ""
                 TextBox.watermark (sprintf "Paste your PSBT here! " + collateralMsg)
                 TextBox.height 120.
+                TextBox.text (state.OfferInEdit.SetupPSBT)
                 TextBox.errors (state.OfferInEdit.Validate(globalConfig.Network).PSBTErr |> Option.toArray |> Seq.cast<obj>)
                 yield! TextBox.onTextInput(
                     PSBTUpdate >>  UpdateOffer >> ForSelf >> dispatch

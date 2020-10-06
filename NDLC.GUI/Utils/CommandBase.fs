@@ -35,7 +35,7 @@ let tryGetEvent (globalConfig) (evtName: EventFullName): Task<Repository.Event o
     if (id |> isNull) then return None else
     let repo = ConfigUtils.repository globalConfig
     let! r = repo.GetEvent(id)
-    return r |> Some
+    return r |> Option.ofObj
 }
 
 let getEvent (globalConfig) (evtName: EventFullName): Task<Repository.Event> = task {
@@ -45,5 +45,17 @@ let getEvent (globalConfig) (evtName: EventFullName): Task<Repository.Event> = t
     | None -> return failwithf "Failed to get oracle with %A" evtName
 }
 let tryGetDLC globalConfig (dlcName: string) = task {
-    return failwith ""
+    let nameRepo = ConfigUtils.nameRepo globalConfig
+    let! id = nameRepo.AsDLCNameRepository().GetId(dlcName);
+    if (id |> isNull) then return None else
+    let repo = ConfigUtils.repository globalConfig
+    let! r = repo.GetDLC(id)
+    return r |> Option.ofObj
+}
+
+let getDLC globalConfig (dlcName: string) = task {
+    let! r = tryGetDLC globalConfig dlcName
+    match r with
+    | Some x -> return x
+    | None -> return failwithf "Failed to get oracle with %A" dlcName
 }
