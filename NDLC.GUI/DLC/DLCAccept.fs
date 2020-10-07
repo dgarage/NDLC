@@ -20,6 +20,7 @@ open NDLC.GUI.Utils
 open NDLC.Infrastructure
 open NDLC.Messages
 open Newtonsoft.Json
+open Newtonsoft.Json.Linq
 open ResultUtils
 open TaskUtils
 
@@ -28,14 +29,16 @@ type private BeforeReviewState =
     { OfferMsg: string; }
     
 type private ReviewingState = {
-    ReviewMsg: string; Offer: Offer 
+    ReviewMsg: string; Offer: Offer ; LocalName: string
 }
 type private AfterReviewState = {
-    PSBT: string; Offer: Offer 
+    PSBT: string
+    Offer: Offer
+    LocalName: string
 }
     with
     member this.GetCollateral() =
-        DiscretePayoffs.CreateFromContractInfo(this.Offer.ContractInfo, this.Offer.TotalCollateral).CalculateMinimumCollateral()
+        this.Offer.ToDiscretePayoffs().Inverse().CalculateMinimumCollateral()
 type MState =
     private
     | BeforeReview of BeforeReviewState
@@ -59,11 +62,14 @@ type InternalMsg =
     | StartReview of o: Offer * msg: string
     
     // reviewing
+    | LocalNameUpdate of string
     | ConfirmReview
+    | ReviewAccepted of Repository.DLCState
     
     // after review
     | PSBTUpdate of string
-    | SetupPSBT
+    | TrySetupPSBT
+    | FinishOperation of msg: string
     
 type OutMsg =
     | Finished of msg: string
@@ -167,6 +173,32 @@ module private Tasks =
             (sprintf "you must prepare psbt to fund %s BTC to yourself" (review.AcceptorCollateral.ToString(false, false)))
             |> fun msg -> Ok(o, msg)
     }
+    
+    let accept g (localName: string, offer: Offer) = task {
+        let! dlc = CommandBase.tryGetDLC g (localName)
+        match dlc with
+        | Some _ -> 
+            return failwith "The DLC with the same name already exists"
+        | None ->
+        let repo = ConfigUtils.repository g
+        let! evt = repo.GetEvent(offer.OracleInfo.PubKey, offer.OracleInfo.RValue)
+        offer.SetContractPreimages(evt.Outcomes) |> ignore
+        let builder = DLCTransactionBuilder(false, null, null, null, g.Network)
+        builder.Accept(offer) |> ignore
+        let! dlc = repo.NewDLC(offer.OracleInfo, builder);
+        dlc.BuilderState <- builder.ExportStateJObject();
+        dlc.Offer <- JObject.FromObject(offer, JsonSerializer.Create(repo.JsonSettings))
+        let nRepo = ConfigUtils.nameRepo g
+        do! nRepo.AsDLCNameRepository().SetMapping(localName, dlc.Id);
+        do! repo.SaveDLC(dlc);
+        return dlc
+    }
+    let setup g (psbt: string) = task {
+        let psbt = tryParsePSBT(psbt, g.Network)
+        let repo = ConfigUtils.repository g
+        let! (keyPath, key) = repo.CreatePrivateKey()
+        return failwith "todo"
+    }
 
 let update globalConfig msg state =
     match msg, state.Step with
@@ -182,19 +214,30 @@ let update globalConfig msg state =
     | OfferMsgUpdate msg, BeforeReview s ->
         { state with Step = BeforeReview { s with OfferMsg = msg }}, Cmd.none
     | TryReview, BeforeReview s ->
-        let onError(e: exn) = InvalidInput (e.Message) |> ForSelf
+        let onError(e: exn) = InvalidInput (e.ToString()) |> ForSelf
         let onSuccess = StartReview >> ForSelf
         state, (Cmd.OfTask.either) (Tasks.review >> Task.map Result.deref) (globalConfig, s.OfferMsg) (onSuccess) (onError)
     | StartReview (o, msg), BeforeReview m ->
-        { state with Step = Reviewing { Offer = o; ReviewMsg = msg } }, Cmd.none
+        { state with Step = Reviewing { Offer = o; ReviewMsg = msg; LocalName = "" } }, Cmd.none
         
     // ----- reviewing -----
+    | LocalNameUpdate msg, Reviewing s ->
+        { state with Step =  Reviewing { s with LocalName = msg } }, Cmd.none
     | ConfirmReview, Reviewing s ->
-        { state with ErrorMsg = None; Step = AfterReview { PSBT = ""; Offer = s.Offer } }, Cmd.none
+        let onSuccess = (ReviewAccepted >> ForSelf)
+        let onError (e: exn) = (e.Message |> InvalidInput |> ForSelf)
+        state,
+        Cmd.OfTask.either (Tasks.accept globalConfig) (s.LocalName, s.Offer) (onSuccess) (onError)
+    | ReviewAccepted dlc, Reviewing s ->
+        { state with ErrorMsg = None; Step = AfterReview { PSBT = ""; Offer = s.Offer; LocalName = s.LocalName }  }, Cmd.none
         
     // ----- after review (setup) -----
     | PSBTUpdate msg, AfterReview s ->
         { state with Step =  AfterReview { s with PSBT = msg } }, Cmd.none
+    | TrySetupPSBT, AfterReview s ->
+        failwith "TODO"
+    | FinishOperation msg, AfterReview s ->
+        failwith "TODO"
     | _ ->
         Debug.Assert(false, "Unreachable")
         state, Cmd.none
@@ -228,6 +271,16 @@ let private reviewMsgView (state: ReviewingState) dispatch =
             TextBlock.create [
                 TextBlock.text (state.ReviewMsg)
             ]
+            let localNameError = if state.LocalName |> String.IsNullOrWhiteSpace then Some ("You must specify local name") else None
+            TextBox.create [
+                TextBox.classes ["userinput"]
+                TextBox.name "LocalName"
+                TextBox.useFloatingWatermark true
+                TextBox.watermark (sprintf "Set local name to identify this DLC" )
+                TextBox.errors (localNameError |> Option.toList |> Seq.cast<obj>)
+                TextBox.text (state.LocalName)
+                yield! TextBox.onTextInput(LocalNameUpdate >> ForSelf >> dispatch)
+            ]
             
             StackPanel.create [
                 StackPanel.orientation Orientation.Horizontal
@@ -249,15 +302,16 @@ let private reviewMsgView (state: ReviewingState) dispatch =
     ]
     
 let private psbtView (g) (state: AfterReviewState) dispatch =
-        let v = state.PSBT |> Option.ofObj |> Option.map(fun  x -> validatePSBT(x, g.Network))
-        [
+    StackPanel.create [
+        StackPanel.children [
+            let psbtError = state.PSBT |> Option.ofObj |> Option.bind(fun  x -> validatePSBT(x, g.Network))
             TextBox.create [
                 TextBox.classes ["userinput"]
                 TextBox.name "Setup PSBT"
                 TextBox.useFloatingWatermark true
-                TextBox.watermark (sprintf "Paste your PSBT here! %A" (state.GetCollateral()))
+                TextBox.watermark (sprintf "Paste your PSBT here! It must pay %A BTC to yourself" (state.GetCollateral()))
                 TextBox.height 120.
-                TextBox.errors (v |> Option.toList |> Seq.cast<obj>)
+                TextBox.errors (psbtError |> Option.toList |> Seq.cast<obj>)
                 TextBox.text (state.PSBT)
                 yield! TextBox.onTextInput(PSBTUpdate >> ForSelf >> dispatch)
             ] :> IView
@@ -265,17 +319,18 @@ let private psbtView (g) (state: AfterReviewState) dispatch =
                 StackPanel.orientation Orientation.Horizontal
                 StackPanel.children [
                     Button.create[
-                        Button.isEnabled (v.IsNone)
                         Button.content "Cancel"
+                        Button.onClick(fun _ -> Reset |> ForSelf |> dispatch)
                     ]
                     Button.create[
-                        Button.isEnabled (v.IsNone)
+                        Button.isEnabled (psbtError.IsNone)
                         Button.content "Confirm"
-                        Button.onClick(fun _ -> ConfirmReview |> ForSelf |> dispatch)
+                        Button.onClick(fun _ -> TrySetupPSBT |> ForSelf |> dispatch)
                     ]
                 ]
             ] :> IView
         ]
+    ]
 
 
 let view globalConfig (state: State) dispatch =
@@ -291,7 +346,7 @@ let view globalConfig (state: State) dispatch =
             | Reviewing s ->
                 (reviewMsgView s dispatch)
             | AfterReview s ->
-                yield! (psbtView globalConfig (s) dispatch)
+                (psbtView globalConfig (s) dispatch)
                 
             TextBox.create [
                 TextBox.classes ["error"]
