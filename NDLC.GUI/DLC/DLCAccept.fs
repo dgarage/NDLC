@@ -11,6 +11,7 @@ open Avalonia.FuncUI.DSL
 open Avalonia.Layout
 
 open System
+open System.Diagnostics
 open Avalonia.FuncUI.Types
 open Elmish
 open NBitcoin.DataEncoders
@@ -23,40 +24,46 @@ open ResultUtils
 open TaskUtils
 
 
-type State = {
-    OfferMsg: string
-    ReviewResult: string option
-    SetupPSBT: string
-    ErrorMsg: string option
-    ReviewMsg: string option
-    ParsedOffer: Offer option
+type private BeforeReviewState =
+    { OfferMsg: string; }
+    
+type private ReviewingState = {
+    ReviewMsg: string; Offer: Offer 
+}
+type private AfterReviewState = {
+    PSBT: string; Offer: Offer 
 }
     with
-    member this.ValidateOfferMsg() =
-        if (this.OfferMsg |> String.IsNullOrEmpty) then Some "Empty Offer msg not allowed" else
-        // if (String.isBase64 this.OfferMsg |> not) then Some "Offer must be base64 encoded" else
-        None
-        
-    member this.ValidatePSBT() =
-        if (this.SetupPSBT |> String.IsNullOrEmpty) then Some "Empty PSBT not allowed" else
-        // if (String.isBase64 this.SetupPSBT  |> not) then Some "PSBT must be base64 encoded" else
-        None
-        
-    member this.TryGetCollateral() =
-        this.ParsedOffer |> Option.map(fun o -> DiscretePayoffs.CreateFromContractInfo(o.ContractInfo, o.TotalCollateral))
-        
-        
+    member this.GetCollateral() =
+        DiscretePayoffs.CreateFromContractInfo(this.Offer.ContractInfo, this.Offer.TotalCollateral).CalculateMinimumCollateral()
+type MState =
+    private
+    | BeforeReview of BeforeReviewState
+    | Reviewing of ReviewingState
+    | AfterReview of AfterReviewState
+    
+type State = {
+    ErrorMsg: string option
+    Step: MState
+}
 
 type InternalMsg =
-    | OfferMsgUpdate of string
-    | PSBTUpdate of string
+    // state independent
     | InvalidInput of msg: string
     | Reset
     | ResetErrorMsg
-    | ReviewMsg of msg: string
-    | OfferParsed of o: Offer
+    
+    // before review
+    | OfferMsgUpdate of string
     | TryReview
+    | StartReview of o: Offer * msg: string
+    
+    // reviewing
     | ConfirmReview
+    
+    // after review
+    | PSBTUpdate of string
+    | SetupPSBT
     
 type OutMsg =
     | Finished of msg: string
@@ -79,8 +86,8 @@ let translator ({ OnInternalMsg = onInternalMsg; OnInputFinished = onInputFinish
     
 
 let init = {
-    OfferMsg = ""; SetupPSBT = ""; ErrorMsg = None; ReviewResult = None
-    ReviewMsg = None; ParsedOffer = None
+    ErrorMsg = None
+    Step = BeforeReview { OfferMsg = "" }
 }
 
 [<AutoOpen>]
@@ -101,6 +108,11 @@ module private Helpers =
             if (o.Timeouts |> isNull) then Error "Invalid Offer Message! Missing Timeouts" else
             if (o.ContractInfo |> isNull) then Error "Invalid Offer Message! Missing ContractInfo" else
             Ok(o)
+            
+    let validateOfferMsg offerMsg =
+        if (offerMsg |> String.IsNullOrEmpty) then Some "Empty Offer msg not allowed" else
+        // if (String.isBase64 this.OfferMsg |> not) then Some "Offer must be base64 encoded" else
+        None
             
     let validatePSBTInContext g offerMsg psbt =
         let o = tryParseOfferMsg g offerMsg
@@ -153,33 +165,41 @@ module private Tasks =
             (sprintf "Refund validity: %s\n" (refund.ToString())) + 
             ("If you are sure you want to accept this offer, ") +
             (sprintf "you must prepare psbt to fund %s BTC to yourself" (review.AcceptorCollateral.ToString(false, false)))
-            |> Ok
+            |> fun msg -> Ok(o, msg)
     }
 
 let update globalConfig msg state =
-    match msg with
-    | OfferMsgUpdate msg ->
-        { state with OfferMsg = msg }, Cmd.none
-    | PSBTUpdate msg ->
-        { state with SetupPSBT = msg }, Cmd.none
-    | InvalidInput msg ->
+    match msg, state.Step with
+    // ----- state independent ---
+    | InvalidInput msg, _ ->
         { state with ErrorMsg = Some (msg) }, Cmd.none
-    | Reset ->
+    | Reset, _ ->
         init, Cmd.none
-    | ResetErrorMsg ->
+    | ResetErrorMsg, _ ->
         { state with ErrorMsg = None }, Cmd.none
-    | TryReview ->
-        let onError(e: exn) = InvalidInput (e.Message) |> ForSelf
-        let onSuccess = ReviewMsg >> ForSelf
-        state, (Cmd.OfTask.either) (Tasks.review >> Task.map Result.deref) (globalConfig, state.OfferMsg) (onSuccess) (onError)
-    | ReviewMsg msg ->
-        { state with ReviewMsg = Some msg; ErrorMsg = None }, Cmd.none
-    | ConfirmReview ->
-        { state with ReviewMsg = None }, Cmd.OfFunc.perform(parseOfferMsg globalConfig) (state.OfferMsg) (function | Ok s -> OfferParsed(s) |> ForSelf | Error e -> InvalidInput e |> ForSelf)
-    | OfferParsed o ->
-        { state with ParsedOffer = Some o }, Cmd.none
         
-let private offerView (state: State) dispatch =
+    // ----- before review -----
+    | OfferMsgUpdate msg, BeforeReview s ->
+        { state with Step = BeforeReview { s with OfferMsg = msg }}, Cmd.none
+    | TryReview, BeforeReview s ->
+        let onError(e: exn) = InvalidInput (e.Message) |> ForSelf
+        let onSuccess = StartReview >> ForSelf
+        state, (Cmd.OfTask.either) (Tasks.review >> Task.map Result.deref) (globalConfig, s.OfferMsg) (onSuccess) (onError)
+    | StartReview (o, msg), BeforeReview m ->
+        { state with Step = Reviewing { Offer = o; ReviewMsg = msg } }, Cmd.none
+        
+    // ----- reviewing -----
+    | ConfirmReview, Reviewing s ->
+        { state with ErrorMsg = None; Step = AfterReview { PSBT = ""; Offer = s.Offer } }, Cmd.none
+        
+    // ----- after review (setup) -----
+    | PSBTUpdate msg, AfterReview s ->
+        { state with Step =  AfterReview { s with PSBT = msg } }, Cmd.none
+    | _ ->
+        Debug.Assert(false, "Unreachable")
+        state, Cmd.none
+        
+let private offerView ({ OfferMsg = offerMsg }) dispatch =
     StackPanel.create [
         StackPanel.children  [
             TextBox.create [
@@ -188,12 +208,12 @@ let private offerView (state: State) dispatch =
                 TextBox.useFloatingWatermark true
                 TextBox.watermark (sprintf "Paste Base64-encoded offer message here")
                 TextBox.height 120.
-                TextBox.errors (state.ValidateOfferMsg() |> Option.toList |> Seq.cast<obj>)
-                TextBox.text (state.OfferMsg)
+                TextBox.errors (validateOfferMsg(offerMsg) |> Option.toList |> Seq.cast<obj>)
+                TextBox.text (offerMsg)
                 yield! TextBox.onTextInput(OfferMsgUpdate >> ForSelf >> dispatch)
             ]
             Button.create [
-                Button.isEnabled (state.ValidateOfferMsg().IsNone)
+                Button.isEnabled (validateOfferMsg(offerMsg).IsNone)
                 Button.classes [ "round" ]
                 Button.content "Review"
                 Button.onClick(fun _ -> TryReview |> ForSelf |> dispatch)
@@ -202,12 +222,11 @@ let private offerView (state: State) dispatch =
     ]
             
         
-let private reviewMsgView (state: string option) dispatch =
+let private reviewMsgView (state: ReviewingState) dispatch =
     StackPanel.create [
-        StackPanel.isVisible (state.IsSome)
         StackPanel.children [
             TextBlock.create [
-                TextBlock.text (state |> function Some x -> x | None -> "")
+                TextBlock.text (state.ReviewMsg)
             ]
             
             StackPanel.create [
@@ -229,17 +248,17 @@ let private reviewMsgView (state: string option) dispatch =
         ]
     ]
     
-let private psbtView (g) (state: State) dispatch =
-        let v = state.SetupPSBT |> Option.ofObj |> Option.map(fun  x -> validatePSBT(x, g.Network))
+let private psbtView (g) (state: AfterReviewState) dispatch =
+        let v = state.PSBT |> Option.ofObj |> Option.map(fun  x -> validatePSBT(x, g.Network))
         [
             TextBox.create [
                 TextBox.classes ["userinput"]
                 TextBox.name "Setup PSBT"
                 TextBox.useFloatingWatermark true
-                TextBox.watermark (sprintf "Paste your PSBT here! %A" (state.TryGetCollateral()))
+                TextBox.watermark (sprintf "Paste your PSBT here! %A" (state.GetCollateral()))
                 TextBox.height 120.
                 TextBox.errors (v |> Option.toList |> Seq.cast<obj>)
-                TextBox.text (state.SetupPSBT)
+                TextBox.text (state.PSBT)
                 yield! TextBox.onTextInput(PSBTUpdate >> ForSelf >> dispatch)
             ] :> IView
             StackPanel.create [
@@ -266,8 +285,18 @@ let view globalConfig (state: State) dispatch =
         StackPanel.width 450.
         StackPanel.margin 10.
         StackPanel.children [
-            (offerView state dispatch)
-            (reviewMsgView state.ReviewMsg dispatch)
-            yield! (psbtView globalConfig (state) dispatch)
+            match state.Step with
+            | BeforeReview s ->
+                (offerView s dispatch)
+            | Reviewing s ->
+                (reviewMsgView s dispatch)
+            | AfterReview s ->
+                yield! (psbtView globalConfig (s) dispatch)
+                
+            TextBox.create [
+                TextBox.classes ["error"]
+                TextBox.text (state.ErrorMsg |> Option.toObj)
+                TextBox.isVisible(state.ErrorMsg.IsSome)
+            ]
         ]
     ]
