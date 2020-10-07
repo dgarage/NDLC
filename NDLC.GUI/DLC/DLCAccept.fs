@@ -10,6 +10,8 @@ open Avalonia.Controls.Primitives
 open Avalonia.FuncUI.DSL
 open Avalonia.Layout
 
+open System
+open Avalonia.FuncUI.Types
 open Elmish
 open NBitcoin.DataEncoders
 open NDLC
@@ -40,11 +42,16 @@ type State = {
         // if (String.isBase64 this.SetupPSBT  |> not) then Some "PSBT must be base64 encoded" else
         None
         
+    member this.TryGetCollateral() =
+        this.ParsedOffer |> Option.map(fun o -> DiscretePayoffs.CreateFromContractInfo(o.ContractInfo, o.TotalCollateral))
+        
+        
 
 type InternalMsg =
     | OfferMsgUpdate of string
     | PSBTUpdate of string
     | InvalidInput of msg: string
+    | Reset
     | ResetErrorMsg
     | ReviewMsg of msg: string
     | OfferParsed of o: Offer
@@ -145,7 +152,7 @@ module private Tasks =
             (sprintf "Contract Execution validity: %s\n" (maturity.ToString())) +
             (sprintf "Refund validity: %s\n" (refund.ToString())) + 
             ("If you are sure you want to accept this offer, ") +
-            ("If your plan to accept this offer, you must prepare psbt to fund yourself.")
+            (sprintf "you must prepare psbt to fund %s BTC to yourself" (review.AcceptorCollateral.ToString(false, false)))
             |> Ok
     }
 
@@ -157,6 +164,8 @@ let update globalConfig msg state =
         { state with SetupPSBT = msg }, Cmd.none
     | InvalidInput msg ->
         { state with ErrorMsg = Some (msg) }, Cmd.none
+    | Reset ->
+        init, Cmd.none
     | ResetErrorMsg ->
         { state with ErrorMsg = None }, Cmd.none
     | TryReview ->
@@ -170,88 +179,95 @@ let update globalConfig msg state =
     | OfferParsed o ->
         { state with ParsedOffer = Some o }, Cmd.none
         
-let private reviewMsgView (state: string option) dispatch =
+let private offerView (state: State) dispatch =
     StackPanel.create [
-        StackPanel.row 1
-        StackPanel.children [
-            DockPanel.create [
-            DockPanel.children [
-                TextBlock.create [
-                    TextBlock.text (state |> function Some x -> x | None -> "")
-                ]
-                Button.create[
-                    Button.content "Cancel"
-                ]
-                Button.create[
-                    Button.content "Confirm"
-                    Button.onClick(fun _ -> ConfirmReview |> ForSelf |> dispatch)
-                ]
+        StackPanel.children  [
+            TextBox.create [
+                TextBox.classes ["userinput"]
+                TextBox.name "Base64Offer"
+                TextBox.useFloatingWatermark true
+                TextBox.watermark (sprintf "Paste Base64-encoded offer message here")
+                TextBox.height 120.
+                TextBox.errors (state.ValidateOfferMsg() |> Option.toList |> Seq.cast<obj>)
+                TextBox.text (state.OfferMsg)
+                yield! TextBox.onTextInput(OfferMsgUpdate >> ForSelf >> dispatch)
+            ]
+            Button.create [
+                Button.isEnabled (state.ValidateOfferMsg().IsNone)
+                Button.classes [ "round" ]
+                Button.content "Review"
+                Button.onClick(fun _ -> TryReview |> ForSelf |> dispatch)
             ]
         ]
+    ]
+            
+        
+let private reviewMsgView (state: string option) dispatch =
+    StackPanel.create [
+        StackPanel.isVisible (state.IsSome)
+        StackPanel.children [
+            TextBlock.create [
+                TextBlock.text (state |> function Some x -> x | None -> "")
+            ]
+            
+            StackPanel.create [
+                StackPanel.orientation Orientation.Horizontal
+                StackPanel.dock Dock.Right
+                StackPanel.children [
+                    Button.create[
+                        Button.classes ["round"]
+                        Button.content "Cancel"
+                        Button.onClick(fun _ -> Reset |> ForSelf |> dispatch)
+                    ]
+                    Button.create[
+                        Button.classes ["round"]
+                        Button.content "Confirm"
+                        Button.onClick(fun _ -> ConfirmReview |> ForSelf |> dispatch)
+                    ]
+                ]
+            ]
         ]
     ]
     
-let private psbtView (g) (state: string option) dispatch =
-    StackPanel.create [
-        StackPanel.row 2
-        StackPanel.children [
-            DockPanel.create [
-            DockPanel.children [
-                TextBox.create [
-                    TextBox.classes ["userinput"]
-                    TextBox.name "Setup PSBT"
-                    TextBox.useFloatingWatermark true
-                    TextBox.watermark (sprintf "Paste your PSBT here! ")
-                    TextBox.height 120.
-                    TextBox.errors (state |> Option.map(fun  x -> validatePSBT(x, g.Network)) |> Option.toList |> Seq.cast<obj>)
-                    TextBox.text (state |> Option.toObj)
-                    yield! TextBox.onTextInput(PSBTUpdate >> ForSelf >> dispatch)
+let private psbtView (g) (state: State) dispatch =
+        let v = state.SetupPSBT |> Option.ofObj |> Option.map(fun  x -> validatePSBT(x, g.Network))
+        [
+            TextBox.create [
+                TextBox.classes ["userinput"]
+                TextBox.name "Setup PSBT"
+                TextBox.useFloatingWatermark true
+                TextBox.watermark (sprintf "Paste your PSBT here! %A" (state.TryGetCollateral()))
+                TextBox.height 120.
+                TextBox.errors (v |> Option.toList |> Seq.cast<obj>)
+                TextBox.text (state.SetupPSBT)
+                yield! TextBox.onTextInput(PSBTUpdate >> ForSelf >> dispatch)
+            ] :> IView
+            StackPanel.create [
+                StackPanel.orientation Orientation.Horizontal
+                StackPanel.children [
+                    Button.create[
+                        Button.isEnabled (v.IsNone)
+                        Button.content "Cancel"
+                    ]
+                    Button.create[
+                        Button.isEnabled (v.IsNone)
+                        Button.content "Confirm"
+                        Button.onClick(fun _ -> ConfirmReview |> ForSelf |> dispatch)
+                    ]
                 ]
-                Button.create[
-                    Button.content "Cancel"
-                ]
-                Button.create[
-                    Button.content "Confirm"
-                    Button.onClick(fun _ -> ConfirmReview |> ForSelf |> dispatch)
-                ]
-            ]
+            ] :> IView
         ]
-        ]
-    ]
 
 
 let view globalConfig (state: State) dispatch =
-    Grid.create [
-        Grid.horizontalAlignment HorizontalAlignment.Center
-        Grid.verticalAlignment VerticalAlignment.Center
-        Grid.width 450.
-        Grid.margin 10.
-        Grid.rowDefinitions "Auto,Auto,*"
-        Grid.children [
-            StackPanel.create [
-                StackPanel.row 0
-                StackPanel.children  [
-                    TextBox.create [
-                        TextBox.classes ["userinput"]
-                        TextBox.name "Base64Offer"
-                        TextBox.useFloatingWatermark true
-                        TextBox.watermark (sprintf "Paste Base64-encoded offer message here")
-                        TextBox.height 120.
-                        TextBox.errors (state.ValidateOfferMsg() |> Option.toList |> Seq.cast<obj>)
-                        TextBox.text (state.OfferMsg)
-                        yield! TextBox.onTextInput(OfferMsgUpdate >> ForSelf >> dispatch)
-                    ]
-                    Button.create [
-                        Button.isEnabled (state.ValidateOfferMsg().IsNone)
-                        Button.classes [ "round" ]
-                        Button.content "Review"
-                        Button.onClick(fun _ -> TryReview |> ForSelf |> dispatch)
-                    ]
-                ]
-            ]
-            
-            (reviewMsgView state.ReviewResult dispatch)
-            
-            // psbtView globalConfig (state.SetupPSBT |> Option.ofObj) dispatch
+    StackPanel.create [
+        StackPanel.horizontalAlignment HorizontalAlignment.Center
+        StackPanel.verticalAlignment VerticalAlignment.Center
+        StackPanel.width 450.
+        StackPanel.margin 10.
+        StackPanel.children [
+            (offerView state dispatch)
+            (reviewMsgView state.ReviewMsg dispatch)
+            yield! (psbtView globalConfig (state) dispatch)
         ]
     ]
