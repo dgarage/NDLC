@@ -59,3 +59,4 @@ let getDLC globalConfig (dlcName: string) = task {
     | Some x -> return x
     | None -> return failwithf "Failed to get oracle with %A" dlcName
 }
+

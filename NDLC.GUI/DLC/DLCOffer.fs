@@ -1,3 +1,4 @@
+[<RequireQualifiedAccess>]
 module NDLC.GUI.DLCOfferModule
 
 open System
@@ -153,6 +154,7 @@ type InternalMsg =
     | CommitOffer
     | InvalidInput of msg: string
     | ResetErrorMsg
+    | Reset
     
 type OfferResult = {
     Msg: string
@@ -250,6 +252,9 @@ module private Tasks =
 
 let rec update (globalConfig) (msg: InternalMsg) (state: State) =
     match msg with
+    | Reset ->
+        let s, cmd = init
+        s, (cmd |> Cmd.map ForSelf)
     | NewOffer data ->
         let o = OfferVM.FromMetadata(data)
         {state with OfferInEdit = (o)}, Cmd.none
@@ -379,6 +384,11 @@ let view globalConfig (state: State) (dispatch) =
                 StackPanel.dock Dock.Bottom
                 StackPanel.orientation Orientation.Horizontal
                 StackPanel.children [
+                    Button.create[
+                        Button.classes ["round"]
+                        Button.content "Cancel"
+                        Button.onClick(fun _ -> Reset |> ForSelf |> dispatch)
+                    ]
                     Button.create [
                         Button.isEnabled (state.OfferInEdit.HasError(globalConfig.Network) |> not)
                         Button.classes ["round"]
