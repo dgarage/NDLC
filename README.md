@@ -21,6 +21,8 @@ With adaptor signatures:
 * Cooperative, or non-cooperative, a DLC takes only 3 transactions and less roundtrip of communications between the parties.
 * The parties don't have to monitor the blockchain, as they have no way to cheat.
 
+You can read about some background here: https://twitter.com/CryptoGarageInc/status/1314105420659658752?s=20
+
 ## How to use this repository
 
 This repository contains:
