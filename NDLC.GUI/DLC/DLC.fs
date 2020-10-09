@@ -6,6 +6,7 @@ open Avalonia.FuncUI.DSL
 open Elmish
 open Avalonia.Controls
 open NDLC.GUI.Utils
+open NDLC.Infrastructure
 
  module DLCModule =
     type FromChild =
@@ -13,6 +14,7 @@ open NDLC.GUI.Utils
         | AcceptResult of DLCAcceptModule.AcceptResult
         | StartResult of DLCSignModule.SignResult
     type State = {
+        List: DLCListModule.State
         Offer: DLCOfferModule.State
         Accept: DLCAcceptModule.State
         Start: DLCSignModule.State
@@ -20,13 +22,23 @@ open NDLC.GUI.Utils
     }
     
     type Msg =
+        | ListMsg of DLCListModule.InternalMsg
         | OfferMsg of DLCOfferModule.InternalMsg
         | AcceptMsg of DLCAcceptModule.InternalMsg
         | StartMsg of DLCSignModule.InternalMsg
         | OutputReturned of FromChild
         | CopyToClipBoard of string
         | NoOp
+        | Sequence of Msg seq
         
+    let listTranslator =
+        DLCListModule.translator {
+            OnInternalMsg = ListMsg
+            OnGoToNextStep = fun { NextStep = ns; LocalName = n } ->
+                match ns with
+                | Repository.DLCState.DLCNextStep.Setup ->
+                    Sequence([ DLCSignModule.InternalMsg.Reset |> StartMsg])
+        }
     let offerTranslator =
         DLCOfferModule.translator
             {
@@ -53,14 +65,19 @@ open NDLC.GUI.Utils
     let init =
         let o, oCmd = DLCOfferModule.init
         let a = DLCAcceptModule.init
+        let dlcList, listCmd = DLCListModule.init
         {
+            List = dlcList
             Offer = o
             Accept = a
             Start = DLCSignModule.init
             OutputToShowUser = HasNotStartedYet
-        }, Cmd.batch([ oCmd |> Cmd.map(OfferMsg); ])
+        }, Cmd.batch([ oCmd |> Cmd.map(OfferMsg); listCmd |> Cmd.map(ListMsg) ])
     let update globalConfig msg state =
         match msg with
+        | ListMsg msg ->
+            let s, cmd = DLCListModule.update globalConfig msg state.List
+            { state with List = s }, (cmd |> Cmd.map(ListMsg))
         | OfferMsg msg ->
             let s, cmd = DLCOfferModule.update globalConfig msg state.Offer 
             {  state with Offer = s }, (cmd |> Cmd.map (offerTranslator))
@@ -86,6 +103,10 @@ open NDLC.GUI.Utils
                 TabControl.create [
                     TabControl.tabStripPlacement Dock.Left
                     TabControl.viewItems [
+                        TabItem.create [
+                            TabItem.header "List"
+                            TabItem.content (DLCListModule.view globalConfig state.List (listTranslator >> dispatch))
+                        ]
                         TabItem.create [
                             TabItem.header "Offer"
                             TabItem.content (DLCOfferModule.view globalConfig state.Offer (offerTranslator >> dispatch))
