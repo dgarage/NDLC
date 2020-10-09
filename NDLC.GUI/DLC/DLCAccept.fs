@@ -373,10 +373,10 @@ let view globalConfig (state: State) dispatch =
             | AfterReview s ->
                 (psbtView globalConfig (s) dispatch)
                 
-            TextBox.create [
-                TextBox.classes ["error"]
-                TextBox.text (state.ErrorMsg |> Option.toObj)
-                TextBox.isVisible(state.ErrorMsg.IsSome)
+            TextBlock.create [
+                TextBlock.classes ["error"]
+                TextBlock.text (state.ErrorMsg |> Option.toObj)
+                TextBlock.isVisible(state.ErrorMsg.IsSome)
             ]
         ]
     ]

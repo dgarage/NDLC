@@ -82,7 +82,8 @@ type OfferVM = {
             ContractInfoErr =
                 validateContractInfo this.ContractInfo
             LocalNameErr =
-                if (this.LocalName |> String.IsNullOrEmpty) then Some("You must specify LocalName") else None
+                if (this.LocalName |> String.IsNullOrWhiteSpace) then Some("You must specify LocalName") else
+                if this.LocalName.Length > 20 then Some ("You can not specify local name with more than 20 characters") else None
             LockTimeErr =
                 validateLockime this.LockTime
             RefundLockTimeErr =

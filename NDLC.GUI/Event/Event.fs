@@ -200,7 +200,7 @@ module EventModule =
                         return NewEvent(eventInfo)
             }
             state, Cmd.OfTask.either generate ()
-                       (fun x -> Sequence([x; EventInGenerationModule.Reset |> EventInGenerationMsg]))
+                       (fun x -> Sequence([x; EventInGenerationModule.Reset |> EventInGenerationMsg;]))
                        (fun e -> (e.Message) |> EventInGenerationModule.InvalidInput |> EventInGenerationMsg)
         | EventInGenerationMsg (msg) ->
             let neweventInGenerationState = EventInGenerationModule.update msg state.EventInGeneration
@@ -328,22 +328,18 @@ module EventModule =
                     ]
                     
                     if (amIOracle) then
-                        TabControl.create [
-                            TabControl.tabStripPlacement Dock.Top
-                            TabControl.viewItems [
-                                TabItem.create [
-                                    TabItem.classes ["sub-tubitem"; "import"]
-                                    TabItem.header "Import Event"
-                                    TabItem.content (EventInImportModule.view state.EventInImport (eventInImportTranslator >> ForSelf >> dispatch))
-                                ]
-                                TabItem.create [
-                                    TabItem.classes ["sub-tubitem"; "generate"]
-                                    TabItem.header "Generate new Event"
-                                    TabItem.content (EventInGenerationModule.view state.EventInGeneration (eventInGenerationTranslator >> ForSelf >> dispatch))
-                                ]
-                            ]
-                        ] :> IView
+                        TextBlock.create [
+                            TextBlock.margin 5.
+                            TextBlock.fontSize 18.
+                            TextBlock.text "Fill in the following form to generate a new event"
+                        ]
+                        (EventInGenerationModule.view state.EventInGeneration (eventInGenerationTranslator >> ForSelf >> dispatch))
                     else
+                        TextBlock.create [
+                            TextBlock.margin 5.
+                            TextBlock.fontSize 18.
+                            TextBlock.text "Fill in the following form to import an event"
+                        ]
                         EventInImportModule.view state.EventInImport (eventInImportTranslator >> ForSelf >> dispatch)
                     match state.ErrorMsg with
                     | Some s ->

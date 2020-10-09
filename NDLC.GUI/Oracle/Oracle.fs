@@ -18,6 +18,7 @@ open NDLC.Secp256k1
 open Avalonia
 open System
 open NBitcoin.DataEncoders
+open NDLC.GUI
 open NDLC.GUI.GlobalMsgs
 open NDLC.GUI.Oracle
 open NDLC.GUI.Oracle.DomainModel
@@ -185,6 +186,8 @@ let update (globalConfig) (msg: InternalMsg) (state: State) =
             task {
                 let! o = (CommandBase.tryGetOracle globalConfig (oracleName))
                 match o with
+                | Some _ when (oracleName = Constants.defaultOracleName) ->
+                    return InvalidOracle(sprintf "You must first change the previously generated oracle name from \"%s\"!" Constants.defaultOracleName)
                 | Some _ -> return (InvalidOracle "Oracle with the same name Already exists!")
                 | None ->
                 let repo = ConfigUtils.repository globalConfig

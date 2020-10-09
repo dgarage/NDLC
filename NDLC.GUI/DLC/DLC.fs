@@ -13,12 +13,20 @@ open NDLC.Infrastructure
         | OfferResult of DLCOfferModule.OfferResult
         | AcceptResult of DLCAcceptModule.AcceptResult
         | StartResult of DLCSignModule.SignResult
+        
+    type Page =
+        | List = 0
+        | Offer = 1
+        | Accept = 2
+        | Start = 3
+    
     type State = {
         List: DLCListModule.State
         Offer: DLCOfferModule.State
         Accept: DLCAcceptModule.State
         Start: DLCSignModule.State
         OutputToShowUser: Deferred<FromChild>
+        SelectedIndex: Page
     }
     
     type Msg =
@@ -26,18 +34,33 @@ open NDLC.Infrastructure
         | OfferMsg of DLCOfferModule.InternalMsg
         | AcceptMsg of DLCAcceptModule.InternalMsg
         | StartMsg of DLCSignModule.InternalMsg
+        
         | OutputReturned of FromChild
         | CopyToClipBoard of string
+        | NavigateTo of Page
         | NoOp
         | Sequence of Msg seq
         
     let listTranslator =
         DLCListModule.translator {
             OnInternalMsg = ListMsg
-            OnGoToNextStep = fun { NextStep = ns; LocalName = n } ->
+            OnGoToNextStep = fun { NextStep = ns; LocalName = n; IsInitiator = isInit } ->
                 match ns with
+                | Repository.DLCState.DLCNextStep.Setup when isInit ->
+                    Sequence([ DLCOfferModule.Reset |> OfferMsg; NavigateTo(Page.Offer)])
                 | Repository.DLCState.DLCNextStep.Setup ->
-                    Sequence([ DLCSignModule.InternalMsg.Reset |> StartMsg])
+                    Sequence([ DLCAcceptModule.Reset |> AcceptMsg; NavigateTo(Page.Accept)])
+                | Repository.DLCState.DLCNextStep.CheckSigs when isInit ->
+                    Sequence([ DLCSignModule.Reset |> StartMsg; NavigateTo(Page.Start)])
+                | Repository.DLCState.DLCNextStep.CheckSigs ->
+                    Sequence([ DLCAcceptModule.Reset |> AcceptMsg; NavigateTo(Page.Accept)])
+                | Repository.DLCState.DLCNextStep.Fund when isInit ->
+                    Sequence([ DLCOfferModule.Reset |> OfferMsg; NavigateTo(Page.Offer)])
+                | Repository.DLCState.DLCNextStep.Fund ->
+                    Sequence([ DLCAcceptModule.Reset |> AcceptMsg; NavigateTo(Page.Accept)])
+                | Repository.DLCState.DLCNextStep.Done ->
+                    NoOp
+                | _ -> failwithf "Unreachable! Unknown nextStep %A" (ns)
         }
     let offerTranslator =
         DLCOfferModule.translator
@@ -72,8 +95,9 @@ open NDLC.Infrastructure
             Accept = a
             Start = DLCSignModule.init
             OutputToShowUser = HasNotStartedYet
+            SelectedIndex = Page.List
         }, Cmd.batch([ oCmd |> Cmd.map(OfferMsg); listCmd |> Cmd.map(ListMsg) ])
-    let update globalConfig msg state =
+    let rec update globalConfig msg state =
         match msg with
         | ListMsg msg ->
             let s, cmd = DLCListModule.update globalConfig msg state.List
@@ -95,31 +119,44 @@ open NDLC.Infrastructure
                 return NoOp
             }
             state, Cmd.OfTask.result (copy x)
+        | NavigateTo p ->
+            { state with SelectedIndex = p }, Cmd.none
         | NoOp ->
             state, Cmd.none
+        | Sequence msgs ->
+           let folder (s, c) msg =
+                let s', cmd = update globalConfig msg s
+                s', cmd :: c
+           let newState, cmdList = msgs |> Seq.fold(folder) (state, [])
+           newState, (cmdList |> Cmd.batch)
     let view globalConfig (state: State) dispatch =
         DockPanel.create [
             DockPanel.children [
                 TabControl.create [
                     TabControl.tabStripPlacement Dock.Left
+                    TabControl.selectedIndex ((int)state.SelectedIndex)
                     TabControl.viewItems [
                         TabItem.create [
                             TabItem.header "List"
                             TabItem.content (DLCListModule.view globalConfig state.List (listTranslator >> dispatch))
+                            TabItem.onTapped(fun _ -> Page.List |> NavigateTo |> dispatch)
                         ]
                         TabItem.create [
                             TabItem.header "Offer"
                             TabItem.content (DLCOfferModule.view globalConfig state.Offer (offerTranslator >> dispatch))
+                            TabItem.onTapped(fun _ -> Page.Offer |> NavigateTo |> dispatch)
                         ]
                         
                         TabItem.create [
                             TabItem.header "Accept"
                             TabItem.content (DLCAcceptModule.view globalConfig state.Accept (acceptTranslator >> dispatch))
+                            TabItem.onTapped(fun _ -> Page.Accept |> NavigateTo |> dispatch)
                         ]
                         
                         TabItem.create [
-                            TabItem.header "Sign"
+                            TabItem.header "Start"
                             TabItem.content (DLCSignModule.view globalConfig state.Start (startTranslator >> dispatch))
+                            TabItem.onTapped(fun _ -> Page.Start |> NavigateTo |> dispatch)
                         ]
                     ]
                 ]
