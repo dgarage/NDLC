@@ -34,7 +34,6 @@ type ErrorState = private {
     RefundLockTimeErr: string option
     EventFullNameErr: string option
     LocalNameErr: string option
-    FeeRateErr: string option
     PSBTErr: string option
 }
 
@@ -45,7 +44,6 @@ type OfferDomainModel = {
     RefundLockTime: LockTime
     EventFullName: EventFullName
     LocalName: string
-    FeeRate: FeeRate
     PSBT: PSBT
 }
 
@@ -56,7 +54,6 @@ type OfferVM = {
     RefundLockTime: string
     EventFullName: string
     LocalName: string
-    FeeRate: string
     SetupPSBT: string
 }
     with
@@ -66,7 +63,6 @@ type OfferVM = {
         RefundLockTime = "499999999"
         EventFullName = ""
         LocalName = ""
-        FeeRate = ""
         SetupPSBT = ""
     }
     static member FromMetadata(m: NewOfferMetadata) = {
@@ -83,15 +79,13 @@ type OfferVM = {
                 validateContractInfo this.ContractInfo
             LocalNameErr =
                 if (this.LocalName |> String.IsNullOrWhiteSpace) then Some("You must specify LocalName") else
-                if this.LocalName.Length > 20 then Some ("You can not specify local name with more than 20 characters") else None
+                if this.LocalName.Length > 30 then Some ("You can not specify local name with more than 30 characters") else None
             LockTimeErr =
                 validateLockime this.LockTime
             RefundLockTimeErr =
                 validateLockime this.RefundLockTime
             EventFullNameErr =
                 validateEventFullName this.EventFullName
-            FeeRateErr =
-                validateFeeRate this.FeeRate
             PSBTErr =
                 match tryParsePSBT (this.SetupPSBT, n), contractInfoR with
                 | Error x, _ -> Some x
@@ -114,7 +108,6 @@ type OfferVM = {
             let! localName = if (this.LocalName |> String.IsNullOrEmpty) then Error("You must specify LocalName") else Ok(this.LocalName)
             let! lockTime = tryParseLockTime this.LockTime
             let! rLockTime = tryParseLockTime this.RefundLockTime
-            let! f = tryParseFeeRate this.FeeRate
             let! e = tryParseEventFullname this.EventFullName
             let! psbt = tryParsePSBT (this.SetupPSBT, globalConfig.Network)
             return {
@@ -123,15 +116,14 @@ type OfferVM = {
                 RefundLockTime = rLockTime
                 EventFullName = e
                 LocalName = localName
-                FeeRate = f
                 PSBT = psbt
             }
         }
         
     member this.HasError(n): bool =
         let v = this.Validate(n)
-        match v.ContractInfoErr, v.LocalNameErr, v.LockTimeErr, v.RefundLockTimeErr, v.EventFullNameErr, v.FeeRateErr, v.PSBTErr with
-        | None, None, None, None, None, None, None -> false
+        match v.ContractInfoErr, v.LocalNameErr, v.LockTimeErr, v.RefundLockTimeErr, v.EventFullNameErr, v.PSBTErr with
+        | None, None, None, None, None, None -> false
         | _ -> true
         
 type State =
@@ -146,7 +138,6 @@ type OfferUpdate =
     | LockTimeUpdate of string
     | RefundLockTimeUpdate of string
     | LocalNameUpdate of string
-    | FeeRateUpdate of string
     | EventFullnameUpdate of string
     | PSBTUpdate of string
 type InternalMsg =
@@ -269,8 +260,6 @@ let rec update (globalConfig) (msg: InternalMsg) (state: State) =
             { state with OfferInEdit = { state.OfferInEdit with RefundLockTime = u }; }
         | LocalNameUpdate u ->
             { state with OfferInEdit = { state.OfferInEdit with LocalName = u }; }
-        | FeeRateUpdate u ->
-            { state with OfferInEdit = { state.OfferInEdit with FeeRate = u }; }
         | EventFullnameUpdate u ->
             { state with OfferInEdit = { state.OfferInEdit with EventFullName = u }; }
         | PSBTUpdate u ->
@@ -285,10 +274,11 @@ let rec update (globalConfig) (msg: InternalMsg) (state: State) =
             Cmd.OfTask.either ((tryCreateDLC globalConfig) >> Task.map(function | Ok x -> x | Error e -> raise <| Exception (e.ToString())))
                               (state.OfferInEdit)
                               (fun (offer, offerJson) ->
-                                Finished({ Msg = "Finished Creating New Offer"; OfferBase64 = offer; OfferJson = offerJson })
+                                Finished({ Msg = sprintf "Finished Creating New Offer for %s" state.OfferInEdit.LocalName
+                                           OfferBase64 = offer; OfferJson = offerJson })
                                 |> OfferAccepted |> ForParent)
                               (fun e -> e.Message |> InvalidInput |> ForSelf)
-         state, Cmd.batch[Cmd.ofMsg (Started |> OfferAccepted |> ForParent); Cmd.ofMsg(ResetErrorMsg |> ForSelf); job]
+         state, Cmd.batch[Cmd.ofMsg (Started |> OfferAccepted |> ForParent); Cmd.ofMsg(Reset |> ForSelf); job]
     
 let view globalConfig (state: State) (dispatch) =
     StackPanel.create [
@@ -351,17 +341,6 @@ let view globalConfig (state: State) (dispatch) =
                 TextBox.errors (state.OfferInEdit.Validate(globalConfig.Network).RefundLockTimeErr |> Option.toArray |> Seq.cast<obj>)
                 yield! TextBox.onTextInput(
                     RefundLockTimeUpdate >>  UpdateOffer >> ForSelf >> dispatch
-                    )
-            ]
-            TextBox.create [
-                TextBox.classes ["userinput"]
-                TextBox.useFloatingWatermark true
-                TextBox.name "FeeRate"
-                TextBox.watermark "Feerate"
-                TextBox.text (state.OfferInEdit.FeeRate)
-                TextBox.errors (state.OfferInEdit.Validate(globalConfig.Network).FeeRateErr |> Option.toArray |> Seq.cast<obj>)
-                yield! TextBox.onTextInput(
-                    FeeRateUpdate >>  UpdateOffer >> ForSelf >> dispatch
                     )
             ]
             TextBox.create [

@@ -27,7 +27,12 @@ module Router =
     let oracleMsgTranslator =
         OracleModule.translator {
             OnInternalMsg = OracleMsg
-            OnNewOffer = fun offer -> Sequence([NavigateTo(DLC); offer |> DLCOfferModule.NewOffer |> DLCModule.OfferMsg |> DLCMsg])
+            OnNewOffer = fun offer ->
+                Sequence([
+                          DLCModule.NavigateTo(DLCModule.Page.Offer) |> DLCMsg
+                          offer |> DLCOfferModule.NewOffer |> DLCModule.OfferMsg |> DLCMsg
+                          NavigateTo(DLC)
+                          ])
         }
         
     let init =

@@ -30,7 +30,6 @@ type State = private {
 }
 
 type InternalMsg =
-    private
     | LoadDLCs of AsyncOperationStatus<Result<KnownDLCs seq, string>>
     | CopyToClipBoard of string
     | NoOp

@@ -206,11 +206,22 @@ let private checkSigView (s: BeforeCheckSigState) dispatch =
                 TextBox.text (s.AcceptMsg)
                 yield! TextBox.onTextInput(UpdateAcceptMsg >> ForSelf >> dispatch)
             ]
-            Button.create [
-                Button.isEnabled (v.IsNone && localNameV.IsNone)
-                Button.classes [ "round" ]
-                Button.content "Review"
-                Button.onClick(fun _ -> CommitAcceptMsg |> ForSelf |> dispatch)
+            StackPanel.create [
+                StackPanel.orientation Orientation.Horizontal
+                StackPanel.dock Dock.Right
+                StackPanel.children [
+                    Button.create[
+                        Button.classes ["round"]
+                        Button.content "Cancel"
+                        Button.onClick(fun _ -> Reset |> ForSelf |> dispatch)
+                    ]
+                    Button.create [
+                        Button.isEnabled (v.IsNone && localNameV.IsNone)
+                        Button.classes [ "round" ]
+                        Button.content "Review"
+                        Button.onClick(fun _ -> CommitAcceptMsg |> ForSelf |> dispatch)
+                    ]
+                ]
             ]
         ]
     ]
@@ -275,5 +286,10 @@ let view g (state: State) dispatch =
                 (checkSigView s dispatch)
             | AfterCheckSig s ->
                 (psbtView g s dispatch)
+            TextBlock.create [
+                TextBlock.classes ["error"]
+                TextBlock.text (state.ErrorMsg |> Option.toObj)
+                TextBlock.isVisible(state.ErrorMsg.IsSome)
+            ]
         ]
     ]

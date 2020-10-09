@@ -214,7 +214,7 @@ module EventModule =
                 let! existingE = CommandBase.tryGetEvent(globalConfig) e.FullNameObject
                 match existingE with
                 | Some _ ->
-                    return (failwithf "An event with the same name (%s) already exists!" e.FullName)
+                    return ()
                 | None ->
                     let! oracle = CommandBase.getOracle globalConfig (state.CreatorName)
                     let repo = ConfigUtils.repository globalConfig

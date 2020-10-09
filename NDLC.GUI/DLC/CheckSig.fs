@@ -34,8 +34,8 @@ let private tryGetDLCFromID (repo: Repository) (contractId: uint256) = task {
             return Ok(dlc)
     }
 
-let private handleAccept g base64: Task<PSBT> = task {
-    match parse g base64 with
+let private handleAccept g (base64: string): Task<PSBT> = task {
+    match parse g (base64) with
     | None ->
         return failwith "Failed to parse input"
     | Some (accept: Accept) ->
@@ -56,7 +56,7 @@ let private handleAccept g base64: Task<PSBT> = task {
 }
 
 let private handleSign g base64 = task {
-    match parse g base64 with
+    match parse g (base64) with
     | None ->
         return failwith "Failed to parse input"
     | Some (s: Sign) ->

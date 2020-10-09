@@ -15,10 +15,10 @@ open NDLC.Infrastructure
         | StartResult of DLCSignModule.SignResult
         
     type Page =
-        | List = 0
-        | Offer = 1
-        | Accept = 2
-        | Start = 3
+        | Offer = 0
+        | Accept = 1
+        | Start = 2
+        | List = 3
     
     type State = {
         List: DLCListModule.State
@@ -95,7 +95,7 @@ open NDLC.Infrastructure
             Accept = a
             Start = DLCSignModule.init
             OutputToShowUser = HasNotStartedYet
-            SelectedIndex = Page.List
+            SelectedIndex = Page.Offer
         }, Cmd.batch([ oCmd |> Cmd.map(OfferMsg); listCmd |> Cmd.map(ListMsg) ])
     let rec update globalConfig msg state =
         match msg with
@@ -137,11 +137,6 @@ open NDLC.Infrastructure
                     TabControl.selectedIndex ((int)state.SelectedIndex)
                     TabControl.viewItems [
                         TabItem.create [
-                            TabItem.header "List"
-                            TabItem.content (DLCListModule.view globalConfig state.List (listTranslator >> dispatch))
-                            TabItem.onTapped(fun _ -> Page.List |> NavigateTo |> dispatch)
-                        ]
-                        TabItem.create [
                             TabItem.header "Offer"
                             TabItem.content (DLCOfferModule.view globalConfig state.Offer (offerTranslator >> dispatch))
                             TabItem.onTapped(fun _ -> Page.Offer |> NavigateTo |> dispatch)
@@ -157,6 +152,11 @@ open NDLC.Infrastructure
                             TabItem.header "Start"
                             TabItem.content (DLCSignModule.view globalConfig state.Start (startTranslator >> dispatch))
                             TabItem.onTapped(fun _ -> Page.Start |> NavigateTo |> dispatch)
+                        ]
+                        TabItem.create [
+                            TabItem.header "List"
+                            TabItem.content (DLCListModule.view globalConfig state.List (listTranslator >> dispatch))
+                            TabItem.onTapped(fun _ -> Sequence[Page.List |> NavigateTo; DLCListModule.LoadDLCs(Started) |> ListMsg] |> dispatch)
                         ]
                     ]
                 ]

@@ -140,7 +140,7 @@ module private Helpers =
 module private Tasks =
     let review (g: GlobalConfig, offerStr: string) = task {
         
-        match parseOfferMsg g offerStr with
+        match parseOfferMsg g (offerStr.Trim()) with
         | Error e -> return Error e
         | Ok o ->
         let repo = ConfigUtils.repository g
@@ -200,7 +200,7 @@ module private Tasks =
         return dlc
     }
     let setup g (psbt: string, dlc: Repository.DLCState) = task {
-        let psbt = tryParsePSBT(psbt, g.Network)
+        let psbt = tryParsePSBT(psbt.Trim(), g.Network)
         match psbt with
         | Error e -> return failwithf "Failed to parse PSBT! %s" (e)
         | Ok psbt ->
@@ -217,7 +217,7 @@ module private Tasks =
         do! repo.SaveDLC(dlc)
         let jAcceptString = JsonConvert.SerializeObject(accept, repo.JsonSettings);
         let base64Accept =
-            UTF8Encoding.UTF8.GetString(Encoders.Base64.DecodeData(jAcceptString))
+            Encoders.Base64.EncodeData(UTF8Encoding.UTF8.GetBytes(jAcceptString))
         return (base64Accept, jAcceptString)
     }
 
