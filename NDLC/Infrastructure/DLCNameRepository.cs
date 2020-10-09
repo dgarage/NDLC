@@ -1,4 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using NBitcoin;
 
 namespace NDLC.Infrastructure
@@ -20,6 +23,13 @@ namespace NDLC.Infrastructure
 		public async Task SetMapping(string name, uint256 dlcId)
 		{
 			await NameRepository.SetMapping(Scopes.DLC, name, dlcId.ToString());
+		}
+
+		public async Task<ICollection<KeyValuePair<string, string>>> ListDLCs(EventFullName? eventFullName = null)
+		{
+			List<Repository.DLCState> states =  new List<Repository.DLCState>();
+			var dlcs = await NameRepository.GetIds(Scopes.DLC);
+			return dlcs;
 		}
 
 		public async Task<uint256?> GetId(string name)
