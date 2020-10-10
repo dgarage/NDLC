@@ -1,6 +1,7 @@
 [<RequireQualifiedAccess>]
 module NDLC.GUI.DLCListModule
 
+open System.Diagnostics
 open Avalonia
 open Avalonia.Controls
 open Avalonia.FuncUI.Components
@@ -31,6 +32,11 @@ type State = private {
 
 type InternalMsg =
     | LoadDLCs of AsyncOperationStatus<Result<KnownDLCs seq, string>>
+    | TryCopyOffer
+    | TryCopyAccept
+    | TryCopyFundingPSBT
+    | TryCopyRefundPSBT
+    | TryCopyAbortTx
     | CopyToClipBoard of string
     | NoOp
     
@@ -181,6 +187,52 @@ let view globalConfig (state: State) dispatch =
                                                                 CopyToClipBoard (d.State.Id.ToString()) |> ForSelf |> dispatch
                                                                 )
                                                         ]
+                                                        
+                                                        match d.State.GetNextStep(globalConfig.Network), d.IsInitiator with
+                                                        | Repository.DLCState.DLCNextStep.Setup, _ ->
+                                                            ()
+                                                        | Repository.DLCState.DLCNextStep.CheckSigs, true ->
+                                                            // async
+                                                            MenuItem.create [
+                                                                MenuItem.header "Offer"
+                                                                MenuItem.onClick(fun _ -> TryCopyOffer |> ForSelf |> dispatch)
+                                                            ]
+                                                        | Repository.DLCState.DLCNextStep.CheckSigs, false ->
+                                                            MenuItem.create [
+                                                                MenuItem.header "Accept"
+                                                                MenuItem.onClick(fun _ -> TryCopyAccept |> ForSelf |> dispatch)
+                                                            ]
+                                                        | Repository.DLCState.DLCNextStep.Fund, true ->
+                                                            MenuItem.create [
+                                                                MenuItem.header "Funding PSBT"
+                                                                MenuItem.onClick(fun _ -> TryCopyFundingPSBT |> ForSelf |> dispatch)
+                                                            ]
+                                                        | Repository.DLCState.DLCNextStep.Fund, false ->
+                                                            MenuItem.create [
+                                                                MenuItem.header "Refund PSBT"
+                                                                MenuItem.onClick(fun _ -> TryCopyRefundPSBT |> ForSelf |> dispatch)
+                                                            ]
+                                                        | Repository.DLCState.DLCNextStep.Done, true ->
+                                                            MenuItem.create [
+                                                                MenuItem.header "Abort TX"
+                                                                MenuItem.onClick(fun _ -> TryCopyAbortTx |> ForSelf |> dispatch)
+                                                            ]
+                                                            MenuItem.create [
+                                                                MenuItem.header "Refund PSBT"
+                                                                MenuItem.onClick(fun _ -> TryCopyRefundPSBT |> ForSelf |> dispatch)
+                                                            ]
+                                                        | Repository.DLCState.DLCNextStep.Done, false ->
+                                                            MenuItem.create [
+                                                                MenuItem.header "Funding PSBT"
+                                                                MenuItem.onClick(fun _ -> TryCopyFundingPSBT |> ForSelf |> dispatch)
+                                                            ]
+                                                            MenuItem.create [
+                                                                MenuItem.header "Refund PSBT"
+                                                                MenuItem.onClick(fun _ -> TryCopyRefundPSBT |> ForSelf |> dispatch)
+                                                            ]
+                                                        | _ ->
+                                                            Debug.Assert(true, "Unreachable!")
+                                                            ()
                                                     ]
                                                 ]
                                                 MenuItem.create [

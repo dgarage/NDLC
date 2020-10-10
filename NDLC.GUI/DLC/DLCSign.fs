@@ -19,6 +19,7 @@ open NDLC.GUI.DLC
 open NDLC.GUI.DLC
 open NDLC.GUI.DLC
 open NDLC.GUI.Utils
+open NDLC.GUI.Utils
 open NDLC.Infrastructure
 open NDLC.Messages
 open Newtonsoft.Json
@@ -105,11 +106,14 @@ let init = {
 module private Tasks =
     let validateAcceptMsg (accept: string): Option<_> =
         if (accept |> String.IsNullOrWhiteSpace) then Some "Empty Offer msg not allowed" else
+        if (accept |> String.isBase64 |> not) then Some "Offer Msg must be base64 encoded" else
         None
         
     let validatePSBTSigned g (s: string): Option<_> =
-        // tryParsePSBT(s, g.Network)
-        failwith "k"
+        match tryParsePSBT(s, g.Network) with
+        | Error e -> Some (e)
+        | Ok psbt ->
+            failwith "k"
 
 let update globalConfig msg state =
     match msg, state.Step with

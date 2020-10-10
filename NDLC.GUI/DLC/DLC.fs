@@ -139,24 +139,24 @@ open NDLC.Infrastructure
                         TabItem.create [
                             TabItem.header "Offer"
                             TabItem.content (DLCOfferModule.view globalConfig state.Offer (offerTranslator >> dispatch))
-                            TabItem.onTapped(fun _ -> Page.Offer |> NavigateTo |> dispatch)
+                            TabItem.onTapped(fun _ ->  NavigateTo Page.Offer |> dispatch)
                         ]
                         
                         TabItem.create [
                             TabItem.header "Accept"
                             TabItem.content (DLCAcceptModule.view globalConfig state.Accept (acceptTranslator >> dispatch))
-                            TabItem.onTapped(fun _ -> Page.Accept |> NavigateTo |> dispatch)
+                            TabItem.onTapped(fun _ -> NavigateTo Page.Accept |> dispatch)
                         ]
                         
                         TabItem.create [
                             TabItem.header "Start"
                             TabItem.content (DLCSignModule.view globalConfig state.Start (startTranslator >> dispatch))
-                            TabItem.onTapped(fun _ -> Page.Start |> NavigateTo |> dispatch)
+                            TabItem.onTapped(fun _ -> NavigateTo Page.Start |> dispatch)
                         ]
                         TabItem.create [
                             TabItem.header "List"
                             TabItem.content (DLCListModule.view globalConfig state.List (listTranslator >> dispatch))
-                            TabItem.onTapped(fun _ -> Sequence[Page.List |> NavigateTo; DLCListModule.LoadDLCs(Started) |> ListMsg] |> dispatch)
+                            TabItem.onTapped(fun _ -> Sequence[DLCListModule.LoadDLCs(Started) |> ListMsg; NavigateTo(Page.List); ] |> dispatch)
                         ]
                     ]
                 ]
