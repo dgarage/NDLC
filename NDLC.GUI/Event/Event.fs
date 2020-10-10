@@ -76,7 +76,7 @@ module EventModule =
         | NewEvent of EventInfo
         | NewEventSaved of EventInfo
         | AttestEvent of info: EventInfo * outcomeName: string
-        | SetAttestation of Key
+        | SetAttestation of key: Key * outcome: string
         | CopyToClipBoard of string
         | Select of EventInfo option
         | InvalidInput of msg: string
@@ -105,7 +105,7 @@ module EventModule =
         KnownEvents: Deferred<EventInfo list>
         LoadFailed: string option
         Selected: (EventInfo) option
-        Attestation: Key option
+        Attestation: (Key * string) option
         EventInImport: EventInImportModule.State
         EventInGeneration: EventInGenerationModule.State
         ErrorMsg: string option
@@ -265,13 +265,13 @@ module EventModule =
                     | x when x <> dOutcome ->
                         return failwith "Error while validating reveal"
                     | _ ->
-                        return oracleAttestation
+                        return (oracleAttestation, outcome)
             }
             let onSuccess = SetAttestation
             let onError (e: exn) = InvalidInput(e.Message)
             state, Cmd.OfTask.either (attest globalConfig) (e) onSuccess onError
-        | SetAttestation attestationKey ->
-            { state with Attestation = Some(attestationKey) }, Cmd.none
+        | SetAttestation (attestationKey, outcome) ->
+            { state with Attestation = Some(attestationKey, outcome); ErrorMsg = None }, Cmd.none
         | Select e ->
             match e with
             | None -> { state with Selected = None }, Cmd.none
@@ -372,6 +372,28 @@ module EventModule =
                             ]
                         ))
                     ]
+                    
+                    match (state.Attestation) with
+                    | Some (key, outcome) ->
+                        TextBlock.create [
+                            TextBlock.margin 5.
+                            TextBlock.fontSize 14.
+                            TextBlock.text (sprintf "Result of the Attestation for outcome \"%s\"" outcome)
+                        ]
+                        TextBlock.create [
+                            let keyHex = key.ToHex()
+                            TextBlock.margin 5.
+                            TextBlock.text (keyHex)
+                            TextBlock.contextMenu(ContextMenu.create [
+                                ContextMenu.viewItems [
+                                    MenuItem.create [
+                                        MenuItem.header "Copy Attestation"
+                                        MenuItem.onClick(fun _ -> CopyToClipBoard (keyHex) |> ForSelf |> dispatch)
+                                    ]
+                                ]
+                            ])
+                        ]
+                    | None -> ()
                     
                     if (amIOracle) then
                         TextBlock.create [
