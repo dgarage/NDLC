@@ -25,11 +25,10 @@ namespace NDLC.Infrastructure
 			await NameRepository.SetMapping(Scopes.DLC, name, dlcId.ToString());
 		}
 
-		public async Task<ICollection<KeyValuePair<string, string>>> ListDLCs(EventFullName? eventFullName = null)
+		public async Task<List<(string, uint256)>> ListDLCs(EventFullName? eventFullName = null)
 		{
-			List<Repository.DLCState> states =  new List<Repository.DLCState>();
-			var dlcs = await NameRepository.GetIds(Scopes.DLC);
-			return dlcs;
+			var nameToIdKVs = await NameRepository.GetIds(Scopes.DLC);
+			return nameToIdKVs.Select(kv => (kv.Key, new uint256(kv.Value))).ToList();
 		}
 
 		public async Task<uint256?> GetId(string name)

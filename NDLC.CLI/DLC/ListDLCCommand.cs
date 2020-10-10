@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 using NDLC.Infrastructure;
+using NDLC.Messages;
 
 namespace NDLC.CLI.DLC
 {
@@ -21,15 +22,15 @@ namespace NDLC.CLI.DLC
         protected override async Task InvokeAsyncBase(InvocationContext context)
         {
 			var dlcs = await NameRepository.AsDLCNameRepository().ListDLCs();
-			foreach (var dlcName in dlcs.OrderBy(o => o.Key.ToString()))
+			foreach (var (dlcName, dlcId) in dlcs.OrderBy(kv=> kv.Item1.ToString()))
 			{
-				var dState = (await Repository.GetDLC(new uint256(dlcName.Value)));
+				var dState = (await Repository.GetDLC(dlcId));
 				var eventFullName = await NameRepository.AsEventRepository().ResolveName(dState.OracleInfo);
 				var e = await Repository.GetEvent(dState.OracleInfo);
 				Debug.Assert(eventFullName != null);
 				Debug.Assert(e != null);
 
-				context.Console.Out.WriteLine($"{dlcName.Key}. NextStep: ({dState.GetNextStep(Network)}). EventName: {eventFullName}. Outcomes: [{e.Outcomes.Aggregate((x, acc) => $"{x}, {acc}" )}]");
+				context.Console.Out.WriteLine($"{dlcName}. NextStep: ({dState.GetNextStep(Network)}). EventName: {eventFullName}. Outcomes: [{e.Outcomes.Aggregate((x, acc) => $"{x}, {acc}" )}]");
 			}
         }
     }
