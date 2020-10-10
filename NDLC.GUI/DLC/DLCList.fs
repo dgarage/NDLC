@@ -6,12 +6,12 @@ open Avalonia
 open Avalonia.Controls
 open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.DSL
-open Avalonia.Layout
 open Avalonia.Media
 open System.Linq
+open System.Text
 open FSharp.Control.Tasks
 open Elmish
-open NBitcoin
+open NBitcoin.DataEncoders
 open NDLC.GUI
 open NDLC.GUI.Utils
 open NDLC.Infrastructure
@@ -32,11 +32,6 @@ type State = private {
 
 type InternalMsg =
     | LoadDLCs of AsyncOperationStatus<Result<KnownDLCs seq, string>>
-    | TryCopyOffer
-    | TryCopyAccept
-    | TryCopyFundingPSBT
-    | TryCopyRefundPSBT
-    | TryCopyAbortTx
     | CopyToClipBoard of string
     | NoOp
     
@@ -188,47 +183,71 @@ let view globalConfig (state: State) dispatch =
                                                                 )
                                                         ]
                                                         
-                                                        match d.State.GetNextStep(globalConfig.Network), d.IsInitiator with
+                                                        let n = globalConfig.Network
+                                                        let onRefundTx _ =
+                                                            let builder = DLCTransactionBuilder(d.State.BuilderState.ToString(), n)
+                                                            let tx = builder.BuildRefund()
+                                                            tx.ToHex() |> CopyToClipBoard |> ForSelf |> dispatch
+                                                        match d.State.GetNextStep(n), d.IsInitiator with
                                                         | Repository.DLCState.DLCNextStep.Setup, _ ->
                                                             ()
                                                         | Repository.DLCState.DLCNextStep.CheckSigs, true ->
                                                             // async
                                                             MenuItem.create [
-                                                                MenuItem.header "Offer"
-                                                                MenuItem.onClick(fun _ -> TryCopyOffer |> ForSelf |> dispatch)
+                                                                MenuItem.header "Offer (Base64)"
+                                                                MenuItem.onClick(fun _ -> CopyToClipBoard(Encoders.Base64.EncodeData(UTF8Encoding.UTF8.GetBytes(d.State.Offer.ToString()))) |> ForSelf |> dispatch)
+                                                            ]
+                                                            MenuItem.create [
+                                                                MenuItem.header "Offer (Json)"
+                                                                MenuItem.onClick(fun _ -> CopyToClipBoard(d.State.Offer.ToString()) |> ForSelf |> dispatch)
                                                             ]
                                                         | Repository.DLCState.DLCNextStep.CheckSigs, false ->
                                                             MenuItem.create [
-                                                                MenuItem.header "Accept"
-                                                                MenuItem.onClick(fun _ -> TryCopyAccept |> ForSelf |> dispatch)
+                                                                MenuItem.header "Accept (Base64)"
+                                                                MenuItem.onClick(fun _ -> CopyToClipBoard(Encoders.Base64.EncodeData(UTF8Encoding.UTF8.GetBytes(d.State.Accept.ToString()))) |> ForSelf |> dispatch)
+                                                            ]
+                                                            MenuItem.create [
+                                                                MenuItem.header "Accept (Json)"
+                                                                MenuItem.onClick(fun _ -> CopyToClipBoard(d.State.Accept.ToString()) |> ForSelf |> dispatch)
                                                             ]
                                                         | Repository.DLCState.DLCNextStep.Fund, true ->
                                                             MenuItem.create [
-                                                                MenuItem.header "Funding PSBT"
-                                                                MenuItem.onClick(fun _ -> TryCopyFundingPSBT |> ForSelf |> dispatch)
+                                                                MenuItem.header "Funding PSBT (Base64)"
+                                                                MenuItem.onClick(fun _ ->
+                                                                    let psbt = (DLCTransactionBuilder(d.State.BuilderState.ToString(), n)).GetFundingPSBT()
+                                                                    psbt.ToBase64() |> CopyToClipBoard |> ForSelf |> dispatch)
+                                                            ]
+                                                            MenuItem.create [
+                                                                MenuItem.header "Funding PSBT (Json)"
+                                                                MenuItem.onClick(fun _ ->
+                                                                    let psbt = (DLCTransactionBuilder(d.State.BuilderState.ToString(), n)).GetFundingPSBT()
+                                                                    psbt.ToString() |> CopyToClipBoard |> ForSelf |> dispatch)
                                                             ]
                                                         | Repository.DLCState.DLCNextStep.Fund, false ->
                                                             MenuItem.create [
-                                                                MenuItem.header "Refund PSBT"
-                                                                MenuItem.onClick(fun _ -> TryCopyRefundPSBT |> ForSelf |> dispatch)
+                                                                MenuItem.header "Refund TX (Hex)"
+                                                                MenuItem.onClick(onRefundTx)
                                                             ]
                                                         | Repository.DLCState.DLCNextStep.Done, true ->
                                                             MenuItem.create [
-                                                                MenuItem.header "Abort TX"
-                                                                MenuItem.onClick(fun _ -> TryCopyAbortTx |> ForSelf |> dispatch)
+                                                                MenuItem.header "Abort PSBT"
+                                                                MenuItem.onClick(fun _ ->
+                                                                    d.State.Abort.ToBase64() |> CopyToClipBoard |> ForSelf |> dispatch)
                                                             ]
                                                             MenuItem.create [
-                                                                MenuItem.header "Refund PSBT"
-                                                                MenuItem.onClick(fun _ -> TryCopyRefundPSBT |> ForSelf |> dispatch)
+                                                                MenuItem.header "Refund TX (Hex)"
+                                                                MenuItem.onClick(onRefundTx)
                                                             ]
                                                         | Repository.DLCState.DLCNextStep.Done, false ->
                                                             MenuItem.create [
-                                                                MenuItem.header "Funding PSBT"
-                                                                MenuItem.onClick(fun _ -> TryCopyFundingPSBT |> ForSelf |> dispatch)
+                                                                MenuItem.header "Funding PSBT (Json)"
+                                                                MenuItem.onClick(fun _ ->
+                                                                    let psbt = (DLCTransactionBuilder(d.State.BuilderState.ToString(), globalConfig.Network)).GetFundingPSBT()
+                                                                    psbt.ToString() |> CopyToClipBoard |> ForSelf |> dispatch)
                                                             ]
                                                             MenuItem.create [
-                                                                MenuItem.header "Refund PSBT"
-                                                                MenuItem.onClick(fun _ -> TryCopyRefundPSBT |> ForSelf |> dispatch)
+                                                                MenuItem.header "Refund TX (Hex)"
+                                                                MenuItem.onClick(onRefundTx)
                                                             ]
                                                         | _ ->
                                                             Debug.Assert(true, "Unreachable!")

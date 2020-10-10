@@ -1,5 +1,6 @@
 namespace NDLC.GUI
 
+open System.Linq
 open System.Threading.Tasks
 
 open Avalonia.Controls
@@ -16,9 +17,10 @@ open NDLC.GUI.Utils
 open NDLC.Messages
 open NDLC.Secp256k1
 
+open System
 open Avalonia
+open NDLC
 open System.Diagnostics
-open Avalonia.FuncUI.Types
 open NDLC.GUI.GlobalMsgs
 open NDLC.GUI.Event
 
@@ -73,6 +75,8 @@ module EventModule =
         | Generate of EventInGenerationModule.EventGenerationArg
         | NewEvent of EventInfo
         | NewEventSaved of EventInfo
+        | AttestEvent of info: EventInfo * outcomeName: string
+        | SetAttestation of Key
         | CopyToClipBoard of string
         | Select of EventInfo option
         | InvalidInput of msg: string
@@ -101,6 +105,7 @@ module EventModule =
         KnownEvents: Deferred<EventInfo list>
         LoadFailed: string option
         Selected: (EventInfo) option
+        Attestation: Key option
         EventInImport: EventInImportModule.State
         EventInGeneration: EventInGenerationModule.State
         ErrorMsg: string option
@@ -115,6 +120,7 @@ module EventModule =
           EventInGeneration = EventInGenerationModule.init
           EventInImport = EventInImportModule.init
           CreatorName = oracleId; LoadFailed = None
+          Attestation = None
           ErrorMsg = None
           Selected = None;},
         Cmd.ofMsg (LoadEvents AsyncOperationStatus.Started)
@@ -231,6 +237,41 @@ module EventModule =
         | NewEventSaved e ->
             let newEvents = state.KnownEvents |> Deferred.map(fun x -> e::x)
             { state with KnownEvents = newEvents; ErrorMsg = None}, Cmd.batch[Cmd.ofMsg(EventInImportMsg (EventInImportModule.Reset)); Cmd.ofMsg(EventInGenerationMsg (EventInGenerationModule.Reset))]
+        | AttestEvent (e, outcome) ->
+            let attest (g: GlobalConfig) (e: EventInfo) = task {
+                let nRepo = ConfigUtils.nameRepo g
+                let repo = ConfigUtils.repository g
+                let! evtId = nRepo.AsEventRepository().GetEventId(e.FullNameObject)
+                if (isNull evtId) then return failwithf "Event not found for event %s" e.FullName else
+                let! oracle = CommandBase.getOracle g (e.OracleName)
+                let mutable dOutcome = DiscreteOutcome(outcome.Trim())
+                let! eventObj = CommandBase.getEvent g e.FullNameObject
+                Debug.Assert(eventObj.NonceKeyPath |> isNull |> not, "Event attestation should be only possible for our own event")
+                let maybeOutcome = eventObj.Outcomes.FirstOrDefault(fun o -> o.Equals(outcome, StringComparison.OrdinalIgnoreCase))
+                Debug.Assert(maybeOutcome |> isNull |> not, (sprintf "should never dispatch AttestEvent for impossible outcome %s" outcome))
+                Debug.Assert(oracle.RootedKeyPath |> isNull |> not, "RootedKeyPath should never be null")
+                let! key = repo.GetKey(oracle.RootedKeyPath)
+                if (eventObj.Attestations |> isNull |> not && eventObj.Attestations.ContainsKey(outcome)) then
+                    return failwith "This outcome has already been attested" else
+                if (eventObj.Attestations |> isNull |> not && eventObj.Attestations.Count > 0) then
+                    return failwith "One of outcomes for this event has already been attested" else
+                let! kValue = repo.GetKey(eventObj.NonceKeyPath)
+                match key.ToECPrivKey().TrySignBIP140(ReadOnlySpan(dOutcome.Hash), PrecomputedNonceFunctionHardened(kValue.ToECPrivKey().ToBytes())) with
+                | false, _ ->
+                    return failwith "Failed to sign bip140! This should never happen"
+                | true, schnorrSig ->
+                    let oracleAttestation = new Key(schnorrSig.s.ToBytes());
+                    match! repo.AddAttestation(evtId, oracleAttestation) with
+                    | x when x <> dOutcome ->
+                        return failwith "Error while validating reveal"
+                    | _ ->
+                        return oracleAttestation
+            }
+            let onSuccess = SetAttestation
+            let onError (e: exn) = InvalidInput(e.Message)
+            state, Cmd.OfTask.either (attest globalConfig) (e) onSuccess onError
+        | SetAttestation attestationKey ->
+            { state with Attestation = Some(attestationKey) }, Cmd.none
         | Select e ->
             match e with
             | None -> { state with Selected = None }, Cmd.none
@@ -292,14 +333,19 @@ module EventModule =
                                                 |> dispatch
                                                 )
                                         ]
-                                        MenuItem.create [
-                                            MenuItem.header "Attest Event"
-                                            MenuItem.onClick(fun _ -> failwith "TODO: dispatch")
-                                        ]
-                                        MenuItem.create [
-                                            MenuItem.header "Remove this Event"
-                                            MenuItem.onClick(fun _ -> failwith "TODO: dispatch")
-                                        ]
+                                        if (amIOracle) then
+                                            MenuItem.create [
+                                                MenuItem.header "Attest Event"
+                                                MenuItem.viewItems
+                                                    [ for outcome in d.Outcomes ->
+                                                        MenuItem.create [
+                                                           MenuItem.header outcome
+                                                           MenuItem.onClick(fun _ -> AttestEvent(d, outcome) |> ForSelf |> dispatch)
+                                                        ]
+                                                    ]
+                                            ]
+                                        else
+                                            ()
                                     ]
                                 ])
                                 DockPanel.children [
