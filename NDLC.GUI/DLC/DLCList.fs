@@ -37,7 +37,7 @@ type InternalMsg =
     
 type GotoInfo = {
     LocalName: string
-    NextStep: Repository.DLCState.DLCNextStep
+    DLCState: Repository.DLCState
     IsInitiator: bool
 }
 type OutMsg =
@@ -255,11 +255,11 @@ let view globalConfig (state: State) dispatch =
                                                     ]
                                                 ]
                                                 MenuItem.create [
-                                                    MenuItem.header "Edit this DLC"
+                                                    MenuItem.header "Goto Next Step"
                                                     MenuItem.onClick(fun _ ->
                                                         { GotoInfo.IsInitiator = d.IsInitiator
                                                           LocalName = d.LocalName
-                                                          NextStep = d.State.GetNextStep(globalConfig.Network) }
+                                                          DLCState = d.State }
                                                         |> GoToNextStep
                                                         |> ForParent
                                                         |> dispatch

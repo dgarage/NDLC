@@ -41,11 +41,11 @@ open NDLC.Infrastructure
         | NoOp
         | Sequence of Msg seq
         
-    let listTranslator =
+    let listTranslator globalConfig =
         DLCListModule.translator {
             OnInternalMsg = ListMsg
-            OnGoToNextStep = fun { NextStep = ns; LocalName = n; IsInitiator = isInit } ->
-                match ns with
+            OnGoToNextStep = fun { DLCState = s; LocalName = n; IsInitiator = isInit } ->
+                match s.GetNextStep(globalConfig.Network) with
                 | Repository.DLCState.DLCNextStep.Setup when isInit ->
                     Sequence([ DLCOfferModule.Reset |> OfferMsg; NavigateTo(Page.Offer)])
                 | Repository.DLCState.DLCNextStep.Setup ->
@@ -60,7 +60,7 @@ open NDLC.Infrastructure
                     Sequence([ DLCAcceptModule.Reset |> AcceptMsg; NavigateTo(Page.Accept)])
                 | Repository.DLCState.DLCNextStep.Done ->
                     NoOp
-                | _ -> failwithf "Unreachable! Unknown nextStep %A" (ns)
+                | ns -> failwithf "Unreachable! Unknown nextStep %A" (ns)
         }
     let offerTranslator =
         DLCOfferModule.translator
@@ -155,7 +155,7 @@ open NDLC.Infrastructure
                         ]
                         TabItem.create [
                             TabItem.header "List"
-                            TabItem.content (DLCListModule.view globalConfig state.List (listTranslator >> dispatch))
+                            TabItem.content (DLCListModule.view globalConfig state.List (listTranslator globalConfig >> dispatch))
                             TabItem.onTapped(fun _ -> Sequence[DLCListModule.LoadDLCs(Started) |> ListMsg; NavigateTo(Page.List); ] |> dispatch)
                         ]
                     ]
