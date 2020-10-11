@@ -18,7 +18,7 @@ open NDLC.Infrastructure
 open NDLC.Messages
 
 
-type KnownDLCs = private {
+type KnownDLC = {
     EventName: EventFullName
     LocalName: string
     State: (Repository.DLCState)
@@ -27,19 +27,21 @@ type KnownDLCs = private {
 }
 
 type State = private {
-    KnownDLCs: Deferred<Result<KnownDLCs seq, string>>
+    KnownDLCs: Deferred<Result<KnownDLC seq, string>>
 }
 
 type InternalMsg =
-    | LoadDLCs of AsyncOperationStatus<Result<KnownDLCs seq, string>>
+    | LoadDLCs of AsyncOperationStatus<Result<KnownDLC seq, string>>
     | CopyToClipBoard of string
     | NoOp
     
 type GotoInfo = {
-    LocalName: string
-    DLCState: Repository.DLCState
     IsInitiator: bool
+    KnownDLC: KnownDLC
 }
+    with
+    member this.LocalName = this.KnownDLC.LocalName
+    member this.DLCState = this.KnownDLC.State
 type OutMsg =
     | GoToNextStep of GotoInfo
     
@@ -150,7 +152,7 @@ let view globalConfig (state: State) dispatch =
                         ListBox.create [
                             ListBox.dataItems dlcs
                             ListBox.itemTemplate
-                                (DataTemplateView<KnownDLCs>.create (fun d ->
+                                (DataTemplateView<KnownDLC>.create (fun d ->
                                     DockPanel.create [
                                         DockPanel.lastChildFill false
                                         DockPanel.contextMenu (ContextMenu.create [
@@ -254,12 +256,13 @@ let view globalConfig (state: State) dispatch =
                                                             ()
                                                     ]
                                                 ]
+                                                if (d.State.GetNextStep(globalConfig.Network) = Repository.DLCState.DLCNextStep.Done) then () else
                                                 MenuItem.create [
                                                     MenuItem.header "Goto Next Step"
                                                     MenuItem.onClick(fun _ ->
                                                         { GotoInfo.IsInitiator = d.IsInitiator
-                                                          LocalName = d.LocalName
-                                                          DLCState = d.State }
+                                                          KnownDLC = d
+                                                          }
                                                         |> GoToNextStep
                                                         |> ForParent
                                                         |> dispatch

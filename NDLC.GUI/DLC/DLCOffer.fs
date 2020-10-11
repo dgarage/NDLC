@@ -134,7 +134,6 @@ type State =
     }
     
 type OfferUpdate =
-    private
     | ContractInfoUpdate of string
     | LockTimeUpdate of string
     | RefundLockTimeUpdate of string

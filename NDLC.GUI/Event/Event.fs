@@ -19,10 +19,13 @@ open NDLC.Secp256k1
 
 open System
 open Avalonia
+open NBitcoin.DataEncoders
 open NDLC
 open System.Diagnostics
+open NDLC.GUI
 open NDLC.GUI.GlobalMsgs
 open NDLC.GUI.Event
+
 
 [<RequireQualifiedAccess>]
 module EventModule =
@@ -79,6 +82,10 @@ module EventModule =
         | SetAttestation of key: Key * outcome: string
         | CopyToClipBoard of string
         | Select of EventInfo option
+        | ToggleAttestation of EventInfo
+        | UpdateImportingAttestation of string
+        | CommitAttestation
+        | FinishAttestationImporting
         | InvalidInput of msg: string
         | Sequence of InternalMsg seq
         | NoOp
@@ -106,6 +113,7 @@ module EventModule =
         LoadFailed: string option
         Selected: (EventInfo) option
         Attestation: (Key * string) option
+        AttestationInImport: (EventInfo * string) option
         EventInImport: EventInImportModule.State
         EventInGeneration: EventInGenerationModule.State
         ErrorMsg: string option
@@ -121,6 +129,7 @@ module EventModule =
           EventInImport = EventInImportModule.init
           CreatorName = oracleId; LoadFailed = None
           Attestation = None
+          AttestationInImport = None
           ErrorMsg = None
           Selected = None;},
         Cmd.ofMsg (LoadEvents AsyncOperationStatus.Started)
@@ -272,6 +281,34 @@ module EventModule =
             state, Cmd.OfTask.either (attest globalConfig) (e) onSuccess onError
         | SetAttestation (attestationKey, outcome) ->
             { state with Attestation = Some(attestationKey, outcome); ErrorMsg = None }, Cmd.none
+        | UpdateImportingAttestation msg ->
+            { state with AttestationInImport = state.AttestationInImport |> Option.map(fun (info, _msg) -> (info, msg)) }, Cmd.none
+        | CommitAttestation ->
+            let commit g (info: EventInfo, attestation: string) = task {
+                let bytes = Encoders.Hex.DecodeData(attestation.Trim());
+                if (bytes.Length <> 32) then
+                    return failwithf "The attestation must be 32 bytes"
+                else
+                use attestationKey = new Key(bytes)
+                let evt = info.FullNameObject
+                let nameRepo = ConfigUtils.nameRepo g
+                let! evtId = nameRepo.AsEventRepository().GetEventId(evt);
+                if (evtId |> isNull) then
+                    return failwith "This event full does not exist"
+                else
+                let! outcome = (ConfigUtils.repository g).AddAttestation(evtId, attestationKey);
+                if (outcome |> isNull || outcome.OutcomeString |> isNull) then
+                    return failwith("This attestation does not attest known outcomes");
+                return ()
+            }
+            Debug.Assert(state.AttestationInImport.IsSome)
+            let onSuccess _ = FinishAttestationImporting
+            let onError (e: exn) = e.Message |> InvalidInput
+            state, Cmd.OfTask.either (commit globalConfig) (state.AttestationInImport.Value) (onSuccess) onError
+        | FinishAttestationImporting ->
+            { state with AttestationInImport = None }, Cmd.none
+        | ToggleAttestation info ->
+            { state with AttestationInImport = Some(info, "") }, Cmd.none
         | Select e ->
             match e with
             | None -> { state with Selected = None }, Cmd.none
@@ -345,7 +382,10 @@ module EventModule =
                                                     ]
                                             ]
                                         else
-                                            ()
+                                            MenuItem.create [
+                                                MenuItem.header "Add Attestation"
+                                                MenuItem.onClick(fun _ -> ToggleAttestation d |> ForSelf |> dispatch)
+                                            ]
                                     ]
                                 ])
                                 DockPanel.children [
@@ -403,12 +443,33 @@ module EventModule =
                         ]
                         (EventInGenerationModule.view state.EventInGeneration (eventInGenerationTranslator >> ForSelf >> dispatch))
                     else
-                        TextBlock.create [
-                            TextBlock.margin 5.
-                            TextBlock.fontSize 18.
-                            TextBlock.text "Fill in the following form to import an event"
-                        ]
-                        EventInImportModule.view state.EventInImport (eventInImportTranslator >> ForSelf >> dispatch)
+                        match state.AttestationInImport with
+                        | Some x ->
+                            TextBlock.create[
+                                TextBlock.margin 5.
+                                TextBlock.fontSize 18.
+                                TextBlock.text "Paste Attestation here"
+                            ]
+                            let v = validateAttestation(x |> snd)
+                            TextBox.create [
+                                TextBox.text (x |> snd)
+                                TextBox.classes ["userinput"]
+                                TextBox.name "Attestation"
+                                TextBox.errors(v |> Option.toList |> Seq.cast<obj>)
+                                yield! TextBox.onTextInput(UpdateImportingAttestation >> ForSelf >> dispatch)
+                            ]
+                            Button.create [
+                                Button.content "Add"
+                                Button.isEnabled (v.IsNone)
+                                Button.onClick(fun _ -> CommitAttestation |> ForSelf |> dispatch)
+                            ]
+                        | None ->
+                            TextBlock.create [
+                                TextBlock.margin 5.
+                                TextBlock.fontSize 18.
+                                TextBlock.text "Fill in the following form to import an event"
+                            ]
+                            EventInImportModule.view state.EventInImport (eventInImportTranslator >> ForSelf >> dispatch)
                     match state.ErrorMsg with
                     | Some s ->
                         StackPanel.create [

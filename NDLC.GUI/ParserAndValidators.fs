@@ -2,6 +2,7 @@
 module NDLC.GUI.ParserAndValidators
 
 open NBitcoin
+open NBitcoin.DataEncoders
 open System
 open NDLC
 open NDLC.Infrastructure
@@ -57,3 +58,10 @@ let validatePSBT(str: string, n: Network) =
     match tryParsePSBT (str, n) with
     | Ok _ -> None
     | Error e -> Some (e)
+    
+let validateAttestation (str: string) =
+    let str = str.Trim()
+    if str |> String.IsNullOrWhiteSpace then Some("Attestation must not be empty string") else
+    if (str.Length <> 64) then Some("Attestation must be 64 length characters") else
+    if (str |> HexEncoder.IsWellFormed |> not) then Some ("attestation must be hex string") else
+    None

@@ -5,6 +5,7 @@ open FSharp.Control.Tasks
 open Avalonia.FuncUI.DSL
 open Elmish
 open Avalonia.Controls
+open GlobalMsgs
 open NDLC.GUI.Utils
 open NDLC.Infrastructure
 
@@ -48,20 +49,32 @@ open NDLC.Infrastructure
     let listTranslator globalConfig =
         DLCListModule.translator {
             OnInternalMsg = ListMsg
-            OnGoToNextStep = fun { DLCState = s; LocalName = n; IsInitiator = isInit } ->
-                match s.GetNextStep(globalConfig.Network) with
+            OnGoToNextStep = fun info ->
+                let isInit = info.IsInitiator
+                match info.DLCState.GetNextStep(globalConfig.Network) with
                 | Repository.DLCState.DLCNextStep.Setup when isInit ->
-                    Sequence([ DLCOfferModule.Reset |> OfferMsg; NavigateTo(Page.Offer)])
+                    Sequence([ DLCOfferModule.Reset |> OfferMsg
+                               { NewOfferMetadata.EventFullName = info.KnownDLC.EventName; Outcomes = info.KnownDLC.Outcomes }
+                               |> DLCOfferModule.NewOffer
+                               |> OfferMsg
+                               (DLCOfferModule.LocalNameUpdate(info.LocalName))|> DLCOfferModule.UpdateOffer |> OfferMsg;
+                               NavigateTo(Page.Offer)])
                 | Repository.DLCState.DLCNextStep.Setup ->
-                    Sequence([ DLCAcceptModule.Reset |> AcceptMsg; NavigateTo(Page.Accept)])
+                    Sequence([ DLCAcceptModule.Reset |> AcceptMsg
+                               NavigateTo(Page.Accept)])
                 | Repository.DLCState.DLCNextStep.CheckSigs when isInit ->
-                    Sequence([ DLCCheckSigsModule.Reset |> CheckSigsMsg; NavigateTo(Page.Start)])
+                    Sequence([ DLCCheckSigsModule.Reset |> CheckSigsMsg
+                               NavigateTo(Page.Start)])
                 | Repository.DLCState.DLCNextStep.CheckSigs ->
-                    Sequence([ DLCAcceptModule.Reset |> AcceptMsg; NavigateTo(Page.Accept)])
+                    Sequence([ DLCAcceptModule.Reset |> AcceptMsg
+                               NavigateTo(Page.Accept)])
                 | Repository.DLCState.DLCNextStep.Fund when isInit ->
-                    Sequence([ DLCOfferModule.Reset |> OfferMsg; NavigateTo(Page.Offer)])
+                    Sequence([ DLCStartModule.Reset |> StartMsg
+                               DLCStartModule.UpdateLocalName info.LocalName |> StartMsg
+                               NavigateTo(Page.Offer)])
                 | Repository.DLCState.DLCNextStep.Fund ->
-                    Sequence([ DLCAcceptModule.Reset |> AcceptMsg; NavigateTo(Page.Accept)])
+                    Sequence([ DLCAcceptModule.Reset |> AcceptMsg
+                               NavigateTo(Page.Accept)])
                 | Repository.DLCState.DLCNextStep.Done ->
                     NoOp
                 | ns -> failwithf "Unreachable! Unknown nextStep %A" (ns)
@@ -86,13 +99,13 @@ open NDLC.Infrastructure
     let checkSigsTranslator =
         DLCCheckSigsModule.translator {
             OnInternalMsg = CheckSigsMsg
-            OnFinished = CheckSigsResult >> OutputReturned
+            OnFinished = fun x ->Sequence[ CheckSigsResult x |> OutputReturned; DLCCheckSigsModule.Reset |> CheckSigsMsg]
         }
         
     let startTranslator =
         DLCStartModule.translator {
             OnInternalMsg = StartMsg
-            OnFinished = StartResult >> OutputReturned
+            OnFinished = fun x ->Sequence[ StartResult x |> OutputReturned; DLCStartModule.Reset |> StartMsg]
         }
             
     let init =
@@ -216,6 +229,12 @@ open NDLC.Infrastructure
                         resultView(x.Msg, x.OfferBase64, x.OfferJson)
                     | Resolved (AcceptResult x) ->
                         resultView(x.Msg, x.AcceptBase64, x.AcceptJson)
+                    | Resolved (CheckSigsResult x) ->
+                        resultView(x.Msg, x.ExtractedPSBT.ToBase64(), x.ToString())
+                    | Resolved (StartResult(DLCStartModule.ForInitiator x)) ->
+                        resultView(x.Msg, x.SignBase64, x.SignJson)
+                    | Resolved (StartResult(DLCStartModule.ForAcceptor x)) ->
+                        resultView(x.Msg, x.FinalizedTxHex, x.FinalizedTxJson)
                     | _ -> ()
                 ]
             ]

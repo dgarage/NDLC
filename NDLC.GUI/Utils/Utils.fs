@@ -1,4 +1,7 @@
 namespace NDLC.GUI.Utils
+
+open NBitcoin.DataEncoders
+
 // for stackalloc
 #nowarn "9"
 
@@ -66,3 +69,4 @@ module String =
         let dummy' = NativePtr.stackalloc<byte>(s.Length)
         let dummy = Span<byte>(NativePtr.toVoidPtr dummy', s.Length)
         Convert.TryFromBase64String(s, dummy) |> fst
+        

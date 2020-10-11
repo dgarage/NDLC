@@ -65,7 +65,7 @@ let private handleSign g (s: Sign) = task {
 } 
 let checksig globalConfig (base64: string) = task {
     match parse<Accept>(globalConfig, base64),parse<Sign> (globalConfig, base64)  with
-    | Some a, _ ->
+    | Some a, None ->
         return! handleAccept (globalConfig) (a)
     | _, Some s ->
         return! handleSign (globalConfig) (s)
