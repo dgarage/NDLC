@@ -12,6 +12,7 @@ open Avalonia.Layout
 
 open System.Diagnostics
 open Avalonia.FuncUI.Types
+open Avalonia.Media
 open Elmish
 open NBitcoin.DataEncoders
 open NDLC
@@ -377,6 +378,8 @@ let view globalConfig (state: State) dispatch =
                 TextBlock.classes ["error"]
                 TextBlock.text (state.ErrorMsg |> Option.toObj)
                 TextBlock.isVisible(state.ErrorMsg.IsSome)
+                TextBlock.textWrapping TextWrapping.Wrap
+                TextBlock.height 150.
             ]
         ]
     ]

@@ -57,6 +57,6 @@ let getDLC globalConfig (dlcName: string) = task {
     let! r = tryGetDLC globalConfig dlcName
     match r with
     | Some x -> return x
-    | None -> return failwithf "Failed to get oracle with %A" dlcName
+    | None -> return failwithf "Failed to get dlc with %A" dlcName
 }
 

@@ -12,19 +12,22 @@ open NDLC.Infrastructure
     type FromChild =
         | OfferResult of DLCOfferModule.OfferResult
         | AcceptResult of DLCAcceptModule.AcceptResult
-        | StartResult of DLCSignModule.SignResult
+        | CheckSigsResult of DLCCheckSigsModule.CheckSigResult
+        | StartResult of DLCStartModule.StartResult
         
     type Page =
         | Offer = 0
         | Accept = 1
-        | Start = 2
-        | List = 3
+        | CheckSigs = 2
+        | Start = 3
+        | List = 4
     
     type State = {
         List: DLCListModule.State
         Offer: DLCOfferModule.State
         Accept: DLCAcceptModule.State
-        Start: DLCSignModule.State
+        Checksigs: DLCCheckSigsModule.State
+        Start: DLCStartModule.State
         OutputToShowUser: Deferred<FromChild>
         SelectedIndex: Page
     }
@@ -33,7 +36,8 @@ open NDLC.Infrastructure
         | ListMsg of DLCListModule.InternalMsg
         | OfferMsg of DLCOfferModule.InternalMsg
         | AcceptMsg of DLCAcceptModule.InternalMsg
-        | StartMsg of DLCSignModule.InternalMsg
+        | CheckSigsMsg of DLCCheckSigsModule.InternalMsg
+        | StartMsg of DLCStartModule.InternalMsg
         
         | OutputReturned of FromChild
         | CopyToClipBoard of string
@@ -51,7 +55,7 @@ open NDLC.Infrastructure
                 | Repository.DLCState.DLCNextStep.Setup ->
                     Sequence([ DLCAcceptModule.Reset |> AcceptMsg; NavigateTo(Page.Accept)])
                 | Repository.DLCState.DLCNextStep.CheckSigs when isInit ->
-                    Sequence([ DLCSignModule.Reset |> StartMsg; NavigateTo(Page.Start)])
+                    Sequence([ DLCCheckSigsModule.Reset |> CheckSigsMsg; NavigateTo(Page.Start)])
                 | Repository.DLCState.DLCNextStep.CheckSigs ->
                     Sequence([ DLCAcceptModule.Reset |> AcceptMsg; NavigateTo(Page.Accept)])
                 | Repository.DLCState.DLCNextStep.Fund when isInit ->
@@ -79,10 +83,16 @@ open NDLC.Infrastructure
             OnInputFinished = AcceptResult >> OutputReturned
         }
         
+    let checkSigsTranslator =
+        DLCCheckSigsModule.translator {
+            OnInternalMsg = CheckSigsMsg
+            OnFinished = CheckSigsResult >> OutputReturned
+        }
+        
     let startTranslator =
-        DLCSignModule.translator {
+        DLCStartModule.translator {
             OnInternalMsg = StartMsg
-            OnInputFinished = StartResult >> OutputReturned
+            OnFinished = StartResult >> OutputReturned
         }
             
     let init =
@@ -93,7 +103,8 @@ open NDLC.Infrastructure
             List = dlcList
             Offer = o
             Accept = a
-            Start = DLCSignModule.init
+            Checksigs = DLCCheckSigsModule.init
+            Start = DLCStartModule.init
             OutputToShowUser = HasNotStartedYet
             SelectedIndex = Page.Offer
         }, Cmd.batch([ oCmd |> Cmd.map(OfferMsg); listCmd |> Cmd.map(ListMsg) ])
@@ -108,8 +119,11 @@ open NDLC.Infrastructure
         | AcceptMsg msg ->
             let s, cmd = DLCAcceptModule.update globalConfig msg state.Accept
             {  state with Accept = s }, (cmd |> Cmd.map (acceptTranslator))
+        | CheckSigsMsg msg ->
+            let s, cmd = DLCCheckSigsModule.update globalConfig msg state.Checksigs
+            { state with Checksigs = s }, (cmd |> Cmd.map(checkSigsTranslator))
         | StartMsg msg ->
-            let s, cmd = DLCSignModule.update globalConfig msg state.Start
+            let s, cmd = DLCStartModule.update globalConfig msg state.Start
             { state with Start = s }, (cmd |> Cmd.map(startTranslator))
         | OutputReturned o ->
             { state with OutputToShowUser = Deferred.Resolved(o)}, Cmd.none
@@ -149,8 +163,13 @@ open NDLC.Infrastructure
                         ]
                         
                         TabItem.create [
+                            TabItem.header "CheckSigs"
+                            TabItem.content (DLCCheckSigsModule.view globalConfig state.Checksigs (checkSigsTranslator >> dispatch))
+                            TabItem.onTapped(fun _ -> NavigateTo Page.CheckSigs |> dispatch)
+                        ]
+                        TabItem.create [
                             TabItem.header "Start"
-                            TabItem.content (DLCSignModule.view globalConfig state.Start (startTranslator >> dispatch))
+                            TabItem.content (DLCStartModule.view globalConfig state.Start (startTranslator >> dispatch))
                             TabItem.onTapped(fun _ -> NavigateTo Page.Start |> dispatch)
                         ]
                         TabItem.create [

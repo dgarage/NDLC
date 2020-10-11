@@ -64,5 +64,5 @@ module String =
     open FSharp.NativeInterop
     let isBase64 (s: string) =
         let dummy' = NativePtr.stackalloc<byte>(s.Length)
-        let dummy = Span<byte>(NativePtr.toVoidPtr dummy', 32)
+        let dummy = Span<byte>(NativePtr.toVoidPtr dummy', s.Length)
         Convert.TryFromBase64String(s, dummy) |> fst

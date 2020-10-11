@@ -16,6 +16,7 @@ open ResultUtils
 open NDLC.Infrastructure
 open NDLC.Messages
 
+open Avalonia.Media
 open System.Collections.Generic
 open System.Text
 open NBitcoin.DataEncoders
@@ -384,6 +385,8 @@ let view globalConfig (state: State) (dispatch) =
                 TextBlock.create[
                     TextBlock.text x
                     TextBlock.classes ["error"]
+                    TextBlock.textWrapping TextWrapping.Wrap
+                    TextBlock.height 150.
                 ]
         ]
     ]

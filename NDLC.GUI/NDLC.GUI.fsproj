@@ -21,7 +21,8 @@
     <Compile Include="DLC\DLCOffer.fs" />
     <Compile Include="DLC\DLCAccept.fs" />
     <Compile Include="DLC\CheckSig.fs" />
-    <Compile Include="DLC\DLCSign.fs" />
+    <Compile Include="DLC\DLCCheckSigs.fs" />
+    <Compile Include="DLC\DLCStart.fs" />
     <Compile Include="DLC\DLCList.fs" />
     <Compile Include="DLC\DLC.fs" />
     <Compile Include="Event\EventInImport.fs" />
