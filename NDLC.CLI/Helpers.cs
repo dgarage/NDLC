@@ -21,12 +21,14 @@ namespace NDLC.CLI
 				throw new CommandException(argName, "Invalid PSBT");
 			return psbt;
 		}
+
 		public static string ToString(ECXOnlyPubKey pubKey)
 		{
 			var buf = new byte[32];
 			pubKey.WriteToSpan(buf);
 			return Encoders.Hex.EncodeData(buf);
 		}
+
 		public static string ToBase58(ECXOnlyPubKey pubKey)
 		{
 			var buf = new byte[32];
@@ -35,3 +37,4 @@ namespace NDLC.CLI
 		}
 	}
 }
+

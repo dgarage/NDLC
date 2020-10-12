@@ -1,11 +1,9 @@
-﻿using NBitcoin;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using NBitcoin;
 
-namespace NDLC.CLI.DLC
+namespace NDLC
 {
-	class LockTimeEstimation
+	public class LockTimeEstimation
 	{
 		int KnownBlock = 648085;
 		DateTimeOffset KnownDate = Utils.UnixTimeToDateTime(1599999529);

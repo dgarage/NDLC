@@ -27,6 +27,31 @@ namespace NDLC
 			return payoffs;
 		}
 
+		public static bool TryParse(string str, out DiscretePayoffs? result)
+		{
+			result = null;
+			if (string.IsNullOrEmpty(str))
+				return false;
+			return TryParse(str.Split(",").Select(x => x.Trim()).ToList(), out result);
+		}
+
+		public static bool TryParse(IList<string> payoffStrs, out DiscretePayoffs? result)
+		{
+			result = new DiscretePayoffs();
+			if (!payoffStrs.Any())
+				return false;
+			foreach (var s in payoffStrs)
+			{
+				if (string.IsNullOrEmpty(s))
+					return false;
+
+				if (!DiscretePayoff.TryParse(s, out var o) || o is null)
+					return false;
+				result.Add(o);
+			}
+			return true;
+		}
+
 		List<DiscretePayoff> _Outcomes = new List<DiscretePayoff>();
 		Dictionary<DiscreteOutcome, Money> _Rewards = new Dictionary<DiscreteOutcome, Money>();
 		public Money CalculateMinimumCollateral()

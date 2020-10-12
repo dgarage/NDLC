@@ -51,7 +51,10 @@ namespace NDLC.CLI.DLC
 			var payoffsStr = context.ParseResult.CommandResult.GetArgumentValueOrDefault<List<string>>("payoff");
 			if (payoffsStr is null || payoffsStr.Count == 0)
 				throw new CommandOptionRequiredException("payoff");
-			var payoffs = CreatePayoffs(payoffsStr);
+			if (!DiscretePayoffs.TryParse(payoffsStr, out var payoffs) || payoffs is null)
+			{
+				throw new CommandException("payoff", "The payoff can't be parsed");
+			}
 			FixCasing(evt, payoffs);
 			var builder = new DLCTransactionBuilder(true, null, null, null, Network);
 
@@ -73,18 +76,6 @@ namespace NDLC.CLI.DLC
 			var dlc = await Repository.NewDLC(evt.EventId, builder);
 			await NameRepository.AsDLCNameRepository().SetMapping(name, dlc.Id);
 			context.Console.Out.Write($"Offer created, you now need to setup the DLC sending {collateral} BTC to yourself. For more information, run `dlc show \"{name}\"`.");
-		}
-
-		private DiscretePayoffs CreatePayoffs(List<string> payoffs)
-		{
-			var result = new DiscretePayoffs();
-			foreach (var payoff in payoffs)
-			{
-				if (!DiscretePayoff.TryParse(payoff, out var o) || o is null)
-					throw new CommandException("payoff", "The payoff can't be parsed");
-				result.Add(o);
-			}
-			return result;
 		}
 
 		/// <summary>
