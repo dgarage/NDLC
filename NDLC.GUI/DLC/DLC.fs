@@ -5,7 +5,9 @@ open FSharp.Control.Tasks
 open Avalonia.FuncUI.DSL
 open Elmish
 open Avalonia.Controls
+open Avalonia.Media
 open GlobalMsgs
+open NBitcoin
 open NDLC.GUI.Utils
 open NDLC.Infrastructure
 
@@ -15,6 +17,7 @@ open NDLC.Infrastructure
         | AcceptResult of DLCAcceptModule.AcceptResult
         | CheckSigsResult of DLCCheckSigsModule.CheckSigResult
         | StartResult of DLCStartModule.StartResult
+        | ExecResult of Transaction
         
     type Page =
         | Offer = 0
@@ -78,6 +81,7 @@ open NDLC.Infrastructure
                 | Repository.DLCState.DLCNextStep.Done ->
                     NoOp
                 | ns -> failwithf "Unreachable! Unknown nextStep %A" (ns)
+            OnSetExecutionResult = ExecResult >> OutputReturned
         }
     let offerTranslator =
         DLCOfferModule.translator
@@ -125,7 +129,7 @@ open NDLC.Infrastructure
         match msg with
         | ListMsg msg ->
             let s, cmd = DLCListModule.update globalConfig msg state.List
-            { state with List = s }, (cmd |> Cmd.map(ListMsg))
+            { state with List = s }, (cmd |> Cmd.map(listTranslator globalConfig))
         | OfferMsg msg ->
             let s, cmd = DLCOfferModule.update globalConfig msg state.Offer 
             {  state with Offer = s }, (cmd |> Cmd.map (offerTranslator))
@@ -196,14 +200,18 @@ open NDLC.Infrastructure
                 let resultView (msg, base64, json) =
                     StackPanel.children [
                         TextBlock.create [
+                            TextBlock.fontSize 14.
                             TextBlock.text (msg)
                         ]
-                        TextBox.create [
-                            TextBox.text (base64)
+                        TextBlock.create [
+                            TextBlock.text (base64)
+                            TextBlock.margin 10.
+                            TextBlock.textWrapping TextWrapping.Wrap
+                            TextBlock.height 200.
                             TextBlock.contextMenu (ContextMenu.create [
                                 ContextMenu.viewItems [
                                     MenuItem.create [
-                                        MenuItem.header "Copy Base64"
+                                        MenuItem.header "Copy"
                                         MenuItem.onClick(fun (_) -> base64 |> CopyToClipBoard |> dispatch)
                                     ]
                                 ]
@@ -211,6 +219,9 @@ open NDLC.Infrastructure
                         ]
                         TextBox.create [
                             TextBox.text (json)
+                            TextBlock.margin 10.
+                            TextBox.textWrapping TextWrapping.Wrap
+                            TextBox.height 200.
                             TextBlock.contextMenu (ContextMenu.create [
                                 ContextMenu.viewItems [
                                     MenuItem.create [
@@ -235,7 +246,10 @@ open NDLC.Infrastructure
                         resultView(x.Msg, x.SignBase64, x.SignJson)
                     | Resolved (StartResult(DLCStartModule.ForAcceptor x)) ->
                         resultView(x.Msg, x.FinalizedTxHex, x.FinalizedTxJson)
-                    | _ -> ()
+                    | Resolved (ExecResult t) ->
+                        resultView("Broadcast this CET transaction", t.ToHex(), "")
+                    | InProgress -> StackPanel.children [Components.spinner]
+                    | HasNotStartedYet -> ()
                 ]
             ]
         ]

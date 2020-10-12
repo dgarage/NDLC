@@ -1,6 +1,7 @@
 [<RequireQualifiedAccess>]
 module NDLC.GUI.DLCListModule
 
+open System.Collections.Generic
 open System.Diagnostics
 open Avalonia
 open Avalonia.Controls
@@ -11,6 +12,7 @@ open System.Linq
 open System.Text
 open FSharp.Control.Tasks
 open Elmish
+open NBitcoin
 open NBitcoin.DataEncoders
 open NDLC.GUI
 open NDLC.GUI.Utils
@@ -21,6 +23,7 @@ open NDLC.Messages
 type KnownDLC = {
     EventName: EventFullName
     LocalName: string
+    Attestations: Dictionary<string, Key>
     State: (Repository.DLCState)
     Outcomes: string []
     IsInitiator: bool
@@ -28,11 +31,14 @@ type KnownDLC = {
 
 type State = private {
     KnownDLCs: Deferred<Result<KnownDLC seq, string>>
+    ErrorMsg: string option
 }
 
 type InternalMsg =
     | LoadDLCs of AsyncOperationStatus<Result<KnownDLC seq, string>>
     | CopyToClipBoard of string
+    | Execute of KnownDLC
+    | InvalidInput of string
     | NoOp
     
 type GotoInfo = {
@@ -43,6 +49,7 @@ type GotoInfo = {
     member this.LocalName = this.KnownDLC.LocalName
     member this.DLCState = this.KnownDLC.State
 type OutMsg =
+    | SetExecutionResult of CETTX: Transaction
     | GoToNextStep of GotoInfo
     
 type Msg =
@@ -52,17 +59,20 @@ type Msg =
 type TranslationDictionary<'Msg> = {
     OnInternalMsg: InternalMsg -> 'Msg
     OnGoToNextStep: GotoInfo -> 'Msg
+    OnSetExecutionResult: Transaction -> 'Msg
 }
 
 type Translator<'Msg> = Msg -> 'Msg
 
-let translator ({ OnInternalMsg = onInternalMsg; OnGoToNextStep = onInputFinished }: TranslationDictionary<'Msg>): Translator<'Msg> =
+let translator ({ OnInternalMsg = onInternalMsg; OnGoToNextStep = onInputFinished; OnSetExecutionResult = onSetExecutionResult }: TranslationDictionary<'Msg>):
+    Translator<'Msg> =
     function
     | ForSelf i -> onInternalMsg i
     | ForParent(GoToNextStep info) -> onInputFinished info
+    | ForParent(SetExecutionResult r) -> onSetExecutionResult r
     
 let init =
-    { KnownDLCs = HasNotStartedYet }, Cmd.ofMsg(LoadDLCs Started)
+    { KnownDLCs = HasNotStartedYet; ErrorMsg = None }, Cmd.ofMsg(LoadDLCs Started)
     
 let update (globalConfig) (msg: InternalMsg) (state: State) =
     match msg with
@@ -76,24 +86,45 @@ let update (globalConfig) (msg: InternalMsg) (state: State) =
                 let! dState = repo.GetDLC(dlcId)
                 let! eventFullName = nRepo.AsEventRepository().ResolveName(dState.OracleInfo)
                 let! e = repo.GetEvent(dState.OracleInfo)
+                let! event = CommandBase.getEvent globalConfig eventFullName
+                
                 let info =
+                    let atts = event |> Option.ofObj |> Option.bind(fun e -> e.Attestations |> Option.ofObj) |> Option.defaultWith(fun () -> Dictionary<_,_>())
                     let builder = DLCTransactionBuilder(dState.BuilderState.ToString(), globalConfig.Network)
-                    { LocalName = dlcName; State = dState; IsInitiator = builder.State.IsInitiator; EventName = eventFullName; Outcomes = e.Outcomes }
+                    { LocalName = dlcName; State = dState; IsInitiator = builder.State.IsInitiator
+                      EventName = eventFullName; Outcomes = e.Outcomes
+                      Attestations = atts }
                 result.Add(info)
             return result.OrderBy(fun x -> (x.EventName.ToString(), x.LocalName)) :> seq<_>
         }
         { state with KnownDLCs = InProgress },
         Cmd.OfTask.either (load) globalConfig
-            (Ok >> Finished >> LoadDLCs)
-            (fun e -> e.ToString() |> Error |> Finished |> LoadDLCs)
+            (Ok >> Finished >> LoadDLCs >> ForSelf)
+            (fun e -> e.ToString() |> Error |> Finished |> LoadDLCs |> ForSelf)
     | LoadDLCs(Finished dlcs) ->
         { state with KnownDLCs = Deferred.Resolved(dlcs) }, Cmd.none
     | CopyToClipBoard x ->
         let copy (str) = task {
             do! Application.Current.Clipboard.SetTextAsync str
-            return NoOp
+            return NoOp |> ForSelf
         }
         state, Cmd.OfTask.result (copy x)
+    | Execute dlc ->
+        let execDLC g (d: KnownDLC) = task {
+            Debug.Assert(d.State.OracleInfo |> isNull |> not)
+            Debug.Assert(d.State.BuilderState |> isNull |> not && d.State.FundKeyPath |> isNull |> not)
+            let repo = ConfigUtils.repository g
+            let oracleKey = d.Attestations.Values.First()
+            let builder = DLCTransactionBuilder(d.State.BuilderState.ToString(), g.Network);
+            let! key = repo.GetKey(d.State.FundKeyPath);
+            let execution = builder.Execute(key, oracleKey)
+            return execution.CET
+        }
+        let onSuccess = SetExecutionResult >> ForParent
+        let onError (e: exn) = e.Message |> InvalidInput |> ForSelf
+        state, Cmd.OfTask.either (execDLC globalConfig) dlc onSuccess onError
+    | InvalidInput s ->
+        { state with ErrorMsg = Some s }, Cmd.none
     | NoOp ->
         state, Cmd.none
         
@@ -256,6 +287,16 @@ let view globalConfig (state: State) dispatch =
                                                             ()
                                                     ]
                                                 ]
+                                                if (d.Attestations.Count = 0) then ()
+                                                else if (d.Attestations.Count = 1) then
+                                                    MenuItem.create [
+                                                        MenuItem.header "Execute"
+                                                        MenuItem.onClick(fun _ -> Execute d |> ForSelf |> dispatch)
+                                                    ] 
+                                                else
+                                                    MenuItem.create [
+                                                        MenuItem.header "Extract PrivateKey for the Oracle (TODO)"
+                                                    ]
                                                 if (d.State.GetNextStep(globalConfig.Network) = Repository.DLCState.DLCNextStep.Done) then () else
                                                 MenuItem.create [
                                                     MenuItem.header "Goto Next Step"
