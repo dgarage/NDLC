@@ -48,18 +48,22 @@ namespace NDLC.Messages
 				s.Offerer?.FundPubKey is null ||
 				s.Acceptor?.Collateral is null ||
 				s.Acceptor?.FundPubKey is null ||
+				accept is null ||
+				offer is null ||
 				s.FeeRate is null)
 				return;
 			var offerer = new FundingParty(
 				s.Offerer.Collateral,
-				GetCoins(offer),
-				offer?.ChangeAddress?.ScriptPubKey,
-				s.Offerer.FundPubKey);
+				offer.FundingInputs,
+				offer.ChangeAddress?.ScriptPubKey,
+				s.Offerer.FundPubKey,
+				new VSizeCalculator(offer).Calculate());
 			var acceptor = new FundingParty(
 				s.Acceptor.Collateral,
-				GetCoins(accept),
-				accept?.ChangeAddress?.ScriptPubKey,
-				s.Acceptor.FundPubKey);
+				accept.FundingInputs,
+				accept.ChangeAddress?.ScriptPubKey,
+				s.Acceptor.FundPubKey,
+				new VSizeCalculator(accept).Calculate());
 			s.Funding = new FundingParameters(offerer, acceptor, s.FeeRate, transactionOverride).Build(network);
 		}
 
@@ -80,16 +84,13 @@ namespace NDLC.Messages
 						continue;
 					if (!SecpECDSASignature.TryCreateFromDer(data.AsSpan(0, data.Length - 1), out var sig) || sig is null)
 						continue;
-
-					var outcomeSigsByOutcome = 
-						State.Remote.OutcomeSigs
-						.Concat(State.Us.OutcomeSigs)
-						.GroupBy(c => c.Key, c => c.Value);
-					foreach (var outcomeSigs in outcomeSigsByOutcome)
+					int i = -1;
+					foreach (var outcome in s.OffererPayoffs.Select(c => c.Outcome))
 					{
-						if (!State.OracleInfo.TryComputeSigpoint(outcomeSigs.Key, out var sigpoint) || sigpoint is null)
+						i++;
+						if (!State.OracleInfo.TryComputeSigpoint(outcome, out var sigpoint) || sigpoint is null)
 							continue;
-						foreach (var outcomeSig in outcomeSigs)
+						foreach (var outcomeSig in new[] { State.Us.OutcomeSigs[i], State.Remote.OutcomeSigs[i] })
 						{
 							if (outcomeSig.TryExtractSecret(sig, sigpoint, out var key) && key is ECPrivKey)
 								return new Key(key.ToBytes());
@@ -104,10 +105,11 @@ namespace NDLC.Messages
 		{
 			if (offer is null)
 				return;
-			s.OffererCoins = GetCoins(offer);
+			s.OffererInputs = offer.FundingInputs;
 			s.OffererChange = offer.ChangeAddress?.ScriptPubKey;
 			s.OracleInfo = offer.OracleInfo;
 			s.Timeouts = offer.Timeouts;
+			s.ContractId = offer.GetTemporaryContractId();
 			s.Offerer ??= new Party();
 
 			if (offer.ContractInfo is ContractInfo[] c &&
@@ -116,27 +118,23 @@ namespace NDLC.Messages
 			{
 				s.OffererPayoffs = DiscretePayoffs.CreateFromContractInfo(offer.ContractInfo, offer.TotalCollateral);
 			}
+			s.Offerer.VSizes = new VSizeCalculator(offer).Calculate();
 			s.Offerer.ContractId = offer.OffererContractId;
 			s.Offerer.Collateral = offer.TotalCollateral ?? s.OffererPayoffs?.CalculateMinimumCollateral();
 			s.Offerer.FundPubKey = offer.PubKeys?.FundingKey;
 			s.Offerer.PayoutDestination = offer.PubKeys?.PayoutAddress?.ScriptPubKey;
 			s.FeeRate = offer.FeeRate;
 		}
-		static Coin[] GetCoins(FundingInformation? fi)
-		{
-			if (fi?.FundingInputs is null)
-				return Array.Empty<Coin>();
-			return fi.FundingInputs.Select(c => new Coin(c.Outpoint, c.Output)).ToArray();
-		}
 		public void FillStateFrom(Accept? accept)
 		{
 			if (accept is null)
 				return;
 			s.Acceptor ??= new Party();
+			s.Acceptor.VSizes = new VSizeCalculator(accept).Calculate();
 			s.Acceptor.ContractId = accept.AcceptorContractId;
 			s.Acceptor.FundPubKey = accept.PubKeys?.FundingKey;
-			s.Acceptor.OutcomeSigs = accept.CetSigs?.OutcomeSigs.ToDictionary(kv => kv.Key, kv => kv.Value.Signature);
-			s.Acceptor.RefundSig = accept.CetSigs?.RefundSig?.Signature.Signature;
+			s.Acceptor.OutcomeSigs = accept.CetSigs?.OutcomeSigs.Select(o => o.Signature).ToArray();
+			s.Acceptor.RefundSig = accept.CetSigs?.RefundSig;
 			s.Acceptor.Collateral = accept.TotalCollateral;
 			if (s.Acceptor.Collateral is null &&
 				s.OffererPayoffs is DiscretePayoffs)
@@ -151,8 +149,8 @@ namespace NDLC.Messages
 			if (sign is null)
 				return;
 			s.Offerer ??= new Party();
-			s.Offerer.OutcomeSigs = sign.CetSigs?.OutcomeSigs.ToDictionary(kv => kv.Key, kv => kv.Value.Signature);
-			s.Offerer.RefundSig = sign.CetSigs?.RefundSig?.Signature.Signature;
+			s.Offerer.OutcomeSigs = sign.CetSigs?.OutcomeSigs.Select(o => o.Signature).ToArray();
+			s.Offerer.RefundSig = sign.CetSigs?.RefundSig;
 		}
 
 		public Transaction BuildRefund()
@@ -168,7 +166,8 @@ namespace NDLC.Messages
 			Transaction tx = network.CreateTransaction();
 			tx.Version = 2;
 			tx.LockTime = s.Timeouts.ContractTimeout;
-			tx.Inputs.Add(new OutPoint(s.Funding.PSBT.GetGlobalTransaction().GetHash(), 0), sequence: 0xFFFFFFFE);
+			var txin = tx.Inputs.Add(s.Funding.FundCoin.Outpoint, sequence: 0xFFFFFFFE);
+			txin.WitScript = new WitScript(new[] { s.Funding.FundCoin.Redeem.ToBytes() });
 			tx.Outputs.Add(s.Offerer.Collateral, s.Offerer.PayoutDestination);
 			tx.Outputs.Add(s.Acceptor.Collateral, s.Acceptor.PayoutDestination);
 			return tx;
@@ -195,17 +194,21 @@ namespace NDLC.Messages
 			return s.Offerer.Collateral;
 		}
 
-		(Coin[] Coins, BitcoinAddress PayoutAddress, BitcoinAddress? ChangeAddress)
+		(Coin[] Coins, FundingInput[] FundingInputs, BitcoinAddress PayoutAddress, BitcoinAddress? ChangeAddress)
 			ExtractFundingInformation(PSBT psbt, Money expectedCollateral)
 		{
 			var payoutAddress = psbt.Outputs.Where(o => o.Value == expectedCollateral).Select(c => c.ScriptPubKey).FirstOrDefault();
 			if (payoutAddress is null)
 				throw new InvalidOperationException("The PSBT should have an output paying the exact collateral");
 			var changeAddress = psbt.Outputs.Where(o => o.Value != expectedCollateral).Select(c => c.ScriptPubKey).FirstOrDefault();
-			var inputs = psbt.Inputs.Select(i => i.GetCoin() ?? throw new InvalidOperationException("The PSBT is missing witness_utxo"))
-						.Select(i => i.GetHashVersion() == HashVersion.Witness ? i : throw new InvalidOperationException("The funding wallet must be using segwit"))
-						.ToArray();
-			return (inputs, payoutAddress.GetDestinationAddress(network), changeAddress?.GetDestinationAddress(network));
+			return (psbt.Inputs
+					.Select(i => i.GetCoin() ?? throw new InvalidOperationException("The PSBT is missing witness_utxo"))
+					.ToArray(),
+					psbt.Inputs
+					.Select(i => new FundingInput(i))
+					.ToArray(),
+					payoutAddress.GetDestinationAddress(network),
+					changeAddress?.GetDestinationAddress(network));
 		}
 		public Offer FundOffer(Key fundKey, PSBT psbt)
 		{
@@ -229,7 +232,7 @@ namespace NDLC.Messages
 				},
 				ChangeAddress = fundingInfo.ChangeAddress,
 				FeeRate = psbt.GetEstimatedFeeRate(),
-				FundingInputs = fundingInfo.Coins.Select(c => new FundingInput(c)).ToArray()
+				FundingInputs = fundingInfo.FundingInputs
 			};
 			FillStateFrom(offer);
 			tx.Commit();
@@ -253,6 +256,7 @@ namespace NDLC.Messages
 				throw new ArgumentException($"The acceptor's collateral is too small, it should be at least {minimumCollateral.ToString(false, false)}");
 			s.Acceptor ??= new Party();
 			s.Acceptor.Collateral = collateral;
+			s.ContractId = offer.GetTemporaryContractId();
 			tx.Commit();
 			return s.OffererPayoffs.Inverse();
 		}
@@ -264,7 +268,9 @@ namespace NDLC.Messages
 			if (s.OffererPayoffs is null ||
 				s.Offerer?.Collateral is null ||
 				s.Offerer?.FundPubKey is null ||
+				s.Offerer.VSizes is null ||
 				s.Acceptor?.Collateral is null ||
+				s.ContractId is null ||
 				s.FeeRate is null)
 				throw new InvalidOperationException("Invalid state");
 			using var tx = StartTransaction();
@@ -279,23 +285,50 @@ namespace NDLC.Messages
 					FundingKey = fundKey.PubKey,
 					PayoutAddress = fundingInfo.PayoutAddress
 				},
-				FundingInputs = fundingInfo.Coins.Select(c => new FundingInput(c)).ToArray(),
+				FundingInputs = fundingInfo.FundingInputs,
 				OffererContractId = s.Offerer.ContractId
 			};
 			FillStateFrom(accept);
 			s.Funding = new FundingParameters(
 				new FundingParty(s.Offerer.Collateral,
-				s.OffererCoins,
+				s.OffererInputs,
 				s.OffererChange,
-				s.Offerer.FundPubKey),
+				s.Offerer.FundPubKey, s.Offerer.VSizes),
 				new FundingParty(s.Acceptor.Collateral,
-				fundingInfo.Coins,
+				fundingInfo.FundingInputs,
 				fundingInfo.ChangeAddress?.ScriptPubKey,
-				fundKey.PubKey), s.FeeRate, FundingOverride).Build(network);
+				fundKey.PubKey, new VSizeCalculator(accept).Calculate()),
+				s.FeeRate, FundingOverride).Build(network);
 			accept.CetSigs = CreateCetSigs(fundKey);
+			s.ContractId = CalculateContractId(s.ContractId, GetFundingTransactionHash(), 0);
 			tx.Commit();
 			return accept;
 		}
+
+		private uint256 GetFundingTransactionHash()
+		{
+			if (s.Funding?.PSBT is null ||
+				!s.Funding.PSBT.TryGetFinalizedHash(out var fundingHash))
+				throw new InvalidOperationException("Impossible to calculate the hash of the funding");
+			return fundingHash;
+		}
+
+		public static uint256 CalculateContractId(uint256 temporaryContractId, uint256 fundingTxHash, int fundingOutputIndex)
+		{
+			Span<byte> a = stackalloc byte[32];
+			temporaryContractId.ToBytes(a, true);
+			Span<byte> b = stackalloc byte[32];
+			fundingTxHash.ToBytes(b, false);
+			Span<byte> c = stackalloc byte[32];
+			Utils.ToUInt32(c, false);
+			for (int i = 0; i < 32; i++)
+			{
+				c[i] ^= a[i];
+				c[i] ^= b[i];
+			}
+			return new uint256(c);
+		}
+
 		public void Sign1(Accept accept)
 		{
 			using var tx = StartTransaction();
@@ -303,7 +336,7 @@ namespace NDLC.Messages
 				throw new InvalidOperationException("The acceptor can't sign");
 			if (accept.PubKeys?.FundingKey is null)
 				throw new InvalidOperationException("The accept message is missing some information");
-			if (s.Offerer?.Collateral is null || s.OffererPayoffs is null || s.Offerer?.FundPubKey is null || s.FeeRate is null)
+			if (s.Offerer?.Collateral is null || s.OffererPayoffs is null || s.Offerer?.FundPubKey is null || s.FeeRate is null || s.Offerer.VSizes is null)
 				throw new InvalidOperationException("Invalid state");
 			if (accept?.CetSigs?.OutcomeSigs is null)
 				throw new InvalidOperationException("Outcome sigs missing");
@@ -317,55 +350,56 @@ namespace NDLC.Messages
 
 			var acceptor = new FundingParty(
 			collateral,
-			accept.FundingInputs.Select(c => new Coin(c.Outpoint, c.Output)).ToArray(),
+			accept.FundingInputs,
 			accept.ChangeAddress?.ScriptPubKey,
-			accept.PubKeys.FundingKey);
+			accept.PubKeys.FundingKey,
+			new VSizeCalculator(accept).Calculate());
 			var offerer = new FundingParty(
 				s.Offerer.Collateral,
-				s.OffererCoins,
+				s.OffererInputs,
 				s.OffererChange,
-				s.Offerer.FundPubKey
+				s.Offerer.FundPubKey,
+				s.Offerer.VSizes
 				);
 			s.Funding = new FundingParameters(offerer, acceptor, s.FeeRate, FundingOverride).Build(network);
 			AssertRemoteSigs(accept.CetSigs.OutcomeSigs);
-			s.OffererCoins = null;
 			s.OffererChange = null;
 			tx.Commit();
 		}
 		public Sign Sign2(Key fundKey, PSBT signedFunding)
 		{
 			using var tx = StartTransaction();
-			if (s.Funding is null)
+			if (s.Funding is null || s.OffererInputs is null || s.ContractId is null)
 				throw new InvalidOperationException("Invalid state");
 			if (s.Us?.FundPubKey != fundKey.PubKey)
 				throw new ArgumentException(nameof(fundKey), "This is not the fund key");
 			s.Funding.PSBT = s.Funding.PSBT.Combine(signedFunding);
 			Sign sign = new Sign();
 			sign.CetSigs = CreateCetSigs(fundKey);
-			sign.FundingSigs = new Dictionary<OutPoint, List<PartialSignature>>();
-			sign.AcceptorContractId = s.Acceptor?.ContractId;
+			sign.FundingSigs = new List<WitScript>();
+			sign.ContractId = s.Acceptor?.ContractId;
+			sign.ContractId = CalculateContractId(s.ContractId, GetFundingTransactionHash(), 0);
+			sign.FundingSigs = new List<WitScript>();
+			int offererInputIndex = 0;
 			foreach (var input in s.Funding.PSBT.Inputs)
 			{
-				if (!sign.FundingSigs.TryGetValue(input.PrevOut, out var sigs))
-				{
-					sigs = new List<PartialSignature>();
-					sign.FundingSigs.Add(input.PrevOut, sigs);
-				}
-				foreach (var sig in input.PartialSigs)
-				{
-					var sigHash = s.Funding.PSBT
-								.GetGlobalTransaction()
-								.GetSignatureHash(input.GetCoin());
-					if (!sig.Key.Verify(sigHash, sig.Value.Signature))
-						throw new InvalidOperationException("Invalid signature");
-					sigs.Add(new PartialSignature(sig.Key, sig.Value));
-				}
+				if (offererInputIndex >= s.OffererInputs.Length)
+					break;
+				var offererInput = s.OffererInputs[offererInputIndex];
+				if (input.PrevOut != offererInput.AsCoin().Outpoint)
+					continue; // Not the our outpoint, we can't sign this
+				offererInputIndex++;
+				input.FinalizeInput();
+				sign.FundingSigs.Add(input.FinalScriptWitness!);
 			}
+			if (sign.FundingSigs.Count != s.OffererInputs.Length)
+				throw new InvalidOperationException("The PSBT is not signing all the inputs of our offer");
+			s.OffererInputs = null;
 			tx.Commit();
 			return sign;
 		}
 
-		private void AssertRemoteSigs(Dictionary<DiscreteOutcome, AdaptorSignature> cetSigs)
+		private void AssertRemoteSigs(AdaptorSignature[] cetSigs)
 		{
 			if (!VerifyRemoteCetSigs(cetSigs))
 				throw new InvalidOperationException("Invalid remote CET");
@@ -378,22 +412,23 @@ namespace NDLC.Messages
 			using var tx = StartTransaction();
 			if (sign == null)
 				throw new ArgumentNullException(nameof(sign));
-			if (s.Funding is null)
+			if (s.Funding is null || s.OffererInputs is null)
 				throw new InvalidOperationException("Invalid state");
-			if (sign?.CetSigs?.OutcomeSigs is null)
-				throw new InvalidOperationException("Outcome sigs missing");
+			if (sign?.CetSigs?.OutcomeSigs is null || sign.FundingSigs is null)
+				throw new InvalidOperationException("Sign message is incomplete");
+			if (sign.FundingSigs.Count != s.OffererInputs.Length)
+				throw new InvalidOperationException("Sign message is incomplete");
+			if (sign.ContractId != s.ContractId)
+				throw new InvalidOperationException("Invalid contract id");
 			FillStateFrom(sign);
 			AssertRemoteSigs(sign.CetSigs.OutcomeSigs);
-			if (sign.FundingSigs is Dictionary<OutPoint, List<PartialSignature>> sigs1)
+			int offererInputIndex = 0;
+			foreach (var sig in sign.FundingSigs)
 			{
-				foreach (var kv in sigs1)
-				{
-					var input = s.Funding.PSBT.Inputs.FindIndexedInput(kv.Key);
-					foreach (var sig in kv.Value)
-					{
-						input.PartialSigs.Add(sig.PubKey, sig.Signature);
-					}
-				}
+				var offererInput = s.OffererInputs[offererInputIndex++];
+				var input = s.Funding.PSBT.Inputs.FindIndexedInput(offererInput.Outpoint!);
+				input.FinalScriptWitness = sig;
+				input.ClearForFinalize();
 			}
 			tx.Commit();
 		}
@@ -435,12 +470,12 @@ namespace NDLC.Messages
 			var cetSig = new CetSigs()
 			{
 				OutcomeSigs = s.OffererPayoffs
-							  .Select(o => (o.Outcome, SignCET(fundKey, o.Outcome)))
-							  .ToDictionary(kv => kv.Outcome, kv => kv.Item2),
-				RefundSig = new PartialSignature(fundKey.PubKey, signature)
+							  .Select(o => SignCET(fundKey, o.Outcome))
+							  .ToArray(),
+				RefundSig = signature.Signature
 			};
 			State.Us ??= new Party();
-			State.Us.OutcomeSigs = cetSig.OutcomeSigs.ToDictionary(kv => kv.Key, kv => kv.Value.Signature);
+			State.Us.OutcomeSigs = cetSig.OutcomeSigs.Select(o => o.Signature).ToArray();
 			return cetSig;
 		}
 
@@ -467,15 +502,16 @@ namespace NDLC.Messages
 				throw new InvalidOperationException("Invalid state for building the signed CET");
 			if (fundKey.PubKey != s.Us?.FundPubKey)
 				throw new ArgumentException(nameof(fundKey), "This is not the fund key");
+			int i = -1;
 			foreach (var outcome in s.OffererPayoffs.Select(o => o.Outcome))
 			{
+				i++;
 				if (!s.OracleInfo.TryComputeSigpoint(outcome, out var sigPoint) || sigPoint is null)
 					continue;
 				if (oracleSecret.PubKey.ToECPubKey() != sigPoint)
 					continue;
 				var cet = BuildCET(outcome);
-				if (!s.Remote.OutcomeSigs.TryGetValue(outcome, out var encryptedSig))
-					continue;
+				var encryptedSig = s.Remote.OutcomeSigs[i];
 				var ecdsaSig = encryptedSig.AdaptECDSA(oracleSecret.ToECPrivKey());
 				var builder = network.CreateTransactionBuilder();
 				builder.AddCoins(s.Funding.FundCoin);
@@ -505,7 +541,8 @@ namespace NDLC.Messages
 			Transaction tx = network.CreateTransaction();
 			tx.Version = 2;
 			tx.LockTime = s.Timeouts.ContractMaturity;
-			tx.Inputs.Add(s.Funding.FundCoin.Outpoint, sequence: 0xFFFFFFFE);
+			var txin = tx.Inputs.Add(s.Funding.FundCoin.Outpoint, sequence: 0xFFFFFFFE);
+			txin.WitScript = new WitScript(new byte[][] { s.Funding.FundCoin.Redeem.ToBytes() });
 			var collateral = s.Offerer.Collateral + s.Acceptor.Collateral;
 			tx.Outputs.Add(offererReward + s.Offerer.Collateral, s.Offerer.PayoutDestination);
 			tx.Outputs.Add(s.Acceptor.Collateral - offererReward, s.Acceptor.PayoutDestination);
@@ -517,16 +554,16 @@ namespace NDLC.Messages
 			return tx;
 		}
 
-		public bool VerifyRemoteCetSigs(Dictionary<DiscreteOutcome, AdaptorSignature> cetSigs)
+		public bool VerifyRemoteCetSigs(AdaptorSignature[] cetSigs)
 		{
 			if (s.Remote?.FundPubKey is null || s.OracleInfo is null || s.Funding is null)
 				throw new InvalidOperationException("We did not received enough data to verify the sigs");
-
+			if (cetSigs.Length != s.OffererPayoffs.Count)
+				throw new InvalidOperationException("Invalid number of cet sigs");
+			int i = 0;
 			foreach (var outcome in s.OffererPayoffs.Select(o => o.Outcome))
 			{
-				if (!cetSigs.TryGetValue(outcome, out var outcomeSig))
-					return false;
-
+				var outcomeSig = cetSigs[i++];
 				if (!s.OracleInfo.TryComputeSigpoint(outcome, out var sigpoint) || sigpoint is null)
 					return false;
 				var ecPubKey = s.Remote.FundPubKey.ToECPubKey();
@@ -550,7 +587,13 @@ namespace NDLC.Messages
 		{
 			if (s.Funding is null)
 				throw new InvalidOperationException("Invalid state");
-			return s.Funding.PSBT.GetGlobalTransaction();
+			var tx = s.Funding.PSBT.GetGlobalTransaction();
+			for (int i = 0; i < s.Funding.PSBT.Inputs.Count; i++)
+			{
+				if (s.Funding.PSBT.Inputs[i].RedeemScript is Script redeem)
+					tx.Inputs[i].ScriptSig = new Script(Op.GetPushOp(redeem.ToBytes(false)));
+			}
+			return tx;
 		}
 		public PSBT GetFundingPSBT()
 		{

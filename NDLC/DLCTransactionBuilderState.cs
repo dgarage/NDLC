@@ -18,11 +18,13 @@ namespace NDLC
 			public PubKey? FundPubKey { get; set; } 
 			public Money? Collateral { get; set; }
 			public ECDSASignature? RefundSig { get; set; }
-			[JsonConverter(typeof(OutcomeSigs2JsonConverter))]
-			public Dictionary<DiscreteOutcome, SecpECDSAAdaptorSignature>? OutcomeSigs;
+			public VSizes? VSizes { get; set; }
+
+			public SecpECDSAAdaptorSignature[]? OutcomeSigs;
 			public Script? PayoutDestination;
 		}
 		public bool IsInitiator { get; set; }
+		public uint256? ContractId { get; set; }
 		public Party? Acceptor { get; set; }
 		public Party? Offerer { get; set; }
 
@@ -56,7 +58,7 @@ namespace NDLC
 					Acceptor = value;
 			}
 		}
-		public Coin[]? OffererCoins { get; set; }
+		public FundingInput[]? OffererInputs { get; set; }
 		public Script? OffererChange { get; set; }
 		public OracleInfo? OracleInfo { get; set; }
 		public FeeRate? FeeRate { get; set; }

@@ -8,35 +8,41 @@ namespace NDLC
 {
 	public class FundingParty
 	{
-		public FundingParty(Money collateral, Coin[]? fundingCoins, Script? change, PubKey fundPubKey)
+		public FundingParty(Money collateral, FundingInput[]? fundingInputs, Script? change, PubKey fundPubKey, VSizes vSizes)
 		{
 			Collateral = collateral;
-			FundingCoins = fundingCoins ?? Array.Empty<Coin>();
+			FundingInputs = fundingInputs ?? Array.Empty<FundingInput>();
 			Change = change;
 			FundPubKey = fundPubKey;
+			VSizes = vSizes;
 		}
 		public Money Collateral { get; }
-		public Coin[] FundingCoins { get; }
+		public FundingInput[] FundingInputs { get; }
 		public Script? Change { get; set; }
 		public PubKey FundPubKey { get; set; }
+		public VSizes VSizes { get; set; }
 	}
 	public class FundingParameters
 	{
 		private readonly Transaction? transactionOverride;
-
-		public FundingParameters(FundingParty offerer, FundingParty acceptor, FeeRate feeRate, Transaction? transactionOverride)
+		public FundingParameters(
+			FundingParty offerer,
+			FundingParty acceptor,
+			FeeRate feeRate,
+			Transaction? transactionOverride)
 		{
 			Offerer = offerer;
 			Acceptor = acceptor;
 			FeeRate = feeRate;
 			this.transactionOverride = transactionOverride;
 		}
-
 		public FundingParty Offerer { get; set; }
 		public FundingParty Acceptor { get; set; }
 		public FeeRate FeeRate { get; set; }
 		public FundingPSBT Build(Network network)
 		{
+			var offererCoins = Offerer.FundingInputs.Select(f => f.AsCoin()).ToArray();
+			var acceptorCoins = Acceptor.FundingInputs.Select(f => f.AsCoin()).ToArray();
 			var fundingScript = GetFundingScript();
 			var p2wsh = fundingScript.WitHash.ScriptPubKey;
 			Transaction? tx = null;
@@ -45,24 +51,22 @@ namespace NDLC
 				tx = network.CreateTransaction();
 				tx.Version = 2;
 				tx.LockTime = 0;
-				foreach (var input in Offerer.FundingCoins)
+				foreach (var input in Offerer.FundingInputs.Concat(Acceptor.FundingInputs))
 				{
-					tx.Inputs.Add(input.Outpoint, Script.Empty);
-				}
-				foreach (var input in Acceptor.FundingCoins)
-				{
-					tx.Inputs.Add(input.Outpoint, Script.Empty);
+					var txin = tx.Inputs.Add(input.AsCoin().Outpoint, Script.Empty);
+					if (input.RedeemScript is Script)
+						txin.ScriptSig = new Script(Op.GetPushOp(input.RedeemScript.ToBytes()));
 				}
 				foreach (var input in tx.Inputs)
 					input.Sequence = 0xffffffff;
 				tx.Outputs.Add(Offerer.Collateral + Acceptor.Collateral, p2wsh);
-				var totalInput = Offerer.FundingCoins.Select(s => s.Amount).Sum();
+				var totalInput = offererCoins.Select(s => s.Amount).Sum();
 				if (Offerer.Change is Script change)
 				{
 					tx.Outputs.Add(totalInput - Offerer.Collateral, change);
 				}
 
-				totalInput = Acceptor.FundingCoins.Select(s => s.Amount).Sum();
+				totalInput = acceptorCoins.Select(s => s.Amount).Sum();
 
 				if (Acceptor.Change is Script change2)
 				{
@@ -70,24 +74,27 @@ namespace NDLC
 								- Acceptor.Collateral, change2);
 				}
 
-				var expectedFee = FeeRate.GetFee(700);
-				var parts = expectedFee.Split(2).ToArray();
-				tx.Outputs[1].Value -= parts[1];
-				tx.Outputs[2].Value -= parts[1];
+				tx.Outputs[1].Value -= FeeRate.GetFee(Offerer.VSizes.Funding);
+				tx.Outputs[2].Value -= FeeRate.GetFee(Acceptor.VSizes.Funding);
 
-				var futureFee = FeeRate.GetFee(169);
-				parts = futureFee.Split(2).ToArray();
-				tx.Outputs[1].Value -= parts[1];
-				tx.Outputs[2].Value -= parts[1];
-				tx.Outputs[0].Value += futureFee;
+				var offererFee = FeeRate.GetFee(Offerer.VSizes.CET);
+				var acceptorFee = FeeRate.GetFee(Acceptor.VSizes.CET);
+				tx.Outputs[1].Value -= offererFee;
+				tx.Outputs[2].Value -= acceptorFee;
+				tx.Outputs[0].Value += offererFee + acceptorFee;
 			}
 			else
 			{
 				tx = transactionOverride;
 			}
 			var psbt = PSBT.FromTransaction(tx, network);
-			psbt.AddCoins(Offerer.FundingCoins);
-			psbt.AddCoins(Acceptor.FundingCoins);
+			foreach (var input in Offerer.FundingInputs.Concat(Acceptor.FundingInputs))
+			{
+				var txin = psbt.Inputs.FindIndexedInput(input.AsCoin().Outpoint);
+				txin.RedeemScript = input.RedeemScript;
+				txin.NonWitnessUtxo = input.InputTransaction;
+				txin.WitnessUtxo = input.Output;
+			}
 			return new FundingPSBT(psbt, new ScriptCoin(tx, 0, fundingScript));
 		}
 		static readonly Comparer<PubKey> LexicographicComparer = Comparer<PubKey>.Create((a, b) => Comparer<string>.Default.Compare(a.ToHex(), b.ToHex()));
@@ -103,13 +110,13 @@ namespace NDLC
 
 	public class FundingPSBT
 	{
-		public FundingPSBT(PSBT pSBT, Coin fundCoin)
+		public FundingPSBT(PSBT pSBT, ScriptCoin fundCoin)
 		{
 			PSBT = pSBT;
 			FundCoin = fundCoin;
 		}
 
 		public PSBT PSBT { get; set; }
-		public Coin FundCoin { get; set; }
+		public ScriptCoin FundCoin { get; set; }
 	}
 }

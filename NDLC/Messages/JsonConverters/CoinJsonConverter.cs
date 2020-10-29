@@ -35,6 +35,8 @@ namespace NDLC.Messages.JsonConverters
 		{
 			if (value is Coin)
 			{
+				if (value.Outpoint is null || value.Amount is null || value.ScriptPubKey is null)
+					throw new InvalidOperationException("Invalid coin object");
 				serializer.Serialize(writer, new CoinObj()
 				{
 					OutPoint = value.Outpoint,

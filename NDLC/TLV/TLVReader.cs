@@ -19,7 +19,14 @@ namespace NDLC.TLV
 		{
 			CanRead(8);
 			Stream.Read(buffer, 0, 8);
-			return Utils.ToUInt64(buffer, true);
+			return Utils.ToUInt64(buffer, false);
+		}
+
+		public void ReadBytes(Span<byte> output)
+		{
+			CanRead(output.Length);
+			if (Stream.Read(output) != output.Length)
+				throw new EndOfStreamException();
 		}
 
 		private void CanRead(int len)
@@ -32,13 +39,13 @@ namespace NDLC.TLV
 		{
 			CanRead(4);
 			Stream.Read(buffer, 0, 4);
-			return Utils.ToUInt32(buffer, true);
+			return Utils.ToUInt32(buffer, false);
 		}
 		public ushort ReadU16()
 		{
 			CanRead(2);
 			Stream.Read(buffer, 0, 2);
-			return (ushort)(buffer[0] + (buffer[1] << 8));
+			return (ushort)(buffer[1] + (buffer[0] << 8));
 		}
 		public byte ReadByte()
 		{
@@ -70,6 +77,19 @@ namespace NDLC.TLV
 				Stream.Read(buffer, 0, 8);
 				return Utils.ToUInt64(buffer, false);
 			}
+		}
+
+		public uint256 ReadUInt256()
+		{
+			Span<byte> buf = stackalloc byte[32];
+			if (Stream.Read(buf) != 32)
+				throw new EndOfStreamException();
+			return new uint256(buf);
+		}
+
+		public TLVRecordReader StartReadRecord()
+		{
+			return new TLVRecordReader(this);
 		}
 	}
 }
