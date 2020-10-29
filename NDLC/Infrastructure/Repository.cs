@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
@@ -28,9 +29,9 @@ namespace NDLC.Infrastructure
 			public JObject? BuilderState { get; set; }
 			[JsonConverter(typeof(OracleInfoJsonConverter))]
 			public OracleInfo? OracleInfo { get; set; }
-			public JObject? Offer { get; set; }
-			public JObject? Accept { get; set; }
-			public JObject? Sign { get; set; }
+			public Offer? Offer { get; set; }
+			public Accept? Accept { get; set; }
+			public Sign? Sign { get; set; }
 
 			public PSBT? Abort { get; set; }
 
@@ -214,6 +215,18 @@ namespace NDLC.Infrastructure
 			if (!File.Exists(file))
 				throw new InvalidOperationException("This DLC does not exists");
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(dlc, JsonSettings));
+		}
+		public Task ChangeDLCId(uint256 oldId, uint256 newId)
+		{
+			var dir = Path.Combine(RepositoryDirectory, "DLCs");
+			if (!Directory.Exists(dir))
+				throw new InvalidOperationException("This DLC does not exists");
+			var file = GetDLCFilePath(oldId);
+			if (!File.Exists(file))
+				throw new InvalidOperationException("This DLC does not exists");
+			var newFile = GetDLCFilePath(newId);
+			File.Move(file, newFile);
+			return Task.CompletedTask;
 		}
 
 		public async Task<DLCState?> GetDLC(uint256 id)

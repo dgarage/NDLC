@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.IO;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
@@ -251,12 +252,17 @@ namespace NDLC.Tests
 
 		private string CreateOfferFunding(Money money, Key signer)
 		{
+			Transaction funding = Network.Main.CreateTransaction();
+			funding.Inputs.Add();
+			var txout = funding.Outputs.Add(Money.Coins(50.0m), signer.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
 			TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
-			builder.AddCoins(new Coin(new OutPoint(RandomUtils.GetUInt256(), 0), new TxOut(Money.Coins(50.0m), signer.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit))));
+			builder.AddCoins(funding.Outputs.AsCoins().First());
 			builder.Send(new Key().PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), money);
 			builder.SetChange(new Key().PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
 			builder.SendEstimatedFees(new FeeRate(10.0m));
-			return builder.BuildPSBT(false).ToBase64();
+			var psbt = builder.BuildPSBT(false);
+			psbt.Inputs[0].NonWitnessUtxo = funding;
+			return psbt.ToBase64();
 		}
 
 		[Fact]

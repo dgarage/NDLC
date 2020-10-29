@@ -1,6 +1,7 @@
 ﻿using NBitcoin;
 using NBitcoin.DataEncoders;
 using NDLC.Messages;
+using NDLC.TLV;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Diagnostics.Contracts;
+using System.IO;
 using System.Linq;
 using System.Text;
 using static NDLC.Infrastructure.Repository;
@@ -59,14 +61,22 @@ namespace NDLC.CLI.DLC
 				}
 			}
 		}
-		public static void WriteObject(this InvocationContext ctx, object obj, JsonSerializerSettings settings)
+		public static void WriteObject(this InvocationContext ctx, ITLVObject obj, JsonSerializerSettings settings)
 		{
 			var json = ctx.ParseResult.ValueForOption<bool>("json");
-			var txt = JsonConvert.SerializeObject(obj, settings);
 			if (json)
+			{
+				var txt = JsonConvert.SerializeObject(obj, settings);
 				ctx.Console.Out.Write(txt);
+			}
 			else
-				ctx.Console.Out.Write(Encoders.Base64.EncodeData(UTF8Encoding.UTF8.GetBytes(txt)));
+			{
+				var ms = new MemoryStream();
+				TLVWriter writer = new TLVWriter(ms);
+				obj.WriteTLV(writer);
+				ms.Position = 0;
+				ctx.Console.Out.Write(Encoders.Base64.EncodeData(ms.ToArray()));
+			}
 		}
 		public static void WritePSBT(this InvocationContext ctx, PSBT psbt)
 		{
@@ -80,17 +90,16 @@ namespace NDLC.CLI.DLC
 			}
 		}
 
-		public static Offer GetOffer(this InvocationContext ctx, JsonSerializerSettings settings)
+		public static Offer GetOffer(this InvocationContext ctx, Network network)
 		{
 			var offer = ctx.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("offer");
 			if (offer is null)
 				throw new CommandOptionRequiredException("offer");
 			try
 			{
-				var obj = JsonConvert.DeserializeObject<Offer>(UTF8Encoding.UTF8.GetString(Encoders.Base64.DecodeData(offer)), settings);
-				if (obj is null)
-					throw new CommandException("offer", "Invalid offer");
-				return obj;
+				var tlv = Encoders.Base64.DecodeData(offer);
+				var reader = new TLVReader(new MemoryStream(tlv));
+				return Offer.ParseFromTLV(reader, network);
 			}
 			catch
 			{

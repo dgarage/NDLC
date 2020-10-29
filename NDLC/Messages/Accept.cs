@@ -13,16 +13,12 @@ using System.Linq;
 
 namespace NDLC.Messages
 {
-	public class Accept : FundingInformation
+	public class Accept : FundingInformation, ITLVObject
 	{
 		[JsonProperty(Order = 100)]
 		public CetSigs? CetSigs { get; set; }
 		[JsonProperty(Order = 101)]
 		public string? EventId { get; set; }
-		[JsonProperty(Order = 102, DefaultValueHandling = DefaultValueHandling.Ignore)]
-		public uint256? OffererContractId { get; set; }
-		[JsonProperty(Order = 103, DefaultValueHandling = DefaultValueHandling.Ignore)]
-		public uint256? AcceptorContractId { get; set; }
 
 		public uint256? TemporaryContractId { get; set; }
 
@@ -37,6 +33,20 @@ namespace NDLC.Messages
 		public const int TLVType = 42780;
 		public void WriteTLV(TLVWriter writer)
 		{
+			if (TemporaryContractId is null)
+				throw new InvalidOperationException($"{nameof(TemporaryContractId)} is not set");
+			if (TotalCollateral is null)
+				throw new InvalidOperationException($"{nameof(TotalCollateral)} is not set");
+			if (PubKeys?.FundingKey is null)
+				throw new InvalidOperationException($"{nameof(PubKeys.FundingKey)} is not set");
+			if (PubKeys?.PayoutAddress is null)
+				throw new InvalidOperationException($"{nameof(PubKeys.PayoutAddress)} is not set");
+			if (FundingInputs is null)
+				throw new InvalidOperationException($"{nameof(FundingInputs)} is not set");
+			if (ChangeAddress is null)
+				throw new InvalidOperationException($"{nameof(ChangeAddress)} is not set");
+			if (CetSigs is null)
+				throw new InvalidOperationException($"{nameof(CetSigs)} is not set");
 			writer.WriteU16(TLVType);
 			writer.WriteUInt256(TemporaryContractId);
 			writer.WriteU64((ulong)TotalCollateral.Satoshi);
@@ -52,7 +62,7 @@ namespace NDLC.Messages
 			writer.WriteScript(ChangeAddress.ScriptPubKey);
 			CetSigs.WriteTLV(writer);
 		}
-		private void ReadTLV(TLVReader reader, Network network)
+		public void ReadTLV(TLVReader reader, Network network)
 		{
 			if (reader.ReadU16() != TLVType)
 				throw new FormatException("Invalid TLV type for accept");
@@ -80,8 +90,6 @@ namespace NDLC.Messages
 			accept.ReadTLV(reader, network);
 			return accept;
 		}
-
-
 	}
 
 	public class CetSigs

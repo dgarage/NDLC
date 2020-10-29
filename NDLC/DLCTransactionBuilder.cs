@@ -119,7 +119,6 @@ namespace NDLC.Messages
 				s.OffererPayoffs = DiscretePayoffs.CreateFromContractInfo(offer.ContractInfo, offer.TotalCollateral);
 			}
 			s.Offerer.VSizes = new VSizeCalculator(offer).Calculate();
-			s.Offerer.ContractId = offer.OffererContractId;
 			s.Offerer.Collateral = offer.TotalCollateral ?? s.OffererPayoffs?.CalculateMinimumCollateral();
 			s.Offerer.FundPubKey = offer.PubKeys?.FundingKey;
 			s.Offerer.PayoutDestination = offer.PubKeys?.PayoutAddress?.ScriptPubKey;
@@ -131,7 +130,6 @@ namespace NDLC.Messages
 				return;
 			s.Acceptor ??= new Party();
 			s.Acceptor.VSizes = new VSizeCalculator(accept).Calculate();
-			s.Acceptor.ContractId = accept.AcceptorContractId;
 			s.Acceptor.FundPubKey = accept.PubKeys?.FundingKey;
 			s.Acceptor.OutcomeSigs = accept.CetSigs?.OutcomeSigs.Select(o => o.Signature).ToArray();
 			s.Acceptor.RefundSig = accept.CetSigs?.RefundSig;
@@ -197,6 +195,10 @@ namespace NDLC.Messages
 		(Coin[] Coins, FundingInput[] FundingInputs, BitcoinAddress PayoutAddress, BitcoinAddress? ChangeAddress)
 			ExtractFundingInformation(PSBT psbt, Money expectedCollateral)
 		{
+			psbt.AssertSanity();
+			foreach (var input in psbt.Inputs)
+				if (input.NonWitnessUtxo is null)
+					throw new InvalidOperationException("The PSBT inputs need to include previous transactions (If you use BTCPay Server, you can select it in advanced settings of the wallet's send screen)");
 			var payoutAddress = psbt.Outputs.Where(o => o.Value == expectedCollateral).Select(c => c.ScriptPubKey).FirstOrDefault();
 			if (payoutAddress is null)
 				throw new InvalidOperationException("The PSBT should have an output paying the exact collateral");
@@ -222,6 +224,7 @@ namespace NDLC.Messages
 			Offer offer = new Offer()
 			{
 				OracleInfo = s.OracleInfo,
+				ChainHash = network.GenesisHash,
 				TotalCollateral = s.Offerer.Collateral,
 				ContractInfo = s.OffererPayoffs.ToContractInfo(s.Offerer.Collateral),
 				Timeouts = s.Timeouts,
@@ -279,14 +282,14 @@ namespace NDLC.Messages
 			Accept accept = new Accept()
 			{
 				TotalCollateral = s.Acceptor.Collateral,
+				TemporaryContractId = s.ContractId,
 				ChangeAddress = fundingInfo.ChangeAddress,
 				PubKeys = new PubKeyObject()
 				{
 					FundingKey = fundKey.PubKey,
 					PayoutAddress = fundingInfo.PayoutAddress
 				},
-				FundingInputs = fundingInfo.FundingInputs,
-				OffererContractId = s.Offerer.ContractId
+				FundingInputs = fundingInfo.FundingInputs
 			};
 			FillStateFrom(accept);
 			s.Funding = new FundingParameters(
@@ -377,7 +380,6 @@ namespace NDLC.Messages
 			Sign sign = new Sign();
 			sign.CetSigs = CreateCetSigs(fundKey);
 			sign.FundingSigs = new List<WitScript>();
-			sign.ContractId = s.Acceptor?.ContractId;
 			sign.ContractId = CalculateContractId(s.ContractId, GetFundingTransactionHash(), 0);
 			sign.FundingSigs = new List<WitScript>();
 			int offererInputIndex = 0;
@@ -426,7 +428,7 @@ namespace NDLC.Messages
 			foreach (var sig in sign.FundingSigs)
 			{
 				var offererInput = s.OffererInputs[offererInputIndex++];
-				var input = s.Funding.PSBT.Inputs.FindIndexedInput(offererInput.Outpoint!);
+				var input = s.Funding.PSBT.Inputs.FindIndexedInput(offererInput.AsCoin().Outpoint);
 				input.FinalScriptWitness = sig;
 				input.ClearForFinalize();
 			}

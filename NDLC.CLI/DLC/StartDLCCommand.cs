@@ -64,7 +64,7 @@ namespace NDLC.CLI.DLC
 				try
 				{
 					var sign = builder.Sign2(key, psbt);
-					dlc.Sign = JObject.FromObject(sign, JsonSerializer.Create(Repository.JsonSettings));
+					dlc.Sign = sign;
 					dlc.BuilderState = builder.ExportStateJObject();
 					await Repository.SaveDLC(dlc);
 					context.WriteObject(sign, Repository.JsonSettings);

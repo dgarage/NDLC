@@ -98,6 +98,8 @@ namespace NDLC.TLV
 		}
 		public void WriteUInt256(uint256 value)
 		{
+			if (value == null)
+				throw new ArgumentNullException(nameof(value));
 			Span<byte> buf = stackalloc byte[32];
 			value.ToBytes(buf, true);
 			WriteBytes(buf);

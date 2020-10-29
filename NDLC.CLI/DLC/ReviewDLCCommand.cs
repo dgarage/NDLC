@@ -26,7 +26,7 @@ namespace NDLC.CLI.DLC
 		}
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
-			var offer = context.GetOffer(Repository.JsonSettings);
+			var offer = context.GetOffer(Network);
 			if (offer.OracleInfo is null)
 				throw new CommandException("offer", "Missing oracleInfo");
 			if (offer.Timeouts is null)

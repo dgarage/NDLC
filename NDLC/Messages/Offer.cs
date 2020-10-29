@@ -19,7 +19,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace NDLC.Messages
 {
-	public class Offer : FundingInformation
+	public class Offer : FundingInformation, ITLVObject
 	{
 		[JsonProperty(Order = -2)]
 		public ContractInfo[]? ContractInfo { get; set; }
@@ -33,8 +33,6 @@ namespace NDLC.Messages
 		public Timeouts? Timeouts { get; set; }
 		[JsonProperty(Order = 104, DefaultValueHandling = DefaultValueHandling.Ignore)]
 		public string? EventId { get; set; }
-		[JsonProperty(Order = 105, DefaultValueHandling = DefaultValueHandling.Ignore)]
-		public uint256? OffererContractId { get; set; }
 		public uint256? ChainHash { get; set; }
 
 		public DiscretePayoffs ToDiscretePayoffs()
@@ -57,6 +55,26 @@ namespace NDLC.Messages
 		public const int TLVOracleInfoType = 42770;
 		public void WriteTLV(TLVWriter writer)
 		{
+			if (ChainHash is null)
+				throw new InvalidOperationException($"{nameof(ChainHash)} is not set");
+			if (ContractInfo is null)
+				throw new InvalidOperationException($"{nameof(ContractInfo)} is not set");
+			if (OracleInfo is null)
+				throw new InvalidOperationException($"{nameof(OracleInfo)} is not set");
+			if (TotalCollateral is null)
+				throw new InvalidOperationException($"{nameof(TotalCollateral)} is not set");
+			if (PubKeys?.FundingKey is null)
+				throw new InvalidOperationException($"{nameof(PubKeys.FundingKey)} is not set");
+			if (PubKeys?.PayoutAddress is null)
+				throw new InvalidOperationException($"{nameof(PubKeys.PayoutAddress)} is not set");
+			if (FundingInputs is null)
+				throw new InvalidOperationException($"{nameof(FundingInputs)} is not set");
+			if (ChangeAddress is null)
+				throw new InvalidOperationException($"{nameof(ChangeAddress)} is not set");
+			if (FeeRate is null)
+				throw new InvalidOperationException($"{nameof(FeeRate)} is not set");
+			if (Timeouts is null)
+				throw new InvalidOperationException($"{nameof(Timeouts)} is not set");
 			writer.WriteU16(TLVType);
 			writer.WriteByte(0); // contract_flags
 			writer.WriteUInt256(ChainHash);
@@ -145,6 +163,12 @@ namespace NDLC.Messages
 			};
 		}
 
+		public static Offer ParseFromTLV(TLVReader reader, Network network)
+		{
+			var offer = new Offer();
+			offer.ReadTLV(reader, network);
+			return offer;
+		}
 		public static Offer ParseFromTLV(string str, Network network)
 		{
 			var bytes = Encoders.Hex.DecodeData(str);
@@ -283,6 +307,10 @@ namespace NDLC.Messages
 			{
 				InputTransaction = input.NonWitnessUtxo;
 			}
+			Index = input.Index;
+			Sequence = input.PSBT.GetOriginalTransaction().Inputs[input.Index].Sequence;
+			if (MaxWitnessLength is null)
+				this.SetRecommendedMaxWitnessLength();
 		}
 		public FundingInput(Transaction tx, uint index, Sequence sequence)
 		{
@@ -361,6 +389,14 @@ namespace NDLC.Messages
 		public const int TLVType = 42772;
 		public void WriteTLV(TLVWriter writer)
 		{
+			if (this.Index is null)
+				throw new InvalidOperationException($"{nameof(Index)} is not set");
+			if (this.Sequence is null)
+				throw new InvalidOperationException($"{nameof(Sequence)} is not set");
+			if (this.MaxWitnessLength is null)
+				throw new InvalidOperationException($"{nameof(MaxWitnessLength)} is not set");
+			if (this.InputTransaction is null)
+				throw new InvalidOperationException($"{nameof(InputTransaction)} is not set");
 			using var record = writer.StartWriteRecord(TLVType);
 			var txBytes = this.InputTransaction.ToBytes();
 			record.WriteU16((ushort)txBytes.Length);

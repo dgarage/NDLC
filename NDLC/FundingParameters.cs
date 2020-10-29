@@ -93,7 +93,12 @@ namespace NDLC
 				var txin = psbt.Inputs.FindIndexedInput(input.AsCoin().Outpoint);
 				txin.RedeemScript = input.RedeemScript;
 				txin.NonWitnessUtxo = input.InputTransaction;
-				txin.WitnessUtxo = input.Output;
+				if (txin.NonWitnessUtxo is null)
+				{
+					txin.WitnessUtxo = input.Output;
+					if (txin.WitnessUtxo is null)
+						throw new InvalidOperationException("Input funding not having witness Utxo nor NonWitnessUtxo");
+				}
 			}
 			return new FundingPSBT(psbt, new ScriptCoin(tx, 0, fundingScript));
 		}

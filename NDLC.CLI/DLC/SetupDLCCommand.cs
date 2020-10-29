@@ -43,11 +43,13 @@ namespace NDLC.CLI.DLC
 				try
 				{
 					var offer = builder.FundOffer(key.PrivateKey, psbt);
-					offer.OffererContractId = dlc.Id;
 					dlc.FundKeyPath = key.KeyPath;
 					dlc.Abort = psbt;
 					dlc.BuilderState = builder.ExportStateJObject();
-					dlc.Offer = JObject.FromObject(offer, JsonSerializer.Create(Repository.JsonSettings));
+					dlc.Offer = offer;
+					await Repository.ChangeDLCId(dlc.Id, offer.GetTemporaryContractId());
+					await NameRepository.AsDLCNameRepository().SetMapping(name, offer.GetTemporaryContractId());
+					dlc.Id = offer.GetTemporaryContractId();
 					await Repository.SaveDLC(dlc);
 					context.WriteObject(offer, Repository.JsonSettings);
 				}
@@ -61,11 +63,15 @@ namespace NDLC.CLI.DLC
 				context.AssertState("name", dlc, false, DLCNextStep.Setup, Network);
 				var k = await Repository.CreatePrivateKey();
 				var accept = builder.FundAccept(k.PrivateKey, psbt);
-				accept.AcceptorContractId = dlc.Id;
 				dlc.FundKeyPath = k.KeyPath;
 				dlc.Abort = psbt;
 				dlc.BuilderState = builder.ExportStateJObject();
-				dlc.Accept = JObject.FromObject(accept, JsonSerializer.Create(Repository.JsonSettings));
+				dlc.Accept = accept;
+				if (builder.State.ContractId is null)
+					throw new InvalidOperationException("The contractId of the builder should be set");
+				await Repository.ChangeDLCId(dlc.Id, builder.State.ContractId);
+				await NameRepository.AsDLCNameRepository().SetMapping(name, builder.State.ContractId);
+				dlc.Id = builder.State.ContractId;
 				await Repository.SaveDLC(dlc);
 				context.WriteObject(accept, Repository.JsonSettings);
 			}

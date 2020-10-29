@@ -13,7 +13,7 @@ using System.Text;
 
 namespace NDLC.Messages
 {
-	public class Sign
+	public class Sign : ITLVObject
 	{
 		public CetSigs? CetSigs { get; set; }
 
@@ -31,10 +31,10 @@ namespace NDLC.Messages
 			return sign;
 		}
 
-		const ushort TLVType = 42782;
+		public const ushort TLVType = 42782;
 		const ushort FundingSignaturesTLVType = 42776;
 
-		private void WriteTLV(TLVWriter writer)
+		public void WriteTLV(TLVWriter writer)
 		{
 			if (ContractId is null)
 				throw new InvalidOperationException("ContractId is not set");
@@ -56,7 +56,7 @@ namespace NDLC.Messages
 				}
 			}
 		}
-		private void ReadTLV(TLVReader reader, Network network)
+		public void ReadTLV(TLVReader reader, Network network)
 		{
 			if (reader.ReadU16() != TLVType)
 				throw new FormatException("Invalid TLV type for sign");

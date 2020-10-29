@@ -32,7 +32,7 @@ namespace NDLC.CLI.DLC
 		}
 		protected override async Task InvokeAsyncBase(InvocationContext context)
 		{
-			var offer = DLCHelpers.GetOffer(context, Repository.JsonSettings);
+			var offer = DLCHelpers.GetOffer(context, Network);
 			var name = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("name")?.Trim();
 			if (name is null)
 				throw new CommandOptionRequiredException("name");
@@ -70,7 +70,7 @@ namespace NDLC.CLI.DLC
 				var collateral = offer.ToDiscretePayoffs(offer.ContractInfo).Inverse().CalculateMinimumCollateral();
 				var dlc = await Repository.NewDLC(offer.OracleInfo, builder);
 				dlc.BuilderState = builder.ExportStateJObject();
-				dlc.Offer = JObject.FromObject(offer, JsonSerializer.Create(Repository.JsonSettings));
+				dlc.Offer = offer;
 				await NameRepository.AsDLCNameRepository().SetMapping(name, dlc.Id);
 				await Repository.SaveDLC(dlc);
 				context.Console.Out.Write($"Contract accepted, you now need to setup the DLC sending {collateral} BTC to yourself. For more information, run `dlc show \"{name}\"`.");

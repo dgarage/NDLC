@@ -16,6 +16,8 @@ using System.Text;
 using System.Threading.Tasks;
 using NDLC.Infrastructure;
 using static NDLC.Infrastructure.Repository.DLCState;
+using NDLC.TLV;
+using System.IO;
 
 namespace NDLC.CLI.DLC
 {
@@ -38,31 +40,46 @@ namespace NDLC.CLI.DLC
 			var signedMessageBase64 = context.ParseResult.CommandResult.GetArgumentValueOrDefault<string>("signed")?.Trim();
 			if (signedMessageBase64 is null)
 				throw new CommandOptionRequiredException("signed");
-			var contractIds = Parse<ContractIds>(signedMessageBase64);
-			if (contractIds.AcceptorContractId is string &&
-				contractIds.OffererContractId is string)
+
+			var type = GetTLVType(signedMessageBase64);
+			if (type == Accept.TLVType)
 			{
-				return HandleAccept(context, signedMessageBase64);
+				var accept = ParseTLV<Accept>(signedMessageBase64);
+				return HandleAccept(context, accept);
 			}
-			else if (contractIds.AcceptorContractId is string &&
-				contractIds.OffererContractId is null)
+			else if (type == Sign.TLVType)
 			{
-				return HandleSign(context, signedMessageBase64);
+				var sign = ParseTLV<Sign>(signedMessageBase64);
+				return HandleSign(context, sign);
 			}
 			throw new CommandException("signed", "Invalid signed message");
 		}
 
-		private async Task HandleAccept(InvocationContext context, string signedMessageBase64)
+		private ushort GetTLVType(string signedMessageBase64)
 		{
-			var accept = Parse<Accept>(signedMessageBase64);
-			var dlc = await GetDLC(accept.OffererContractId);
+			try
+			{
+				var data = Encoders.Base64.DecodeData(signedMessageBase64);
+				var r = new TLVReader(new MemoryStream(data));
+				return r.ReadU16();
+			}
+			catch
+			{
+
+			}
+			return 0;
+		}
+
+		private async Task HandleAccept(InvocationContext context, Accept accept)
+		{
+			var dlc = await GetDLC(accept.TemporaryContractId);
 			context.AssertState("signed", dlc, true, DLCNextStep.CheckSigs, Network);
 			var builder = new DLCTransactionBuilder(dlc.BuilderState!.ToString(), Network);
 			try
 			{
 				builder.Sign1(accept);
 				dlc.BuilderState = builder.ExportStateJObject();
-				dlc.Accept = JObject.FromObject(accept, JsonSerializer.Create(Repository.JsonSettings));
+				dlc.Accept = accept;
 				await Repository.SaveDLC(dlc);
 				context.WritePSBT(builder.GetFundingPSBT());
 			}
@@ -71,16 +88,16 @@ namespace NDLC.CLI.DLC
 				throw new CommandException("signed", $"Invalid signatures. ({ex.Message})");
 			}
 		}
-		private async Task HandleSign(InvocationContext context, string signedMessageBase64)
+
+		private async Task HandleSign(InvocationContext context, Sign sign)
 		{
-			var sign = Parse<Sign>(signedMessageBase64);
 			var dlc = await GetDLC(sign.ContractId);
 			context.AssertState("signed", dlc, false, DLCNextStep.CheckSigs, Network);
 			var builder = new DLCTransactionBuilder(dlc.BuilderState!.ToString(), Network);
 			try
 			{
 				builder.Finalize1(sign);
-				dlc.Sign = JObject.FromObject(sign, JsonSerializer.Create(Repository.JsonSettings));
+				dlc.Sign = sign;
 				dlc.BuilderState = builder.ExportStateJObject();
 				await Repository.SaveDLC(dlc);
 				context.WritePSBT(builder.GetFundingPSBT());
@@ -118,6 +135,15 @@ namespace NDLC.CLI.DLC
 			{
 				throw new CommandException("signed", "Invalid signed message");
 			}
+		}
+		private T ParseTLV<T>(string message) where T : class, ITLVObject, new()
+		{
+			var bytes = Encoders.Base64.DecodeData(message);
+			var ms = new MemoryStream(bytes);
+			var reader = new TLVReader(ms);
+			T o = new T();
+			o.ReadTLV(reader, Network);
+			return o;
 		}
 	}
 }
