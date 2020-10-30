@@ -23,7 +23,8 @@ namespace NDLC.Infrastructure
 		public class DLCState
 		{
 			[JsonConverter(typeof(UInt256JsonConverter))]
-			public uint256 Id { get; set; } = uint256.Zero;
+			public uint256 LocalId { get; set; } = uint256.Zero;
+
 			[JsonConverter(typeof(KeyPathJsonConverter))]
 			public RootedKeyPath? FundKeyPath { get; set; }
 			public JObject? BuilderState { get; set; }
@@ -199,9 +200,9 @@ namespace NDLC.Infrastructure
 			{ 
 				OracleInfo = oracleInfo,
 				BuilderState = builder.ExportStateJObject(),
-				Id = RandomUtils.GetUInt256()
+				LocalId = RandomUtils.GetUInt256()
 			};
-			var file = GetDLCFilePath(s.Id);
+			var file = GetDLCFilePath(s.LocalId);
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(s, JsonSettings));
 			return s;
 		}
@@ -211,22 +212,23 @@ namespace NDLC.Infrastructure
 			var dir = Path.Combine(RepositoryDirectory, "DLCs");
 			if (!Directory.Exists(dir))
 				Directory.CreateDirectory(dir);
-			var file = GetDLCFilePath(dlc.Id);
+			var file = GetDLCFilePath(dlc.LocalId);
 			if (!File.Exists(file))
 				throw new InvalidOperationException("This DLC does not exists");
 			await File.WriteAllTextAsync(file, JsonConvert.SerializeObject(dlc, JsonSettings));
 		}
-		public Task ChangeDLCId(uint256 oldId, uint256 newId)
+		public async Task AddAliasId(uint256 localId, uint256 aliasId)
 		{
 			var dir = Path.Combine(RepositoryDirectory, "DLCs");
 			if (!Directory.Exists(dir))
 				throw new InvalidOperationException("This DLC does not exists");
-			var file = GetDLCFilePath(oldId);
+			var file = GetDLCFilePath(localId);
 			if (!File.Exists(file))
 				throw new InvalidOperationException("This DLC does not exists");
-			var newFile = GetDLCFilePath(newId);
-			File.Move(file, newFile);
-			return Task.CompletedTask;
+			var aliasFile = GetDLCFilePath(aliasId);
+			if (File.Exists(aliasFile))
+				throw new InvalidOperationException("This alias already exists");
+			await File.WriteAllTextAsync(aliasFile, $"ALIAS:{localId.ToString()}");
 		}
 
 		public async Task<DLCState?> GetDLC(uint256 id)
@@ -234,10 +236,17 @@ namespace NDLC.Infrastructure
 			var file = GetDLCFilePath(id);
 			if (!File.Exists(file))
 				return null;
-			var state = JsonConvert.DeserializeObject<DLCState>(await File.ReadAllTextAsync(file), JsonSettings);
+			var content = await File.ReadAllTextAsync(file);
+			if (content.StartsWith("ALIAS:", StringComparison.Ordinal))
+			{
+				file = GetDLCFilePath(new uint256(content.Substring(6)));
+				if (!File.Exists(file))
+					return null;
+				content = await File.ReadAllTextAsync(file);
+			}
+			var state = JsonConvert.DeserializeObject<DLCState>(content, JsonSettings);
 			if (state is null)
 				return null;
-			state.Id = id;
 			return state;
 		}
 

@@ -24,6 +24,7 @@ namespace NDLC
 		}
 		public bool IsInitiator { get; set; }
 		public uint256? ContractId { get; set; }
+		public bool TemporaryContractId { get; set; } = true;
 		public Party? Acceptor { get; set; }
 		public Party? Offerer { get; set; }
 

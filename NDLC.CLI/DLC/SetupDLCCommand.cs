@@ -47,9 +47,7 @@ namespace NDLC.CLI.DLC
 					dlc.Abort = psbt;
 					dlc.BuilderState = builder.ExportStateJObject();
 					dlc.Offer = offer;
-					await Repository.ChangeDLCId(dlc.Id, offer.GetTemporaryContractId());
-					await NameRepository.AsDLCNameRepository().SetMapping(name, offer.GetTemporaryContractId());
-					dlc.Id = offer.GetTemporaryContractId();
+					await Repository.AddAliasId(dlc.LocalId, offer.GetTemporaryContractId());
 					await Repository.SaveDLC(dlc);
 					context.WriteObject(offer, Repository.JsonSettings);
 				}
@@ -68,10 +66,8 @@ namespace NDLC.CLI.DLC
 				dlc.BuilderState = builder.ExportStateJObject();
 				dlc.Accept = accept;
 				if (builder.State.ContractId is null)
-					throw new InvalidOperationException("The contractId of the builder should be set");
-				await Repository.ChangeDLCId(dlc.Id, builder.State.ContractId);
-				await NameRepository.AsDLCNameRepository().SetMapping(name, builder.State.ContractId);
-				dlc.Id = builder.State.ContractId;
+					throw new InvalidOperationException("ContractId should be known by now");
+				await Repository.AddAliasId(dlc.LocalId, builder.State.ContractId);
 				await Repository.SaveDLC(dlc);
 				context.WriteObject(accept, Repository.JsonSettings);
 			}

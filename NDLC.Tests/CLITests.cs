@@ -253,6 +253,16 @@ namespace NDLC.Tests
 					"--datadir", bob,
 					"dlc", "list"
 			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+					"--datadir", bob,
+					"dlc", "show", "BetWithAlice"
+			});
+			await Tester.AssertInvokeSuccess(new string[]
+			{
+					"--datadir", alice,
+					"dlc", "show", "BetWithBob"
+			});
 		}
 
 		private string CreateOfferFunding(Money money, Key signer)

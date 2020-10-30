@@ -103,6 +103,7 @@ namespace NDLC.Tests
 				accept.PubKeys.FundingKey = vector.AcceptPrivateKey.PubKey;
 				var acceptor = new DLCTransactionBuilder(false, null, null, null, Network.RegTest);
 				acceptor.Accept(vector.Offer, accept.TotalCollateral);
+				Assert.True(acceptor.State.TemporaryContractId);
 				var builtAccept = acceptor.FundAccept(vector.AcceptPrivateKey, accept.CreateSetupPSBT(Network.RegTest));
 				accept.CetSigs = builtAccept.CetSigs;
 				// this signature is non deterministic...
@@ -136,6 +137,10 @@ namespace NDLC.Tests
 					RemoveForDebug(vector.UnsignedTxs.Cets[i].ToString()),
 					RemoveForDebug(actualCETs[i].ToString()));
 				}
+
+				Assert.NotNull(offerer.State.ContractId);
+				Assert.Equal(offerer.State.ContractId, acceptor.State.ContractId);
+				Assert.False(offerer.State.TemporaryContractId);
 			}
 		}
 

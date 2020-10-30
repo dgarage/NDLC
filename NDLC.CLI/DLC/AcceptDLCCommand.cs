@@ -71,7 +71,8 @@ namespace NDLC.CLI.DLC
 				var dlc = await Repository.NewDLC(offer.OracleInfo, builder);
 				dlc.BuilderState = builder.ExportStateJObject();
 				dlc.Offer = offer;
-				await NameRepository.AsDLCNameRepository().SetMapping(name, dlc.Id);
+				await NameRepository.AsDLCNameRepository().SetMapping(name, dlc.LocalId);
+				await Repository.AddAliasId(dlc.LocalId, offer.GetTemporaryContractId());
 				await Repository.SaveDLC(dlc);
 				context.Console.Out.Write($"Contract accepted, you now need to setup the DLC sending {collateral} BTC to yourself. For more information, run `dlc show \"{name}\"`.");
 			}

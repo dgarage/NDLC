@@ -71,7 +71,7 @@ namespace NDLC.CLI.DLC
 			var collateral = payoffs.CalculateMinimumCollateral();
 			builder.Offer(oracle.PubKey, evt.EventId!.RValue, payoffs, timeout);
 			var dlc = await Repository.NewDLC(evt.EventId, builder);
-			await NameRepository.AsDLCNameRepository().SetMapping(name, dlc.Id);
+			await NameRepository.AsDLCNameRepository().SetMapping(name, dlc.LocalId);
 			context.Console.Out.Write($"Offer created, you now need to setup the DLC sending {collateral} BTC to yourself. For more information, run `dlc show \"{name}\"`.");
 		}
 

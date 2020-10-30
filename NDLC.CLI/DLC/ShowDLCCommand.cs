@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NDLC.Infrastructure;
 using static NDLC.Infrastructure.Repository.DLCState;
+using NBitcoin;
 
 namespace NDLC.CLI.DLC
 {
@@ -81,9 +82,13 @@ namespace NDLC.CLI.DLC
 			if (shown == ShowOption.DLC)
 			{
 				context.Console.Out.WriteLine($"Name: {name}");
-				context.Console.Out.WriteLine($"Local Id: {dlc.Id}");
 				var builder = new DLCTransactionBuilder(dlc.BuilderState.ToString(), Network);
 				var role = builder.State.IsInitiator ? "Offerer" : "Acceptor";
+				if (builder.State.ContractId is uint256)
+				{
+					var temp = builder.State.TemporaryContractId ? "Temporary " : "";
+					context.Console.Out.WriteLine($"{temp}Contract Id: {builder.State.ContractId}");
+				}
 				context.Console.Out.WriteLine($"Event: {eventName}");
 				context.Console.Out.WriteLine($"Role: {role}");
 				var nextStep = dlc.GetNextStep(Network);

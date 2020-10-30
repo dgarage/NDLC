@@ -304,6 +304,7 @@ namespace NDLC.Messages
 				s.FeeRate, FundingOverride).Build(network);
 			accept.CetSigs = CreateCetSigs(fundKey);
 			s.ContractId = CalculateContractId(s.ContractId, GetFundingTransactionHash(), 0);
+			s.TemporaryContractId = false;
 			tx.Commit();
 			return accept;
 		}
@@ -397,6 +398,8 @@ namespace NDLC.Messages
 			if (sign.FundingSigs.Count != s.OffererInputs.Length)
 				throw new InvalidOperationException("The PSBT is not signing all the inputs of our offer");
 			s.OffererInputs = null;
+			s.ContractId = sign.ContractId;
+			s.TemporaryContractId = false;
 			tx.Commit();
 			return sign;
 		}
