@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
 
@@ -21,6 +23,12 @@ namespace NDLC.Infrastructure
 		public async Task SetMapping(string name, uint256 dlcId)
 		{
 			await NameRepository.SetMapping(Scopes.DLC, name, dlcId.ToString());
+		}
+
+		public async Task<string[]> GetNames()
+		{
+			var ids = await NameRepository.GetIds(Scopes.DLC);
+			return ids.Select(i => i.Key).ToArray();
 		}
 
 		public async Task<uint256?> GetId(string name)

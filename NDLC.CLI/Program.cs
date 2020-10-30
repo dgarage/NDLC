@@ -72,7 +72,8 @@ namespace NDLC.CLI
 					StartDLCCommand.CreateCommand(),
 					ExecuteDLCCommand.CreateCommand(),
 					ExtractDLCCommand.CreateCommand(),
-					ShowDLCCommand.CreateCommand()
+					ShowDLCCommand.CreateCommand(),
+					ListDLCCommand.CreateCommand()
 				}
 			};
 		}
