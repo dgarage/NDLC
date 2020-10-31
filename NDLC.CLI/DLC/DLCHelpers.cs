@@ -66,7 +66,18 @@ namespace NDLC.CLI.DLC
 			var json = ctx.ParseResult.ValueForOption<bool>("json");
 			if (json)
 			{
+				// We need to remove the TLVJsonConverters which will
+				// just serialize the type as a json string
+				var oldConverters = settings.Converters;
+				var newConverters = oldConverters.Where(c =>
+				c.GetType() is Type t &&
+				(!t.IsGenericType ||
+				(t.GetGenericTypeDefinition() is Type generic &&
+				generic != typeof(Messages.JsonConverters.TLVJsonConverter<>))))
+				.ToList();
+				settings.Converters = newConverters;
 				var txt = JsonConvert.SerializeObject(obj, settings);
+				settings.Converters = oldConverters;
 				ctx.Console.Out.Write(txt);
 			}
 			else
@@ -96,14 +107,12 @@ namespace NDLC.CLI.DLC
 			if (offer is null)
 				throw new CommandOptionRequiredException("offer");
 			try
-			{
-				var tlv = Encoders.Base64.DecodeData(offer);
-				var reader = new TLVReader(new MemoryStream(tlv));
-				return Offer.ParseFromTLV(reader, network);
+			{	
+				return Offer.ParseFromTLV(offer, network);
 			}
-			catch
+			catch (Exception ex)
 			{
-				throw new CommandException("offer", "Invalid offer");
+				throw new CommandException("offer", $"Invalid offer ({ex.Message})");
 			}
 		}
 	}

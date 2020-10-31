@@ -42,15 +42,25 @@ namespace NDLC.CLI.DLC
 				throw new CommandOptionRequiredException("signed");
 
 			var type = GetTLVType(signedMessageBase64);
-			if (type == Accept.TLVType)
+			bool wellFormated = false;
+			try
 			{
-				var accept = ParseTLV<Accept>(signedMessageBase64);
-				return HandleAccept(context, accept);
+				if (type == Accept.TLVType)
+				{
+					var accept = Accept.ParseFromTLV(signedMessageBase64, Network);
+					wellFormated = true;
+					return HandleAccept(context, accept);
+				}
+				else if (type == Sign.TLVType)
+				{
+					var sign = Sign.ParseFromTLV(signedMessageBase64, Network);
+					wellFormated = true;
+					return HandleSign(context, sign);
+				}
 			}
-			else if (type == Sign.TLVType)
+			catch (Exception ex) when (!wellFormated)
 			{
-				var sign = ParseTLV<Sign>(signedMessageBase64);
-				return HandleSign(context, sign);
+				throw new CommandException("signed", $"Invalid signed message ({ex.Message})");
 			}
 			throw new CommandException("signed", "Invalid signed message");
 		}
@@ -135,15 +145,6 @@ namespace NDLC.CLI.DLC
 			{
 				throw new CommandException("signed", "Invalid signed message");
 			}
-		}
-		private T ParseTLV<T>(string message) where T : class, ITLVObject, new()
-		{
-			var bytes = Encoders.Base64.DecodeData(message);
-			var ms = new MemoryStream(bytes);
-			var reader = new TLVReader(ms);
-			T o = new T();
-			o.ReadTLV(reader, Network);
-			return o;
 		}
 	}
 }

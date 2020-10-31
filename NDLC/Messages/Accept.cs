@@ -6,6 +6,7 @@ using NDLC.Secp256k1;
 using NDLC.TLV;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -82,9 +83,9 @@ namespace NDLC.Messages
 			ChangeAddress = reader.ReadScript().GetDestinationAddress(network);
 			CetSigs = CetSigs.ParseFromTLV(reader);
 		}
-		public static Accept ParseFromTLV(string str, Network network)
+		public static Accept ParseFromTLV(string hexOrBase64, Network network)
 		{
-			var bytes = Encoders.Hex.DecodeData(str);
+			var bytes = HexEncoder.IsWellFormed(hexOrBase64) ? Encoders.Hex.DecodeData(hexOrBase64) : Encoders.Base64.DecodeData(hexOrBase64);
 			var reader = new TLVReader(new MemoryStream(bytes));
 			var accept = new Accept();
 			accept.ReadTLV(reader, network);
@@ -94,7 +95,6 @@ namespace NDLC.Messages
 
 	public class CetSigs
 	{
-		[JsonConverter(typeof(OutcomeSigsJsonConverter))]
 		public AdaptorSignature[]? OutcomeSigs { get; set; }
 		[JsonConverter(typeof(NBitcoin.JsonConverters.SignatureJsonConverter))]
 		public ECDSASignature? RefundSig { get; set; }

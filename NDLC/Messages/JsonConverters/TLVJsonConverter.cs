@@ -10,7 +10,7 @@ using System.Text;
 
 namespace NDLC.Messages.JsonConverters
 {
-	class TLVJsonConverter<T> : JsonConverter<T?> where T : class, ITLVObject, new()
+	public class TLVJsonConverter<T> : JsonConverter<T?> where T : class, ITLVObject, new()
 	{
 		Network network;
 		public TLVJsonConverter(Network network)

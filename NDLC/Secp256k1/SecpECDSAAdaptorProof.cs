@@ -47,5 +47,12 @@ namespace NDLC.Secp256k1
 			s.WriteToSpan(output97.Slice(33));
 			e.WriteToSpan(output97.Slice(33 + 32));
 		}
+
+		public byte[] ToBytes()
+		{
+			byte[] buf = new byte[97];
+			WriteToSpan(buf);
+			return buf;
+		}
 	}
 }

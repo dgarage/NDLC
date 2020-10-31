@@ -58,6 +58,7 @@ namespace NDLC.CLI.DLC
 				var review = new OfferReview(offer);
 				var evtName = (await NameRepository.AsEventRepository().ResolveName(evt.EventId)) ?? new EventFullName("???", "???");
 				context.Console.Out.WriteLine($"Event: {evtName}");
+				context.Console.Out.WriteLine($"Fee rate: {offer.FeeRate!.SatoshiPerByte} sat/vbyte");
 				context.Console.Out.WriteLine($"The payoff function if you accept:");
 				PrintPayoffs(context, review.AcceptorPayoffs);
 				context.Console.Out.WriteLine($"Your expected collateral: {review.AcceptorCollateral.ToString(false, false)}");

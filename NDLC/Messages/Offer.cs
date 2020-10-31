@@ -169,9 +169,9 @@ namespace NDLC.Messages
 			offer.ReadTLV(reader, network);
 			return offer;
 		}
-		public static Offer ParseFromTLV(string str, Network network)
+		public static Offer ParseFromTLV(string hexOrBase64, Network network)
 		{
-			var bytes = Encoders.Hex.DecodeData(str);
+			var bytes = HexEncoder.IsWellFormed(hexOrBase64) ? Encoders.Hex.DecodeData(hexOrBase64) : Encoders.Base64.DecodeData(hexOrBase64);
 			var reader = new TLVReader(new MemoryStream(bytes));
 			var offer = new Offer();
 			offer.ReadTLV(reader, network);

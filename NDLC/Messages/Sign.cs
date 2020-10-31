@@ -22,9 +22,9 @@ namespace NDLC.Messages
 
 		[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
 		public uint256? ContractId { get; set; }
-		public static Sign ParseFromTLV(string tlv, Network network)
+		public static Sign ParseFromTLV(string hexOrBase64, Network network)
 		{
-			var bytes = Encoders.Hex.DecodeData(tlv);
+			var bytes = HexEncoder.IsWellFormed(hexOrBase64) ? Encoders.Hex.DecodeData(hexOrBase64) : Encoders.Base64.DecodeData(hexOrBase64);
 			var reader = new TLVReader(new MemoryStream(bytes));
 			var sign = new Sign();
 			sign.ReadTLV(reader, network);

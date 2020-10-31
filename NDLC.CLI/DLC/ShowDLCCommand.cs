@@ -105,8 +105,14 @@ namespace NDLC.CLI.DLC
 			else if (shown == ShowOption.Accept)
 			{
 				if (dlc.Accept is null)
-					throw new CommandException("offer", "No accept message available for this DLC");
+					throw new CommandException("accept", "No accept message available for this DLC");
 				context.WriteObject(dlc.Accept, Repository.JsonSettings);
+			}
+			else if (shown == ShowOption.Sign)
+			{
+				if (dlc.Sign is null)
+					throw new CommandException("sign", "No sign message available for this DLC");
+				context.WriteObject(dlc.Sign, Repository.JsonSettings);
 			}
 			else if (shown == ShowOption.Funding)
 			{
@@ -148,6 +154,8 @@ namespace NDLC.CLI.DLC
 				return ShowOption.Offer;
 			if (context.ParseResult.CommandResult.ValueForOption<bool>("accept"))
 				return ShowOption.Accept;
+			if (context.ParseResult.CommandResult.ValueForOption<bool>("sign"))
+				return ShowOption.Sign;
 			if (context.ParseResult.CommandResult.ValueForOption<bool>("funding"))
 				return ShowOption.Funding;
 			if (context.ParseResult.CommandResult.ValueForOption<bool>("refund"))
@@ -200,6 +208,7 @@ namespace NDLC.CLI.DLC
 			DLC,
 			Offer,
 			Accept,
+			Sign,
 			Abort,
 			Funding,
 			Refund
