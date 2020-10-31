@@ -1,8 +1,7 @@
 {
   "profiles": {
     "NDLC.CLI": {
-      "commandName": "Project",
-      "commandLineArgs": "dlc show ChrisUS2020 --offer --json"
+      "commandName": "Project"
     }
   }
 }
