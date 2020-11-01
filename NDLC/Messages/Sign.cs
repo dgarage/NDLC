@@ -17,7 +17,7 @@ namespace NDLC.Messages
 	{
 		public CetSigs? CetSigs { get; set; }
 
-		[JsonConverter(typeof(NBitcoin.JsonConverters.ScriptJsonConverter))]
+		[JsonProperty(ItemConverterType = typeof(NBitcoin.JsonConverters.ScriptJsonConverter))]
 		public List<WitScript>? FundingSigs { get; set; }
 
 		[JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
@@ -83,10 +83,6 @@ namespace NDLC.Messages
 				}
 			}
 		}
-
-		[JsonExtensionData]
-		public Dictionary<string,JToken>? AdditionalData { get; set; }
-
 		public byte[] ToTLV()
 		{
 			var ms = new MemoryStream();

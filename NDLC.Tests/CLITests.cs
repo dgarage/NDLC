@@ -4,6 +4,7 @@ using NDLC.Messages;
 using NDLC.Messages.JsonConverters;
 using NDLC.Secp256k1;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -253,16 +254,33 @@ namespace NDLC.Tests
 					"--datadir", bob,
 					"dlc", "list"
 			});
-			await Tester.AssertInvokeSuccess(new string[]
+			
+		
+
+			foreach (var peer in new[] { (bob, "BetWithAlice"), (alice, "BetWithBob") })
 			{
-					"--datadir", bob,
-					"dlc", "show", "BetWithAlice"
-			});
-			await Tester.AssertInvokeSuccess(new string[]
-			{
-					"--datadir", alice,
-					"dlc", "show", "BetWithBob"
-			});
+				await Tester.AssertInvokeSuccess(new string[]
+				{
+							"--datadir", peer.Item1,
+							"dlc", "show", peer.Item2
+				});
+
+				foreach (var data in new[] { "sign", "accept", "offer" })
+				{
+					await Tester.AssertInvokeSuccess(new string[]
+					{
+							"--datadir", peer.Item1,
+							"dlc", "show", peer.Item2, $"--{data}"
+					});
+					Encoders.Base64.DecodeData(Tester.GetLastOutput());
+					await Tester.AssertInvokeSuccess(new string[]
+					{
+							"--datadir", peer.Item1,
+							"dlc", "show", peer.Item2, $"--{data}", "--json"
+					});
+					JObject.Parse(Tester.GetLastOutput());
+				}
+			}
 		}
 
 		private string CreateOfferFunding(Money money, Key signer)

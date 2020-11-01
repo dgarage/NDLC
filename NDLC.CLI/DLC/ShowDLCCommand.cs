@@ -42,6 +42,10 @@ namespace NDLC.CLI.DLC
 			{
 				IsRequired = false
 			});
+			command.Add(new Option<bool>("--sign", "Show the sign message of the DLC")
+			{
+				IsRequired = false
+			});
 			command.Add(new Option<bool>("--funding", "Show the funding PSBT of the DLC")
 			{
 				IsRequired = false
