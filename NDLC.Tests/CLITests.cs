@@ -31,8 +31,10 @@ namespace NDLC.Tests
 		public CommandTester Tester { get; }
 		public ITestOutputHelper Log { get; }
 
-		[Fact]
-		public async Task CanMakeContract()
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public async Task CanMakeContract(bool verbose)
 		{
 			var alice = CreateDataDirectory("Alice");
 			var bob = CreateDataDirectory("Bob");
@@ -78,12 +80,14 @@ namespace NDLC.Tests
 					"Samurai:0.6",
 					"NicolasDorier:1"
 				});
-			await Tester.AssertInvokeSuccess(new string[]
-				{
+			if (verbose)
+			{
+				await Tester.AssertInvokeSuccess(new string[]
+					{
 					"--datadir", alice,
-					"dlc", "show", "BetWithBob", 
-				});
-
+					"dlc", "show", "BetWithBob",
+					});
+			}
 			var aliceSigner = new Key();
 			var offerFunding = CreateOfferFunding(Money.Coins(1.2m), aliceSigner);
 			await Tester.AssertInvokeSuccess(new string[]
@@ -91,23 +95,26 @@ namespace NDLC.Tests
 					"--datadir", alice,
 					"dlc", "setup", "BetWithBob", offerFunding
 				});
-			await Tester.AssertInvokeSuccess(new string[]
+			var offer = Tester.GetLastOutput();
+			if (verbose)
+			{
+				await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", alice,
 					"dlc", "show", "BetWithBob",
 				});
-			await Tester.AssertInvokeSuccess(new string[]
-				{
+				await Tester.AssertInvokeSuccess(new string[]
+					{
 					"--datadir", alice,
 					"dlc", "show", "--offer", "BetWithBob",
-				});
-			var offer = Tester.GetLastOutput();
-			await Tester.AssertInvokeSuccess(new string[]
-				{
+					});
+				await Tester.AssertInvokeSuccess(new string[]
+					{
 					"--datadir", alice,
 					"dlc", "show", "--offer", "--json", "BetWithBob",
-				});
-			
+					});
+			}
+
 			await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", bob,
@@ -119,12 +126,14 @@ namespace NDLC.Tests
 					"--datadir", bob,
 					"dlc", "accept", "BetWithAlice", offer
 				});
-			await Tester.AssertInvokeSuccess(new string[]
-				{
+			if (verbose)
+			{
+				await Tester.AssertInvokeSuccess(new string[]
+					{
 					"--datadir", bob,
 					"dlc", "show", "BetWithAlice"
-				});
-
+					});
+			}
 			var bobSigner = new Key();
 			var acceptFunding = CreateOfferFunding(Money.Coins(1.0m), bobSigner);
 
@@ -135,11 +144,15 @@ namespace NDLC.Tests
 				});
 
 			var acceptorSigs = Tester.GetLastOutput();
-			await Tester.AssertInvokeSuccess(new string[]
+
+			if (verbose)
+			{
+				await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", bob,
 					"dlc", "show", "BetWithAlice"
 				});
+			}
 			await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", alice,
@@ -177,31 +190,37 @@ namespace NDLC.Tests
 					"dlc", "start", "BetWithBob", funding.ToBase64()
 				});
 			var signMessage = Tester.GetLastOutput();
-			await Tester.AssertInvokeSuccess(new string[]
-				{
+			if (verbose)
+			{
+				await Tester.AssertInvokeSuccess(new string[]
+					{
 					"--datadir", alice,
 					"dlc", "show", "BetWithBob"
-				});
-			await Tester.AssertInvokeSuccess(new string[]
-				{
+					});
+				await Tester.AssertInvokeSuccess(new string[]
+					{
 					"--datadir", alice,
 					"dlc", "show", "--refund", "BetWithBob"
-				});
-			await Tester.AssertInvokeSuccess(new string[]
-				{
+					});
+				await Tester.AssertInvokeSuccess(new string[]
+					{
 					"--datadir", bob,
 					"dlc", "show", "--refund", "BetWithAlice"
-				});
+					});
+			}
 			await Tester.AssertInvokeSuccess(new string[]
 				{
 					"--datadir", bob,
 					"dlc", "checksigs", signMessage
 				});
-			await Tester.AssertInvokeSuccess(new string[]
-				{
+			if (verbose)
+			{
+				await Tester.AssertInvokeSuccess(new string[]
+					{
 					"--datadir", bob,
 					"dlc", "show", "BetWithAlice"
-				});
+					});
+			}
 			funding = PSBT.Parse(bobFunding, Network.Main);
 			funding.SignWithKeys(bobSigner);
 			await Tester.AssertInvokeSuccess(new string[]
@@ -254,31 +273,33 @@ namespace NDLC.Tests
 					"--datadir", bob,
 					"dlc", "list"
 			});
-			
-		
 
-			foreach (var peer in new[] { (bob, "BetWithAlice"), (alice, "BetWithBob") })
+
+			if (verbose)
 			{
-				await Tester.AssertInvokeSuccess(new string[]
+				foreach (var peer in new[] { (bob, "BetWithAlice"), (alice, "BetWithBob") })
 				{
+					await Tester.AssertInvokeSuccess(new string[]
+					{
 							"--datadir", peer.Item1,
 							"dlc", "show", peer.Item2
-				});
+					});
 
-				foreach (var data in new[] { "sign", "accept", "offer" })
-				{
-					await Tester.AssertInvokeSuccess(new string[]
+					foreach (var data in new[] { "sign", "accept", "offer" })
 					{
+						await Tester.AssertInvokeSuccess(new string[]
+						{
 							"--datadir", peer.Item1,
 							"dlc", "show", peer.Item2, $"--{data}"
-					});
-					Encoders.Base64.DecodeData(Tester.GetLastOutput());
-					await Tester.AssertInvokeSuccess(new string[]
-					{
+						});
+						Encoders.Base64.DecodeData(Tester.GetLastOutput());
+						await Tester.AssertInvokeSuccess(new string[]
+						{
 							"--datadir", peer.Item1,
 							"dlc", "show", peer.Item2, $"--{data}", "--json"
-					});
-					JObject.Parse(Tester.GetLastOutput());
+						});
+						JObject.Parse(Tester.GetLastOutput());
+					}
 				}
 			}
 		}
