@@ -604,7 +604,17 @@ namespace NDLC.Messages
 		{
 			if (s.Funding is null)
 				throw new InvalidOperationException("Invalid state");
-			return s.Funding.PSBT;
+			// Temporary hack to be sure the witness utxo is set if non_witness_utxo is
+			// old version of NBitcoin will think the PSBT is insane otherwise.
+			var psbt = s.Funding.PSBT;
+			foreach (var input in psbt.Inputs)
+			{
+				if (input.NonWitnessUtxo is Transaction t && input.WitnessUtxo is null)
+				{
+					input.WitnessUtxo = t.Outputs[input.PrevOut.N];
+				}
+			}
+			return psbt;
 		}
 
 		public string ExportState()

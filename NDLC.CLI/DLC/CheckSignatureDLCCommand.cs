@@ -57,19 +57,24 @@ namespace NDLC.CLI.DLC
 					wellFormated = true;
 					return HandleSign(context, sign);
 				}
+				else
+					throw new CommandException("signed", "Invalid signed message (Invalid TLV type)");
+			}
+			catch (CommandException)
+			{
+				throw;
 			}
 			catch (Exception ex) when (!wellFormated)
 			{
 				throw new CommandException("signed", $"Invalid signed message ({ex.Message})");
 			}
-			throw new CommandException("signed", "Invalid signed message");
 		}
 
-		private ushort GetTLVType(string signedMessageBase64)
+		private ushort GetTLVType(string hexOrBase64)
 		{
 			try
 			{
-				var data = Encoders.Base64.DecodeData(signedMessageBase64);
+				var data = HexEncoder.IsWellFormed(hexOrBase64) ? Encoders.Hex.DecodeData(hexOrBase64) : Encoders.Base64.DecodeData(hexOrBase64);
 				var r = new TLVReader(new MemoryStream(data));
 				return r.ReadU16();
 			}
@@ -131,19 +136,6 @@ namespace NDLC.CLI.DLC
 				if (dlc is null)
 					throw new CommandException("signed", "This accept message does not match any of our DLC");
 				return dlc;
-			}
-		}
-
-		private T Parse<T>(string base64)
-		{
-			try
-			{
-				var json = UTF8Encoding.UTF8.GetString(Encoders.Base64.DecodeData(base64));
-				return JsonConvert.DeserializeObject<T>(json, Repository.JsonSettings) ?? throw new Exception();
-			}
-			catch
-			{
-				throw new CommandException("signed", "Invalid signed message");
 			}
 		}
 	}
