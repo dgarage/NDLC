@@ -30,6 +30,8 @@ namespace NDLC.Messages
 		public static byte[] MaxWitnessLengthKey = new byte[] { 0x38, 0x63, 0x18, 0x20, 0x37, 0x21 };
 		public PSBT CreateSetupPSBT(Network network)
 		{
+			if (FundingInputs is null || PubKeys is null)
+				throw new InvalidOperationException("Funding inputs or pubkeys are null");
 			Transaction tx = network.CreateTransaction();
 			foreach (var input in FundingInputs)
 			{

@@ -102,6 +102,10 @@ namespace NDLC.Messages
 		public const int AdaptorSigsTLVType = 42774;
 		public void WriteTLV(TLVWriter writer)
 		{
+			if (OutcomeSigs is null)
+				throw new InvalidOperationException("OutcomeSigs is null");
+			if (RefundSig is null)
+				throw new InvalidOperationException("RefundSig is null");
 			using (var record = writer.StartWriteRecord(AdaptorSigsTLVType))
 			{
 				foreach (var sig in OutcomeSigs)

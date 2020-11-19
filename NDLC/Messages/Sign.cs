@@ -38,6 +38,10 @@ namespace NDLC.Messages
 		{
 			if (ContractId is null)
 				throw new InvalidOperationException("ContractId is not set");
+			if (CetSigs is null)
+				throw new InvalidOperationException("CetSigs is not set");
+			if (FundingSigs is null)
+				throw new InvalidOperationException("FundingSigs is not set");
 			writer.WriteU16(TLVType);
 			writer.WriteUInt256(ContractId);
 			CetSigs.WriteTLV(writer);

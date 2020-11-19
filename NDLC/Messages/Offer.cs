@@ -361,7 +361,7 @@ namespace NDLC.Messages
 				if (!RedeemScript.IsScriptType(ScriptType.P2WSH))
 					throw new InvalidOperationException("The redeem script should be P2WSH");
 			}
-			else if (c.GetHashVersion() != HashVersion.Witness)
+			else if (c.IsMalleable)
 			{
 				throw new InvalidOperationException("This input is not segwit");
 			}

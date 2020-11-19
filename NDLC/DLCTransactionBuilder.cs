@@ -561,7 +561,7 @@ namespace NDLC.Messages
 
 		public bool VerifyRemoteCetSigs(AdaptorSignature[] cetSigs)
 		{
-			if (s.Remote?.FundPubKey is null || s.OracleInfo is null || s.Funding is null)
+			if (s.Remote?.FundPubKey is null || s.OracleInfo is null || s.Funding is null || s.OffererPayoffs is null)
 				throw new InvalidOperationException("We did not received enough data to verify the sigs");
 			if (cetSigs.Length != s.OffererPayoffs.Count)
 				throw new InvalidOperationException("Invalid number of cet sigs");
