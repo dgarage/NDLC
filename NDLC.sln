@@ -9,6 +9,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDLC.Tests", "NDLC.Tests\ND
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NDLC.CLI", "NDLC.CLI\NDLC.CLI.csproj", "{D27C03F0-1E5B-4921-BB5D-1C97B782F20D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dockerfiles", "Dockerfiles", "{8092B593-4034-46FB-AAF6-E778F50E634C}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		amd64.Dockerfile = amd64.Dockerfile
+		arm32v7.Dockerfile = arm32v7.Dockerfile
+		arm64v8.Dockerfile = arm64v8.Dockerfile
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
