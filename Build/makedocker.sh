@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /source/Build/utils.sh
+source ./Build/utils.sh
 
 DOCKER_TAG="$DOCKERHUB_USER/$DOCKERHUB_REPO-$ARCH:$VERSION"
 
