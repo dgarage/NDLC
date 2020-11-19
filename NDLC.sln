@@ -17,6 +17,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dockerfiles", "Dockerfiles"
 		arm64v8.Dockerfile = arm64v8.Dockerfile
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CI", "CI", "{B373E8BF-D73D-4D16-A5C7-696C44FD0FF6}"
+	ProjectSection(SolutionItems) = preProject
+		.travis.yml = .travis.yml
+		Build\buildtest.Dockerfile = Build\buildtest.Dockerfile
+		Build\buildtest.sh = Build\buildtest.sh
+		Build\makedocker.sh = Build\makedocker.sh
+		Build\makedockermanifest.sh = Build\makedockermanifest.sh
+		Build\utils.sh = Build\utils.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
