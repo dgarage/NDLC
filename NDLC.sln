@@ -19,9 +19,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dockerfiles", "Dockerfiles"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CI", "CI", "{B373E8BF-D73D-4D16-A5C7-696C44FD0FF6}"
 	ProjectSection(SolutionItems) = preProject
-		.travis.yml = .travis.yml
 		Build\buildtest.Dockerfile = Build\buildtest.Dockerfile
 		Build\buildtest.sh = Build\buildtest.sh
+		.github\workflows\main.yml = .github\workflows\main.yml
 		Build\makedocker.sh = Build\makedocker.sh
 		Build\makedockermanifest.sh = Build\makedockermanifest.sh
 		Build\utils.sh = Build\utils.sh
