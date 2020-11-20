@@ -6,10 +6,10 @@ DOCKER_TAG="$DOCKERHUB_USER/$DOCKERHUB_REPO:$VERSION"
 
 echo "Docker tag: $DOCKER_TAG"
 
-sudo mkdir $HOME/.docker
-sudo sh -c 'echo "{ \"experimental\": \"enabled\" }" >> $HOME/.docker/config.json'
+sudo mkdir -p $HOME/.docker
+sudo sh -c 'echo "{ \"experimental\": \"enabled\" }" > $HOME/.docker/config.json'
 #
-sudo docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_PASS
+sudo docker login "--username=$DOCKERHUB_USER" "--password=$DOCKER_API_KEY"
 #
 
 sudo docker manifest create --amend $DOCKER_TAG $DOCKER_TAG-amd64 $DOCKER_TAG-arm32v7 $DOCKER_TAG-arm64v8

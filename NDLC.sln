@@ -21,6 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CI", "CI", "{B373E8BF-D73D-
 	ProjectSection(SolutionItems) = preProject
 		Build\buildtest.Dockerfile = Build\buildtest.Dockerfile
 		Build\buildtest.sh = Build\buildtest.sh
+		.github\workflows\docker.yml = .github\workflows\docker.yml
 		.github\workflows\main.yml = .github\workflows\main.yml
 		Build\makedocker.sh = Build\makedocker.sh
 		Build\makedockermanifest.sh = Build\makedockermanifest.sh

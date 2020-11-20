@@ -1,8 +1,3 @@
-# This travis file relis on the following environment variable to configure on your travis repository settings:
-# * DOCKERHUB_USER: A docker hub user where images will be pushed
-# * DOCKERHUB_PASS: The password of the dockerhub user
-# * DOCKERHUB_REPO: The docker repository to push to
-
 name: CI
 
 # Controls when the action will run. 
