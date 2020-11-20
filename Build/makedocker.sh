@@ -2,7 +2,7 @@
 
 source ./Build/utils.sh
 
-DOCKER_TAG="$DOCKERHUB_USER/$DOCKERHUB_REPO-$ARCH:$VERSION"
+DOCKER_TAG="$DOCKERHUB_USER/$DOCKERHUB_REPO:$VERSION-$ARCH"
 
 echo "Docker tag: $DOCKER_TAG"
 sudo docker build --pull -t "$DOCKER_TAG" -f "$DOCKERFILE" .
