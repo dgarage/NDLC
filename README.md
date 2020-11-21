@@ -70,6 +70,17 @@ Please go to our [Documentation page](docs/Concepts.md) and see our video.
 
 [<img src="https://img.youtube.com/vi/DakwshnNkho/mqdefault.jpg">](https://youtu.be/DakwshnNkho)
 
+## How to use NDLC with docker
+
+Find our docker image on [dockerhub](https://hub.docker.com/r/nicolasdorier/ndlc-cli).
+You can use our docker image `nicolasdorier/ndlc-cli` the following way:
+
+```bash
+ndlc_cli="docker run --rm -v "ndlc_cli_datadir:/root/.ndlc" nicolasdorier/ndlc-cli"
+$ndlc_cli oracle generate MyOwnOracle
+$ndlc_cli oracle list
+```
+
 ## Special thanks
 
 Thanks to the contribution of cryptographers for their work on the low level mathematic requirements necessary to make that DLC with adaptor sigs a reality.
