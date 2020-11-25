@@ -12,19 +12,23 @@ RUN cd NDLC.CLI && dotnet restore
 COPY NDLC/. NDLC/.
 COPY NDLC.CLI/. NDLC.CLI/.
 ARG CONFIGURATION_NAME=Release
-RUN cd NDLC.CLI && dotnet publish --output /app/ --configuration ${CONFIGURATION_NAME}
+RUN cd NDLC.CLI && dotnet publish \
+	-p:PublishReadyToRun=true \
+	-r linux-arm64 \
+	--output /app/ --configuration ${CONFIGURATION_NAME}
 
 # Force the builder machine to take make an arm runtime image. This is fine as long as the builder does not run any program
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.1.4-buster-slim-arm64v8
+FROM mcr.microsoft.com/dotnet/runtime-deps:3.1-buster-slim-arm64v8
 COPY --from=builder /usr/bin/qemu-aarch64-static /usr/bin/qemu-aarch64-static
 ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 
 WORKDIR /root/.ndlc
 WORKDIR /app
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
 ENV NDLC_DATADIR=/root/.ndlc
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 VOLUME /root/.ndlc
 
 COPY --from=builder "/app" .
-ENTRYPOINT ["dotnet", "ndlc-cli.dll"]
+ENTRYPOINT ["/app/ndlc-cli"]
