@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NBitcoin" Version="5.0.61" />
-    <PackageReference Include="NBitcoin.Secp256k1" Version="1.0.8" />
+    <PackageReference Include="NBitcoin" Version="5.0.71" />
+    <PackageReference Include="NBitcoin.Secp256k1" Version="1.0.10" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 

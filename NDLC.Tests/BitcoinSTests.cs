@@ -73,7 +73,7 @@ namespace NDLC.Tests
 				var msg = RandomUtils.GetBytes(32);
 				var kValue = Context.Instance.CreateECPrivKey(RandomUtils.GetBytes(32));
 				var nonce = kValue.CreateSchnorrNonce();
-				var sig = oracleKey.SignBIP140(msg, new PrecomputedNonceFunctionHardened(kValue.ToBytes()));
+				var sig = oracleKey.SignBIP340(msg, new PrecomputedNonceFunctionHardened(kValue.ToBytes()));
 				Assert.Equal(sig.rx, nonce.PubKey.Q.x);
 				Assert.True(oracleKey.CreateXOnlyPubKey().TryComputeSigPoint(msg, nonce, out var sigPoint));
 				Assert.Equal(sigPoint.Q, Context.Instance.CreateECPrivKey(sig.s).CreatePubKey().Q);
@@ -106,7 +106,7 @@ namespace NDLC.Tests
 				var privKey = new Key().ToECPrivKey();
 				var nonce = privKey.CreateSchnorrNonce();
 				var msg = RandomUtils.GetBytes(32);
-				privKey.TrySignBIP140(msg, new PrecomputedNonceFunctionHardened(privKey.ToBytes()), out var sig);
+				privKey.TrySignBIP340(msg, new PrecomputedNonceFunctionHardened(privKey.ToBytes()), out var sig);
 				//Assert.Equal(sig.rx, nonce.fe);
 				Assert.True(privKey.CreateXOnlyPubKey().SigVerifyBIP340(sig, msg));
 			}
@@ -270,7 +270,7 @@ namespace NDLC.Tests
 		private byte[] schnorrSign(byte[] data, byte[] secKey, byte[] auxRand)
 		{
 			Assert.True(Context.Instance.TryCreateECPrivKey(secKey, out var key));
-			Assert.True(key.TrySignBIP140(data, new BIP340NonceFunction(auxRand), out var sig));
+			Assert.True(key.TrySignBIP340(data, new BIP340NonceFunction(auxRand), out var sig));
 			var buf = new byte[64];
 			sig.WriteToSpan(buf);
 			return buf;
@@ -347,7 +347,7 @@ namespace NDLC.Tests
 		private byte[] schnorrSignWithNonce(byte[] data, byte[] secKey, byte[] nonce)
 		{
 			Assert.True(Context.Instance.TryCreateECPrivKey(secKey, out var key));
-			Assert.True(key.TrySignBIP140(data, new PrecomputedNonceFunctionHardened(nonce), out var sig));
+			Assert.True(key.TrySignBIP340(data, new PrecomputedNonceFunctionHardened(nonce), out var sig));
 			var buf = new byte[64];
 			sig.WriteToSpan(buf);
 			return buf;

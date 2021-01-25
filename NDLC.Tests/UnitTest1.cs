@@ -47,9 +47,9 @@ namespace NDLC.Tests
 				var priv = new Key();
 				var msg1 = RandomUtils.GetBytes(32);
 				var nonce = RandomUtils.GetBytes(32);
-				priv.ToECPrivKey().TrySignBIP140(msg1, new PrecomputedNonceFunctionHardened(nonce), out var sig1);
+				priv.ToECPrivKey().TrySignBIP340(msg1, new PrecomputedNonceFunctionHardened(nonce), out var sig1);
 				var msg2 = RandomUtils.GetBytes(32);
-				priv.ToECPrivKey().TrySignBIP140(msg2, new PrecomputedNonceFunctionHardened(nonce), out var sig2);
+				priv.ToECPrivKey().TrySignBIP340(msg2, new PrecomputedNonceFunctionHardened(nonce), out var sig2);
 
 				Assert.True(priv.PubKey.ToECPubKey().TryExtractPrivateKey(msg1, sig1, msg2, sig2, out var privkey));
 				Assert.Equal(priv.ToHex(), Encoders.Hex.EncodeData(privkey.ToBytes()));
@@ -110,7 +110,7 @@ namespace NDLC.Tests
 				Assert.True(SecpSchnorrSignature.TryCreate(Encoders.Hex.DecodeData(vector["signature"].Value<string>()), out var expectedSig));
 				Assert.Equal(expectedSig.rx, nonce.PubKey.Q.x);
 				var expectedAttestation = expectedSig.s;
-				var sig = privKey.SignBIP140(hash, new PrecomputedNonceFunctionHardened(privNonce.ToBytes()));
+				var sig = privKey.SignBIP340(hash, new PrecomputedNonceFunctionHardened(privNonce.ToBytes()));
 				Assert.Equal(expectedSig.rx, sig.rx);
 				Assert.Equal(expectedSig.s, sig.s);
 			}

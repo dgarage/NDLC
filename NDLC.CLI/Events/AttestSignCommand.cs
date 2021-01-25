@@ -62,7 +62,7 @@ namespace NDLC.CLI.Events
 			if (evtObj.Attestations != null && evtObj.Attestations.Count > 0 && !force)
 				throw new CommandException("outcome", "An outcome has already been attested, attesting another one could leak the private key of your oracle. Use -f to force your action.");
 			var kValue = await Repository.GetKey(evtObj.NonceKeyPath);
-			key.ToECPrivKey().TrySignBIP140(discreteOutcome.Hash, new PrecomputedNonceFunctionHardened(kValue.ToECPrivKey().ToBytes()), out var sig);
+			key.ToECPrivKey().TrySignBIP340(discreteOutcome.Hash, new PrecomputedNonceFunctionHardened(kValue.ToECPrivKey().ToBytes()), out var sig);
 			var oracleAttestation = new Key(sig!.s.ToBytes());
 			if (await Repository.AddAttestation(evtId, oracleAttestation) != new DiscreteOutcome(outcome))
 				throw new InvalidOperationException("Error while validating reveal");

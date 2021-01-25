@@ -103,7 +103,7 @@ namespace NDLC.Secp256k1
 			sha.Write(pk_buf);
 			sha.Write(msg32);
 			sha.GetHash(buf);
-			if (!pubkey.TryMultTweak(buf, out var pubkey_ge) || pubkey_ge is null)
+			if (!pubkey.TryTweakMul(buf, out var pubkey_ge) || pubkey_ge is null)
 				return false;
 
 			var nonce_ge = nonce.PubKey.Q;
